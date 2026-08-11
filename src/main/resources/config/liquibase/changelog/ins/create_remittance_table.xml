@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="create_SEQ_INS_PERFORMA_GOOD_ITEM" author="soheil babadi">
+    <changeSet id="20250801-01-create-seq-ins-performa-good-item" author="soheil babadi">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"/>
@@ -20,7 +20,7 @@
     </changeSet>
 
 
-    <changeSet id="create_SEQ_INS_REMITTANCE" author="soheil babadi">
+    <changeSet id="20250801-02-create-seq-ins-remittance" author="soheil babadi">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="SEQ_INS_REMITTANCE"/>
@@ -34,7 +34,7 @@
                 incrementBy="1"/>
     </changeSet>
 
-    <changeSet id="create_T_INS_REMITTANCE_GOOD_ITEM" author="soheil babadi">
+    <changeSet id="20250801-03-create-t-ins-remittance-good-item" author="soheil babadi">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="T_INS_REMITTANCE_GOOD_ITEM"/>
@@ -99,7 +99,7 @@
                 constraintName="PK_T_INS_REMITTANCE_GOOD_ITEM"/>
     </changeSet>
 
-    <changeSet id="create_T_INS_REMITTANCE_MASTER" author="soheil babadi">
+    <changeSet id="20250801-04-create-t-ins-remittance-master" author="soheil babadi">
 
         <preConditions onFail="MARK_RAN">
             <not>
@@ -268,7 +268,7 @@
                 constraintName="PK_T_INS_REMITTANCE_MASTER"/>
     </changeSet>
 
-    <changeSet id="4" author="soheil babadi">
+    <changeSet id="20250801-05-fk-remittance-good-item-performa-detail" author="soheil babadi">
         <comment>Add foreign key constraint from remittance good item to performa detail</comment>
 
         <addForeignKeyConstraint

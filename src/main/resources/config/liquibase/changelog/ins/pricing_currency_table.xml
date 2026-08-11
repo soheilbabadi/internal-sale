@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
 
-    <changeSet id="create_pricing_currency_table" author="soheil babadi">
+    <changeSet id="20250802-01-create-pricing-currency-table" author="soheil babadi">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="T_INS_PRICE_CURRENCY"/>
@@ -47,7 +47,7 @@
     </changeSet>
 
 
-    <changeSet id="1756101926463rrr-1" author="soheil">
+    <changeSet id="20250802-02-create-seq-ins-price-currency" author="soheil">
         <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="hibernate_sequence"/>
@@ -56,7 +56,7 @@
         <createSequence incrementBy="1" sequenceName="SEQ_INS_PRICE_CURRENCY" startValue="1"/>
     </changeSet>
 
-    <changeSet id="20250420-create-table-t-ins-price-currency" author="nicico">
+    <changeSet id="20250802-03-create-table-t-ins-price-currency-type" author="nicico">
 
         <preConditions onFail="MARK_RAN">
             <not>
