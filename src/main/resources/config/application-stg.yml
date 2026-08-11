@@ -1,0 +1,83 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//172.16.180.49:1521/pdb_stg
+    username: stg_ime
+    password: stgime
+  jpa:
+    show-sql: true
+  redis:
+    host: staging.icico.net.ir
+    password: nicico
+  liquibase:
+    enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          oserver:
+            client-id: ${spring.application.name}
+            client-secret: password
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            scope: user_info
+        provider:
+          oserver:
+            authorization-uri: http://staging.icico.net.ir/oauth/authorize
+            token-uri: http://staging.icico.net.ir/oauth/token
+            user-info-uri: http://staging.icico.net.ir/user/info
+            user-name-attribute: username
+nicico:
+  swagger: http://staging.icico.net.ir/oauth/token
+  pdf-api: http://pdf-convertor:8080/pdf-convertor
+  mail-service-url: http://staging.icico.net.ir/message/api/mail/nicico/v2
+  bcc-address: minaramezani@nicico.com
+  lc-bcc-address: hassani_hos@nicico.com
+  terminate-remittance: tehransaleoffice@nicico.com
+  crm-link: http://staging.icico.net.ir/sso/api/user-request-application/my-approved-company-requests
+
+  bpmn:
+    client:
+      url: http://staging.icico.net.ir/bpmn/api/v2
+ui:
+  landing-address: http://staging.icico.net.ir/internal-sales
+  redirect-address: http://staging.icico.net.ir/internal-sales/
+pms:
+  pre-factor:
+    default-pms-user: jafari-h
+  remittance:
+    title-base: " تست محیط stg ارسالی سامانه فروش: مقدار "
+rabbitmq:
+  config:
+    pms:
+      exchange: internal.sales
+      queues:
+        pre-factor:
+          name: internal.sales.pre-factor
+          response-queue: stg.internal.sales.retry-pre-factor
+          response-routing-key: stg-response-pre-factor
+          routing-key: pre-factor
+        lc:
+          name: internal.sales.lc
+          response-queue: stg.internal.sales.retry-lc
+          response-routing-key: stg-response-lc
+          routing-key: lc
+          update-response-queue: stg.internal.sales.retry-update-lc
+          update-response-routing-key: stg-response-update-lc
+          update-queue: internal.sales.update-lc
+        havaleh:
+          name: internal.sales.havaleh
+          response-queue: stg.internal.sales.retry-havaleh
+          response-routing-key: stg-response-havaleh
+          update-response-queue: stg.internal.sales.retry-update-havaleh
+          routing-key: havaleh
+        bank:
+          name: internal.sales.bank
+          response-queue: stg.internal.sales.response-bank
+          response-routing-key: stg-response-bank
+          routing-key: bank
+        customer:
+          name: internal.sales.customer
+          response-queue: stg.internal.sales.response-customer
+          response-routing-key: stg-response-customer
+          retry-routing-key: retry-customer
+          routing-key: customer

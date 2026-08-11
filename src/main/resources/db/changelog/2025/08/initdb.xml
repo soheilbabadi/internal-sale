@@ -1,0 +1,2100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="create-sequence-hibernate" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="hibernate_sequence"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="hibernate_sequence" startValue="1"/>
+    </changeSet>
+
+    <changeSet id="create-sequence-seq-ins-bank-branch" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_bank_branch"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_bank_branch" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-contract-percent" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_contract_percent"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_contract_percent" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-customer" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_customer"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_customer" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-customer-contact" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_customer_contact"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_customer_contact" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-goods" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_goods"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_goods" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-goods-bucket" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_goods_bucket"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_goods_bucket" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-loading" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_loading"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_loading" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-performa-detail" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_performa_detail"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_performa_detail" startValue="1"/>
+    </changeSet>
+
+    <changeSet id="create-sequence-seq-ins-lc" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_INS_LC"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="SEQ_INS_LC" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-performa-good-item" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_performa_good_item"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_performa_good_item" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-performa-master" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_performa_master"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_performa_master" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-process-user-access" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_process_user_access"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_process_user_access" startValue="1"/>
+    </changeSet>
+
+    <changeSet id="create-sequence-seq-ins-remittance" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_remittance"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_remittance" startValue="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-sale-condition" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="seq_ins_sale_condition"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="seq_ins_sale_condition" startValue="1"/>
+    </changeSet>
+
+    <changeSet id="create-table-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="revinfo"/>
+            </not>
+        </preConditions>
+        <createTable tableName="revinfo">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_revinfo"/>
+            </column>
+            <column name="revtstmp" type="BIGINT"/>
+            <column name="username" type="VARCHAR2(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-bank-base" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_bank_base"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_bank_base">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_bank_base"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_bank_code" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_bank_title" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_base_nosa_code" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_national_code" type="VARCHAR2(15)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-bank-base-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_bank_base_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_bank_base_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_bank_base_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_bank_base_aud"/>
+            </column>
+            <column name="c_bank_code" type="VARCHAR2(50)"/>
+            <column name="c_bank_title" type="VARCHAR2(100)"/>
+            <column name="c_base_nosa_code" type="VARCHAR2(50)"/>
+            <column name="c_national_code" type="VARCHAR2(15)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-table-t-ins-customer" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_customer"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_customer">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_customer"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_name" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_name_en" type="VARCHAR2(100)"/>
+            <column name="c_national_code" type="VARCHAR2(15)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="c_pms_customer_code" type="VARCHAR2(255)"/>
+            <column name="n_ime_customer_code" type="BIGINT"/>
+            <column name="c_phone" type="VARCHAR2(255)"/>
+            <column name="c_economic_code" type="VARCHAR2(50)"/>
+            <column name="c_register_number" type="VARCHAR2(255)"/>
+            <column name="c_post_code" type="VARCHAR2(10)"/>
+            <column name="c_email" type="VARCHAR2(100)"/>
+            <column name="c_mobile" type="VARCHAR2(11)"/>
+            <column name="c_coordinator" type="VARCHAR2(100)"/>
+            <column name="c_address" type="VARCHAR2(4000)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-customer-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_customer_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_customer_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_customer_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_customer_aud"/>
+            </column>
+            <column name="c_name" type="VARCHAR2(100)"/>
+            <column name="c_name_en" type="VARCHAR2(100)"/>
+            <column name="c_national_code" type="VARCHAR2(15)"/>
+            <column name="c_pms_customer_code" type="VARCHAR2(255)"/>
+            <column name="n_ime_customer_code" type="BIGINT"/>
+            <column name="c_phone" type="VARCHAR2(255)"/>
+            <column name="c_economic_code" type="VARCHAR2(50)"/>
+            <column name="c_register_number" type="VARCHAR2(255)"/>
+            <column name="c_post_code" type="VARCHAR2(10)"/>
+            <column name="c_email" type="VARCHAR2(100)"/>
+            <column name="c_mobile" type="VARCHAR2(11)"/>
+            <column name="c_coordinator" type="VARCHAR2(100)"/>
+            <column name="c_address" type="VARCHAR2(4000)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-customer-contact" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_customer_contact"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_customer_contact">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_customer_contact"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_phone" type="VARCHAR2(255)"/>
+            <column name="c_post_code" type="VARCHAR2(10)"/>
+            <column name="c_email" type="VARCHAR2(100)"/>
+            <column name="c_mobile" type="VARCHAR2(11)"/>
+            <column name="c_coordinator" type="VARCHAR2(100)"/>
+            <column name="c_address" type="VARCHAR2(4000)"/>
+            <column name="n_customer_id" type="BIGINT"/>
+            <column name="is_valid" type="NUMBER(1)" defaultValue="0"/>
+            <column name="is_default" type="NUMBER(1)" defaultValue="0"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-customer-contact-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_customer_contact_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_customer_contact_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_customer_contact_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_customer_contact_aud"/>
+            </column>
+            <column name="c_phone" type="VARCHAR2(255)"/>
+            <column name="c_post_code" type="VARCHAR2(10)"/>
+            <column name="c_email" type="VARCHAR2(100)"/>
+            <column name="c_mobile" type="VARCHAR2(11)"/>
+            <column name="c_coordinator" type="VARCHAR2(100)"/>
+            <column name="c_address" type="VARCHAR2(4000)"/>
+            <column name="n_customer_id" type="BIGINT"/>
+            <column name="is_valid" type="NUMBER(1)" defaultValue="0"/>
+            <column name="is_default" type="NUMBER(1)" defaultValue="0"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-dates" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_dates"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_dates">
+            <column name="id" type="INT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_dates"/>
+            </column>
+            <column name="short_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="long_date" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="day_of_week" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="month_name" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="day_in_year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="week_in_year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gregorian_month" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gregorian_days_in_month" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gregorian_day" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quarter" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gregorian_year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="persian_short_date" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="persian_long_date" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="persian_day" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="persian_month" type="INT"/>
+            <column name="persian_year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="persian_weekday_name" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="persian_month_name" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_leap_year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hijri_short_date" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hijri_long_date" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hijri_day" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hijri_month" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hijri_year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hijri_month_name" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_weekend" type="NUMBER(1)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_holiday" type="NUMBER(1)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-goods" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_goods"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_goods">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_goods"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_name" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_ime_commodity_id" type="BIGINT">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="n_ime_commodity_parent_id" type="BIGINT"/>
+            <column name="c_ime_commodity_symbol" type="VARCHAR2(100)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-goods-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_goods_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_goods_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_goods_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_goods_aud"/>
+            </column>
+            <column name="c_name" type="VARCHAR2(255)"/>
+            <column name="n_ime_commodity_id" type="BIGINT"/>
+            <column name="n_ime_commodity_parent_id" type="BIGINT"/>
+            <column name="c_ime_commodity_symbol" type="VARCHAR2(100)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-goods-bucket" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_goods_bucket"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_goods_bucket">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_goods_bucket"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_good_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_IME_COMMODITY_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_IME_COMMODITY_SYMBOL" type="VARCHAR2(100)"/>
+            <column name="c_good_name" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_packaging_size" type="DECIMAL"/>
+            <column name="c_packing_name" type="VARCHAR2(100)"/>
+            <column name="n_packing_id" type="INT"/>
+            <column name="n_cash_percentage" type="DECIMAL"/>
+            <column name="n_commission" type="DECIMAL(10,5)"/>
+            <column name="d_start_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_expire_date" type="DATETIME"/>
+            <column name="n_divisibility_check" type="DECIMAL"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-goods-bucket-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_goods_bucket_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_goods_bucket_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_goods_bucket_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_goods_bucket_aud"/>
+            </column>
+            <column name="n_good_id" type="BIGINT"/>
+            <column name="N_IME_COMMODITY_ID" type="BIGINT"/>
+            <column name="C_IME_COMMODITY_SYMBOL" type="VARCHAR2(100)"/>
+            <column name="c_good_name" type="VARCHAR2(100)"/>
+            <column name="n_packaging_size" type="DECIMAL"/>
+            <column name="c_packing_name" type="VARCHAR2(100)"/>
+            <column name="n_packing_id" type="INT"/>
+            <column name="n_cash_percentage" type="DECIMAL"/>
+            <column name="n_commission" type="DECIMAL(10,5)"/>
+            <column name="d_start_date" type="DATETIME"/>
+            <column name="d_expire_date" type="DATETIME"/>
+            <column name="n_divisibility_check" type="DECIMAL"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-issue-place" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_issue_place"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_issue_place">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_issue_place"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_place_title" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_place_value" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-issue-place-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_issue_place_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_issue_place_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_issue_place_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_issue_place_aud"/>
+            </column>
+            <column name="c_place_title" type="VARCHAR2(255)"/>
+            <column name="c_place_value" type="VARCHAR2(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-issuing-banks" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_issuing_banks"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_issuing_banks">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_issuing_banks"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_bank_name" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_branch_name" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_branch_code" type="VARCHAR2(200)"/>
+            <column name="c_province" type="VARCHAR2(200)"/>
+            <column name="c_city" type="VARCHAR2(200)"/>
+            <column name="c_bank_code" type="VARCHAR2(50)"/>
+            <column name="c_base_nosa_code" type="VARCHAR2(50)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-issuing-banks-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_issuing_banks_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_issuing_banks_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_issuing_banks_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_issuing_banks_aud"/>
+            </column>
+            <column name="c_bank_name" type="VARCHAR2(200)"/>
+            <column name="c_branch_name" type="VARCHAR2(200)"/>
+            <column name="c_branch_code" type="VARCHAR2(200)"/>
+            <column name="c_province" type="VARCHAR2(200)"/>
+            <column name="c_city" type="VARCHAR2(200)"/>
+            <column name="c_bank_code" type="VARCHAR2(50)"/>
+            <column name="c_base_nosa_code" type="VARCHAR2(50)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-lc" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_lc"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_lc">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_lc"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_performa_no" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_performa_date" type="VARCHAR2(255)"/>
+            <column name="n_contract_no" type="BIGINT"/>
+            <column name="c_lc_no" type="VARCHAR2(255)"/>
+            <column name="d_lc_date" type="DATETIME"/>
+            <column name="N_TRADING_BANK_ID" type="BIGINT"/>
+            <column name="C_TRADING_BANK_TITLE" type="VARCHAR2(255)"/>
+            <column name="C_TRADING_BRANCH_TITLE" type="VARCHAR2(255)"/>
+            <column name="n_credit_expire_period" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_payment_deferral" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_deadline_days" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_workflow_approve_status" type="VARCHAR2(100)"/>
+            <column name="c_process_id" type="VARCHAR2(50)" defaultValue="-">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_lc_expiry_date" type="DATETIME"/>
+            <column name="d_settlement_due_date" type="DATETIME"/>
+            <column name="n_issuer_bank_id" type="BIGINT"/>
+            <column name="c_issuer_bank_name" type="VARCHAR2(100)"/>
+            <column name="c_issuer_bank_branch_name" type="VARCHAR2(200)"/>
+            <column name="c_issuer_bank_code" type="VARCHAR2(200)"/>
+            <column name="c_lc_file_id" type="VARCHAR2(100)"/>
+            <column name="c_dispatch_file_id" type="VARCHAR2(100)"/>
+            <column name="c_proforma_file_id" type="VARCHAR2(100)"/>
+            <column name="n_proforma_master_id" type="BIGINT"/>
+            <column name="n_proforma_detail_id" type="BIGINT"/>
+            <column name="c_lc_instance_id" type="VARCHAR2(100)"/>
+            <column name="is_require_dispatch_file" type="NUMBER(1)" defaultValue="0"/>
+            <column name="c_notification_document_id" type="VARCHAR2(100)"/>
+            <column name="c_nosa_code" type="VARCHAR2(100)"/>
+            <column name="c_payment_code" type="VARCHAR2(255)"/>
+            <column name="c_pms_lc_id" type="VARCHAR2(255)"/>
+            <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)" defaultValue="UNKNOWN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="IS_RECKONING_SEND" type="NUMBER(1)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_RECKONING_SEND_DATE" type="DATETIME">
+                <constraints nullable="true"/>
+            </column>
+            <column name="C_CANCELLATION_REASON" type="VARCHAR2(50)"/>
+            <column name="D_CANCEL_DATE" type="DATETIME"/>
+            <column name="c_contract_date" type="VARCHAR2(20)"/>
+            <column name="N_BROKER_ID" type="NUMBER(38,0)"/>
+            <column name="C_BROKER_NAME" type="VARCHAR2(100)"/>
+            <column name="C_BROKER_NATIONAL_CODE" type="VARCHAR2(100)"/>
+            <column name="n_customer_id" type="NUMBER(38,0)"/>
+            <column name="c_customer_name" type="VARCHAR2(100)"/>
+            <column name="n_total_quantity" type="DECIMAL"/>
+            <column name="n_total_final_amount" type="DECIMAL"/>
+            <column name="C_OFFER_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="c_ime_commodity_symbol" type="VARCHAR2(100)"/>
+            <column name="N_GOOD_ID" type="NUMBER(38,0)"/>
+            <column name="C_GOOD_NAME" type="VARCHAR2(100)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-lc-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_lc_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_lc_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_lc_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_lc_aud"/>
+            </column>
+            <column name="c_performa_no" type="VARCHAR2(255)"/>
+            <column name="c_performa_date" type="VARCHAR2(255)"/>
+            <column name="n_contract_no" type="BIGINT"/>
+            <column name="c_lc_no" type="VARCHAR2(255)"/>
+            <column name="d_lc_date" type="DATETIME"/>
+            <column name="N_TRADING_BANK_ID" type="BIGINT"/>
+            <column name="C_TRADING_BANK_TITLE" type="VARCHAR2(255)"/>
+            <column name="C_TRADING_BRANCH_TITLE" type="VARCHAR2(255)"/>
+            <column name="n_credit_expire_period" type="INT"/>
+            <column name="n_payment_deferral" type="INT"/>
+            <column name="n_deadline_days" type="INT"/>
+            <column name="c_workflow_approve_status" type="VARCHAR2(100)"/>
+            <column name="c_process_id" type="VARCHAR2(50)" defaultValue="-">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_lc_expiry_date" type="DATETIME"/>
+            <column name="d_settlement_due_date" type="DATETIME"/>
+            <column name="n_issuer_bank_id" type="BIGINT"/>
+            <column name="c_issuer_bank_name" type="VARCHAR2(100)"/>
+            <column name="c_issuer_bank_branch_name" type="VARCHAR2(200)"/>
+            <column name="c_issuer_bank_code" type="VARCHAR2(200)"/>
+            <column name="c_lc_file_id" type="VARCHAR2(100)"/>
+            <column name="c_dispatch_file_id" type="VARCHAR2(100)"/>
+            <column name="c_proforma_file_id" type="VARCHAR2(100)"/>
+            <column name="n_proforma_master_id" type="BIGINT"/>
+            <column name="n_proforma_detail_id" type="BIGINT"/>
+            <column name="c_lc_instance_id" type="VARCHAR2(100)"/>
+            <column name="is_require_dispatch_file" type="NUMBER(1)" defaultValue="0"/>
+            <column name="c_notification_document_id" type="VARCHAR2(100)"/>
+            <column name="c_nosa_code" type="VARCHAR2(100)"/>
+            <column name="c_payment_code" type="VARCHAR2(255)"/>
+            <column name="c_pms_lc_id" type="VARCHAR2(255)"/>
+            <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)" defaultValue="UNKNOWN"/>
+            <column name="IS_RECKONING_SEND" type="NUMBER(1)" defaultValue="0"/>
+            <column name="D_RECKONING_SEND_DATE" type="DATETIME"/>
+            <column name="C_CANCELLATION_REASON" type="VARCHAR2(50)"/>
+            <column name="D_CANCEL_DATE" type="DATETIME"/>
+            <column name="c_contract_date" type="VARCHAR2(20)"/>
+            <column name="N_BROKER_ID" type="NUMBER(38,0)"/>
+            <column name="C_BROKER_NAME" type="VARCHAR2(100)"/>
+            <column name="C_BROKER_NATIONAL_CODE" type="VARCHAR2(100)"/>
+            <column name="n_customer_id" type="NUMBER(38,0)"/>
+            <column name="c_customer_name" type="VARCHAR2(100)"/>
+            <column name="n_total_quantity" type="DECIMAL"/>
+            <column name="n_total_final_amount" type="DECIMAL"/>
+            <column name="C_OFFER_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="c_ime_commodity_symbol" type="VARCHAR2(100)"/>
+            <column name="N_GOOD_ID" type="NUMBER(38,0)"/>
+            <column name="C_GOOD_NAME" type="VARCHAR2(100)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-loading-goods" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_loading_goods"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_loading_goods">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_loading_goods"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_loading_place_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_good_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint
+                tableName="t_ins_loading_goods"
+                columnNames="n_good_id, n_loading_place_id"
+                constraintName="uk_loading_goods_unique"/>
+    </changeSet>
+    <changeSet id="create-table-t-ins-loading-goods-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_loading_goods_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_loading_goods_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_loading_goods_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_loading_goods_aud"/>
+            </column>
+            <column name="n_loading_place_id" type="BIGINT"/>
+            <column name="n_good_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-loading-place" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_loading_place"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_loading_place">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_loading_place"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_place_title" type="VARCHAR2(255)"/>
+            <column name="c_place_value" type="VARCHAR2(255)"/>
+            <column name="N_PMS_LOADING_ID" type="NUMBER(38,0)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-loading-place-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_loading_place_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_loading_place_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_loading_place_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_loading_place_aud"/>
+            </column>
+            <column name="c_place_title" type="VARCHAR2(255)"/>
+            <column name="c_place_value" type="VARCHAR2(255)"/>
+            <column name="N_PMS_LOADING_ID" type="NUMBER(38,0)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-performa-detail" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_performa_detail"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_performa_detail">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_performa_detail"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_jalaali_year" type="INT"/>
+            <column name="n_final_price" type="DECIMAL"/>
+            <column name="c_performa_no" type="VARCHAR2(255)"/>
+            <column name="d_performa_date" type="DATETIME"/>
+            <column name="c_sale_type" type="VARCHAR2(50)"/>
+            <column name="c_settlement_type" type="VARCHAR2(50)"/>
+            <column name="n_vat_amount" type="DECIMAL"/>
+            <column name="n_total_amount" type="DECIMAL"/>
+            <column name="C_PMS_ID" type="VARCHAR2(50)"/>
+            <column name="n_storage_deadline" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_storage_cost" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_credit_expire_period" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_shipping_deadline" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_payment_deferral" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_deadline_days" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_proforma_issue_type" type="VARCHAR2(255)"/>
+            <column name="c_proforma_reversal_status" type="VARCHAR2(255)"/>
+            <column name="d_order_date" type="DATETIME"/>
+            <column name="c_contract_date" type="VARCHAR2(20)"/>
+            <column name="f_performa_master_id" type="BIGINT"/>
+            <column name="N_GAM_CERTIFICATE_COUNT" type="INT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_EXTRA_BILL_OF_AMOUNT" type="DECIMAL(19,3)"  defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_EXTRA_BILL_OF_PERCENT" type="DECIMAL(19,3)" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-performa-good-item" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_performa_good_item"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_performa_good_item">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_performa_good_item"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_good_id" type="BIGINT"/>
+            <column name="c_good_name" type="VARCHAR2(100)"/>
+            <column name="n_unit_id" type="BIGINT"/>
+            <column name="n_quantity" type="DECIMAL(10,3)"/>
+            <column name="n_credit_amount" type="DECIMAL"/>
+            <column name="n_cash_amount" type="DECIMAL"/>
+            <column name="n_total_amount" type="DECIMAL"/>
+            <column name="n_vat_percent" type="DECIMAL"/>
+            <column name="n_vat_amount" type="DECIMAL"/>
+            <column name="n_vat_cash_amount" type="DECIMAL"/>
+            <column name="n_vat_credit_amount" type="DECIMAL"/>
+            <column name="n_unit_price_credit" type="DECIMAL"/>
+            <column name="n_unit_price_cash" type="DECIMAL"/>
+            <column name="n_interest_percent" type="DECIMAL(10,2)"/>
+            <column name="n_net_quantity" type="DECIMAL(10,3)"/>
+            <column name="n_final_amount" type="DECIMAL"/>
+            <column name="n_unit_price" type="DECIMAL"/>
+            <column name="n_credit_quantity" type="DECIMAL(10,3)"/>
+            <column name="c_lot_number" type="VARCHAR2(255)"/>
+            <column name="n_credit_percentage" type="DECIMAL"/>
+            <column name="f_performa_detail_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-performa-master" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_performa_master"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_performa_master">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_performa_master"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_id" type="VARCHAR2(50)" defaultValue="-">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_reversal_process_id" type="VARCHAR2(50)"/>
+            <column name="n_contract_no" type="BIGINT"/>
+            <column name="c_payment_code" type="VARCHAR2(255)"/>
+            <column name="n_cash_percentage" type="DECIMAL"/>
+            <column name="n_commission_percentage" type="DECIMAL(10,5)"/>
+            <column name="n_deadline_days" type="INT"/>
+            <column name="n_credit_percentage" type="DECIMAL"/>
+            <column name="n_total_vat_amount" type="DECIMAL"/>
+            <column name="n_total_final_amount" type="DECIMAL"/>
+            <column name="n_total_cash_amount" type="DECIMAL"/>
+            <column name="n_total_credit_amount" type="DECIMAL"/>
+            <column name="n_total_quantity" type="DECIMAL"/>
+            <column name="n_customer_id" type="BIGINT"/>
+            <column name="c_customer_name" type="VARCHAR2(255)"/>
+            <column name="c_national_code" type="VARCHAR2(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_phone" type="VARCHAR2(255)"/>
+            <column name="c_economic_code" type="VARCHAR2(50)"/>
+            <column name="c_register_number" type="VARCHAR2(50)"/>
+            <column name="c_post_code" type="VARCHAR2(10)"/>
+            <column name="c_address" type="VARCHAR2(4000)"/>
+            <column name="c_workflow_approve_status" type="VARCHAR2(100)"/>
+            <column name="c_proforma_issue_type" type="VARCHAR2(255)"/>
+            <column name="n_good_id" type="BIGINT"/>
+            <column name="c_good_name" type="VARCHAR2(100)"/>
+            <column name="IS_PROCESS_FINAL" type="NUMBER(1)" defaultValue="0"/>
+            <column name="C_CONTRACT_DATE" type="VARCHAR2(20)"/>
+            <column name="F_TRADE_ID" type="BIGINT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_BROKER_ID" type="NUMBER(38,0)"/>
+            <column name="C_BROKER_NAME" type="VARCHAR2(100)"/>
+            <column name="C_BROKER_NATIONAL_CODE" type="VARCHAR2(100)"/>
+            <column name="C_OFFER_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="C_IME_COMMODITY_SYMBOL" type="VARCHAR2(100)"/>
+            <column name="C_SETTLEMENT_TYPE" type="VARCHAR2(50)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-precious-metal" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_precious_metal"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_precious_metal">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_precious_metal"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_name" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_ime_commodity_id" type="BIGINT"/>
+            <column name="c_ime_commodity_symbol" type="VARCHAR2(100)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-precious-metal-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_precious_metal_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_precious_metal_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_precious_metal_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_precious_metal_aud"/>
+            </column>
+            <column name="c_name" type="VARCHAR2(255)"/>
+            <column name="n_ime_commodity_id" type="BIGINT"/>
+            <column name="c_ime_commodity_symbol" type="VARCHAR2(100)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-process-user-access" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_process_user_access"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_process_user_access">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_process_user_access"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_id" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_title" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_local_title" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_variable" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_variable_title" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_username" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_full_name" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_national_code" type="VARCHAR2(10)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint
+                tableName="t_ins_process_user_access"
+                columnNames="c_username, c_process_title, c_process_variable"
+                constraintName="uq_ins_process_user_access"/>
+    </changeSet>
+    <changeSet id="create-table-t-ins-process-user-access-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_process_user_access_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_process_user_access_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_process_user_access_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_process_user_access_aud"/>
+            </column>
+            <column name="c_process_id" type="VARCHAR2(50)" defaultValue="-">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_title" type="VARCHAR2(100)"/>
+            <column name="c_process_local_title" type="VARCHAR2(200)"/>
+            <column name="c_process_variable" type="VARCHAR2(200)"/>
+            <column name="c_process_variable_title" type="VARCHAR2(200)"/>
+            <column name="n_user_id" type="BIGINT"/>
+            <column name="c_username" type="VARCHAR2(100)"/>
+            <column name="c_full_name" type="VARCHAR2(200)"/>
+            <column name="c_national_code" type="VARCHAR2(10)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-sale-condition" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_sale_condition"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_sale_condition">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_sale_condition"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_start_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_expire_date" type="DATETIME"/>
+            <column name="n_storage_deadline" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_storage_cost" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_credit_expire_period" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_shipping_deadline" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_payment_deferral" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_good_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_good_name" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_IME_COMMODITY_ID" type="BIGINT"/>
+            <column name="C_IME_COMMODITY_SYMBOL" type="VARCHAR2(100)"/>
+            <column name="N_EXTRA_BILL_OF_EXCHANGE_PERCENT" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_EXTRA_GAM_CERTIFICATE_PERCENT" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-sale-condition-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_sale_condition_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_sale_condition_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_sale_condition_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_sale_condition_aud"/>
+            </column>
+            <column name="d_start_date" type="DATETIME"/>
+            <column name="d_expire_date" type="DATETIME"/>
+            <column name="n_storage_deadline" type="INT"/>
+            <column name="n_storage_cost" type="DECIMAL(10,2)"/>
+            <column name="n_credit_expire_period" type="INT"/>
+            <column name="n_shipping_deadline" type="INT"/>
+            <column name="n_payment_deferral" type="INT"/>
+            <column name="n_good_id" type="BIGINT"/>
+            <column name="c_good_name" type="VARCHAR2(255)"/>
+            <column name="N_IME_COMMODITY_ID" type="BIGINT"/>
+            <column name="C_IME_COMMODITY_SYMBOL" type="VARCHAR2(100)"/>
+            <column name="N_EXTRA_BILL_OF_EXCHANGE_PERCENT" type="DECIMAL(10,2)"/>
+            <column name="N_EXTRA_GAM_CERTIFICATE_PERCENT" type="DECIMAL(10,2)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-sale-process" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_sale_process"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_sale_process">
+            <column name="id" type="VARCHAR2(100)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_sale_process"/>
+            </column>
+            <column name="process_definition_id" type="VARCHAR2(100)"/>
+            <column name="process_definition_name" type="VARCHAR2(100)"/>
+            <column name="process_definition_key" type="VARCHAR2(100)"/>
+            <column name="process_definition_version" type="INT"/>
+            <column name="deployment_id" type="VARCHAR2(100)"/>
+            <column name="business_key" type="VARCHAR2(100)"/>
+            <column name="is_suspended" type="NUMBER(1)" defaultValue="0"/>
+            <column name="tenant_id" type="VARCHAR2(100)"/>
+            <column name="name" type="VARCHAR2(100)"/>
+            <column name="description" type="VARCHAR2(500)"/>
+            <column name="localized_name" type="VARCHAR2(100)"/>
+            <column name="localized_description" type="VARCHAR2(500)"/>
+            <column name="start_time" type="DATETIME"/>
+            <column name="start_user_id" type="VARCHAR2(100)"/>
+            <column name="callback_id" type="VARCHAR2(100)"/>
+            <column name="callback_type" type="VARCHAR2(100)"/>
+            <column name="c_process_id" type="VARCHAR2(50)"/>
+            <column name="owner_entity_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-tax-vat" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_tax_vat"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_tax_vat">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_tax_vat"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="jalali_year" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EMISSION_TAX" type="DECIMAL"/>
+            <column name="tax_coefficient" type="DECIMAL"/>
+            <column name="vat_coefficient" type="DECIMAL"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-tax-vat-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_tax_vat_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_tax_vat_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_tax_vat_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_tax_vat_aud"/>
+            </column>
+            <column name="jalali_year" type="INT"/>
+            <column name="EMISSION_TAX" type="DECIMAL"/>
+            <column name="tax_coefficient" type="DECIMAL"/>
+            <column name="vat_coefficient" type="DECIMAL"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-trading-bank" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_trading_bank"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_trading_bank">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_trading_bank"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_bank_title" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_branch_title" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_branch_code" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_account_number" type="VARCHAR2(100)"/>
+            <column name="c_iban" type="VARCHAR2(26)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-trading-bank-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_trading_bank_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_trading_bank_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_trading_bank_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_trading_bank_aud"/>
+            </column>
+            <column name="c_bank_title" type="VARCHAR2(255)"/>
+            <column name="c_branch_title" type="VARCHAR2(255)"/>
+            <column name="c_branch_code" type="VARCHAR2(255)"/>
+            <column name="c_account_number" type="VARCHAR2(100)"/>
+            <column name="c_iban" type="VARCHAR2(26)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-workflow" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_workflow"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_workflow">
+            <column name="id" type="VARCHAR2(100)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_workflow"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_title" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_local_title" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_process_version" type="INT"/>
+            <column name="c_tenant_id" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_process_definition_key" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-pms-mapping" author="soheil.babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_PMS_MAPPING"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_PMS_MAPPING">
+            <column name="N_PMS_ID" type="BIGINT">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="PK_T_INS_PMS_MAPPING"/>
+            </column>
+            <column name="C_GOOD_NAME" type="VARCHAR2(255)"/>
+            <column name="C_PMS_NAME" type="VARCHAR2(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-performa-good-item-v2" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"/>
+            </not>
+        </preConditions>
+        <createSequence
+                sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"
+                startValue="1"
+                incrementBy="1"/>
+    </changeSet>
+    <changeSet id="create-sequence-seq-ins-remittance-v2" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_INS_REMITTANCE"/>
+            </not>
+        </preConditions>
+        <createSequence
+                sequenceName="SEQ_INS_REMITTANCE"
+                startValue="1"
+                incrementBy="1"/>
+    </changeSet>
+    <changeSet id="create-table-t-ins-remittance-good-item" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_REMITTANCE_GOOD_ITEM"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_REMITTANCE_GOOD_ITEM">
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="PK_T_INS_REMITTANCE_GOOD_ITEM"/>
+            </column>
+            <column name="D_CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="N_VERSION" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_GOOD_ID" type="NUMBER(38,0)"/>
+            <column name="C_GOOD_NAME" type="VARCHAR2(100)"/>
+            <column name="N_UNIT_ID" type="NUMBER(38,0)"/>
+            <column name="N_QUANTITY" type="DECIMAL(10,3)"/>
+            <column name="N_CREDIT_AMOUNT" type="DECIMAL"/>
+            <column name="N_CASH_AMOUNT" type="DECIMAL"/>
+            <column name="N_TOTAL_AMOUNT" type="DECIMAL"/>
+            <column name="N_VAT_AMOUNT" type="DECIMAL"/>
+            <column name="N_UNIT_PRICE_CREDIT" type="DECIMAL"/>
+            <column name="N_UNIT_PRICE_CASH" type="DECIMAL"/>
+            <column name="N_NET_QUANTITY" type="DECIMAL(10,3)"/>
+            <column name="N_FINAL_AMOUNT" type="DECIMAL"/>
+            <column name="N_UNIT_PRICE" type="DECIMAL"/>
+            <column name="N_CREDIT_QUANTITY" type="DECIMAL(10,3)"/>
+            <column name="C_LOT_NUMBER" type="VARCHAR2(255)"/>
+            <column name="N_CREDIT_PERCENTAGE" type="DECIMAL"/>
+            <column name="F_REMITTANCE_ID" type="NUMBER(38,0)"/>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-remittance-master" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_REMITTANCE_MASTER"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_REMITTANCE_MASTER">
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="PK_T_INS_REMITTANCE_MASTER"/>
+            </column>
+            <column name="D_CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="N_VERSION" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_REMITTANCE_NO" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_REMITTANCE_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_VALIDITY_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_CUSTOMER_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_CUSTOMER_NAME" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_ECONOMIC_CODE" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_NATIONAL_CODE" type="VARCHAR2(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_TARGET_ADDRESS" type="VARCHAR2(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_LOADING_PORT_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LOADING_PORT" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_GOOD_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_GOOD_NAME" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_PACKING_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_PACKING_ID" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LOT_NUMBER" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_CONTRACT_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_CONTRACT_NO" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_SELLER_BROKER_NAME" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_BUYER_BROKER_NAME" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_CASH_PERCENTAGE" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_CREDIT_PERCENTAGE" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_QUANTITY" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_QUANTITY_CASH" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_QUANTITY_CREDIT" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_UNIT_PRICE_CASH" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_UNIT_PRICE_CREDIT" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_LC_EXPIRY_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_SETTLEMENT_DUE_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_TRADING_BANK_ID" type="NUMBER(38,0)"/>
+            <column name="C_TRADING_BANK_TITLE" type="VARCHAR2(100)"/>
+            <column name="C_TRADING_BRANCH_TITLE" type="VARCHAR2(100)"/>
+            <column name="N_ISSUER_BANK_ID" type="NUMBER(38,0)"/>
+            <column name="C_ISSUER_BANK_NAME" type="VARCHAR2(200)"/>
+            <column name="C_ISSUER_BANK_BRANCH_NAME" type="VARCHAR2(200)"/>
+            <column name="C_ISSUER_BANK_CODE" type="VARCHAR2(200)"/>
+            <column name="C_PROCESS_ID" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_WORKFLOW_APPROVE_STATUS" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_PROFORMA_MASTER_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_PROFORMA_DETAIL_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_LC_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LC_NO" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_ISSUE_PLACE_ID" type="NUMBER(38,0)"/>
+            <column name="C_ISSUE_PLACE" type="VARCHAR2(50)"/>
+            <column name="C_PROFORMA_NO" type="VARCHAR2(50)"/>
+            <column name="D_PROFORMA_DATE" type="DATETIME"/>
+            <column name="C_PROFORMA_ISSUE_TYPE" type="VARCHAR2(255)"/>
+            <column name="C_ISSUE_SOURCE_TYPE" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_ISSUER_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_ISSUER_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="IS_PROCESS_FINAL" type="NUMBER(1)"/>
+            <column name="C_PAYMENT_CODE" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_TRADE_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="IS_DELAY_PENALTY" type="NUMBER(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_PMS_ID" type="VARCHAR2(50)"/>
+            <column name="C_SETTLEMENT_TYPE" type="VARCHAR2(100)"/>
+            <column name="C_SETTLEMENT_TYPE_DESC" type="VARCHAR2(100)"/>
+            <column name="N_BROKER_ID" type="NUMBER(38,0)"/>
+            <column name="C_BROKER_NAME" type="VARCHAR2(100)"/>
+            <column name="C_BROKER_NATIONAL_CODE" type="VARCHAR2(100)"/>
+            <column name="n_customer_id" type="NUMBER(38,0)"/>
+            <column name="c_customer_name" type="VARCHAR2(100)"/>
+            <column name="n_total_quantity" type="DECIMAL"/>
+            <column name="n_total_final_amount" type="DECIMAL"/>
+            <column name="C_OFFER_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="c_ime_commodity_symbol" type="VARCHAR2(100)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-pms-mapping-v2" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_pms_mapping"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_pms_mapping">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_pms_mapping"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="n_pms_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_good_name" type="VARCHAR2(255)"/>
+            <column name="c_pms_name" type="VARCHAR2(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-table-t-ins-pms-mapping-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_pms_mapping_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_pms_mapping_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_pms_mapping_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_pms_mapping_aud"/>
+            </column>
+            <column name="n_pms_id" type="BIGINT"/>
+            <column name="c_good_name" type="VARCHAR2(255)"/>
+            <column name="c_pms_name" type="VARCHAR2(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="add-fk-customer-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_CUSTOMER_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_customer_aud"
+                                 constraintName="FK_T_INS_CUSTOMER_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-customer-contact-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_CUSTOMER_CONTACT_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_customer_contact_aud"
+                                 constraintName="FK_T_INS_CUSTOMER_CONTACT_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-goods-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_GOODS_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_goods_aud"
+                                 constraintName="FK_T_INS_GOODS_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-goods-bucket-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_GOODS_BUCKET_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_goods_bucket_aud"
+                                 constraintName="FK_T_INS_GOODS_BUCKET_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-issue-place-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_ISSUE_PLACE_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_issue_place_aud"
+                                 constraintName="FK_T_INS_ISSUE_PLACE_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-issuing-banks-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_ISSUING_BANKS_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_issuing_banks_aud"
+                                 constraintName="FK_T_INS_ISSUING_BANKS_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-lc-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_LC_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_lc_aud"
+                                 constraintName="FK_T_INS_LC_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-loading-goods-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_LOADING_GOODS_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_loading_goods_aud"
+                                 constraintName="FK_T_INS_LOADING_GOODS_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-loading-place-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_LOADING_PLACE_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_loading_place_aud"
+                                 constraintName="FK_T_INS_LOADING_PLACE_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-performa-detail-master" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_PERFORMA_DETAIL_ON_F_PERFORMA_MASTER"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="f_performa_master_id" baseTableName="t_ins_performa_detail"
+                                 constraintName="FK_T_INS_PERFORMA_DETAIL_ON_F_PERFORMA_MASTER"
+                                 referencedColumnNames="id" referencedTableName="t_ins_performa_master"/>
+    </changeSet>
+    <changeSet id="add-fk-performa-good-item-detail" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_PERFORMA_GOOD_ITEM_ON_F_PERFORMA_DETAIL"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="f_performa_detail_id" baseTableName="t_ins_performa_good_item"
+                                 constraintName="FK_T_INS_PERFORMA_GOOD_ITEM_ON_F_PERFORMA_DETAIL"
+                                 referencedColumnNames="id" referencedTableName="t_ins_performa_detail"/>
+    </changeSet>
+    <changeSet id="add-fk-precious-metal-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_PRECIOUS_METAL_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_precious_metal_aud"
+                                 constraintName="FK_T_INS_PRECIOUS_METAL_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-process-user-access-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_PROCESS_USER_ACCESS_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_process_user_access_aud"
+                                 constraintName="FK_T_INS_PROCESS_USER_ACCESS_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-sale-condition-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_SALE_CONDITION_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_sale_condition_aud"
+                                 constraintName="FK_T_INS_SALE_CONDITION_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-tax-vat-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_TAX_VAT_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_tax_vat_aud"
+                                 constraintName="FK_T_INS_TAX_VAT_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="add-fk-trading-bank-aud-revinfo" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_TRADING_BANK_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_trading_bank_aud"
+                                 constraintName="FK_T_INS_TRADING_BANK_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+    <changeSet id="create-index-t-ins-issuing-banks-branch-code" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_branch_code"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_branch_code"
+                     tableName="t_ins_issuing_banks">
+            <column name="c_branch_code"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="add-fk-remittance-good-item-performa-detail" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_REMITTANCE_GOOD_ITEM_ON_F_REMIITANCE"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+                baseTableName="T_INS_REMITTANCE_GOOD_ITEM"
+                baseColumnNames="F_REMITTANCE_ID"
+                constraintName="FK_T_INS_REMITTANCE_GOOD_ITEM_ON_F_REMIITANCE"
+                referencedTableName="T_INS_PERFORMA_DETAIL"
+                referencedColumnNames="ID"/>
+    </changeSet>
+    <changeSet id="create-index-performa-master-comp" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_performa_master_comp" tableName="T_INS_PERFORMA_MASTER"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_performa_master_comp" tableName="T_INS_PERFORMA_MASTER">
+            <column name="C_PROFORMA_ISSUE_TYPE"/>
+            <column name="C_WORKFLOW_APPROVE_STATUS"/>
+            <column name="C_PAYMENT_CODE"/>
+            <column name="ID"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="create-index-performa-detail-fk" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="idx_performa_detail_fk" tableName="T_INS_PERFORMA_DETAIL"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="idx_performa_detail_fk" tableName="T_INS_PERFORMA_DETAIL">
+            <column name="F_PERFORMA_MASTER_ID"/>
+            <column name="ID"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

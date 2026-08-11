@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <changeSet id="create_pricing_currency_table" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_PRICE_CURRENCY"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="T_INS_PRICE_CURRENCY">
+            <column name="PERSIAN_SHORT_DATE" type="VARCHAR2(20)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="SHORT_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DAY_OF_WEEK" type="VARCHAR2(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_USD_IRR_BUY" type="NUMBER(20,4)"/>
+            <column name="N_USD_IRR_SELL" type="NUMBER(20,4)"/>
+
+            <column name="N_EUR_IRR_SELL" type="NUMBER(20,4)"/>
+            <column name="N_EUR_IRR_BUY" type="NUMBER(20,4)"/>
+            
+            <column name="D_CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="N_VERSION" type="NUMBER(10)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+
+    </changeSet>
+
+
+    <changeSet id="1756101926463rrr-1" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="hibernate_sequence"/>
+            </not>
+        </preConditions>
+        <createSequence incrementBy="1" sequenceName="SEQ_INS_PRICE_CURRENCY" startValue="1"/>
+    </changeSet>
+
+    <changeSet id="20250420-create-table-t-ins-price-currency" author="nicico">
+
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_PRICE_CURRENCY_TYPE"/>
+            </not>
+        </preConditions>
+        <!-- ایجاد Sequence برای تولید خودکار ID -->
+
+
+        <!-- ایجاد جدول اصلی -->
+        <createTable tableName="T_INS_PRICE_CURRENCY_TYPE" >
+
+            <!-- Primary Key -->
+            <column name="ID" type="BIGINT">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="PK_T_INS_PRICE_CURRENCY_TYPE"/>
+            </column>
+
+            <!-- Business Field -->
+            <column name="C_RATE_TYPE" type="VARCHAR2(100)" >
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- BaseClassModel Fields -->
+            <column name="D_CREATED_DATE" type="TIMESTAMP(6)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="D_LAST_MODIFIED_DATE" type="TIMESTAMP(6)">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="C_CREATED_BY" type="VARCHAR2(250)" >
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)" >
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="C_COMMENT" type="VARCHAR2(4000)" >
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)" >
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="N_VERSION" type="NUMBER(10)"  defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

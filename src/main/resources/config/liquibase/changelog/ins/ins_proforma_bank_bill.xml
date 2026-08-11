@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="20260719-01-create-seq-ins-proforma-bank-bill" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_INS_PROFORMA_BANK_BILL"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="SEQ_INS_PROFORMA_BANK_BILL"
+                         startValue="1"
+                         incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="create-table-ins-proforma-bank-bill_exchange" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_proforma_bank_bill"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_proforma_bank_bill">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill"/>
+            </column>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_issuer_bank_name" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="c_branch_code" type="VARCHAR2(50)"/>
+            <column name="c_branch_name" type="VARCHAR2(200)"/>
+            <column name="c_payment_city" type="VARCHAR2(100)"/>
+            <column name="c_agent_bank_name" type="VARCHAR2(200)"/>
+            <column name="C_NOSA_CODE" type="VARCHAR2(100)"/>
+            <column name="c_sepam_code" type="VARCHAR2(100)"/>
+            <column name="c_treasury_id" type="VARCHAR2(100)"/>
+            <column name="d_issue_date" type="DATETIME"/>
+            <column name="d_due_date" type="DATETIME"/>
+            <column name="f_proforma_detail_id" type="BIGINT"/>
+            <column name="f_performa_master_id" type="BIGINT"/>
+
+            <column name="C_WORKFLOW_APPROVE_STATUS" type="VARCHAR2(100)"/>
+            <column name="C_REVERSAL_PROCESS_ID" type="VARCHAR2(50)"/>
+            <column name="C_PROCESS_ID" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="N_CONTRACT_NO" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="F_TRADE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)" defaultValue="UNKNOWN">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="IS_RECKONING_SEND" type="NUMBER(1)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="D_RECKONING_SEND_DATE" type="DATETIME">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="C_CANCELLATION_REASON" type="VARCHAR2(50)"/>
+            <column name="D_CANCEL_DATE" type="DATETIME"/>
+            <column name="C_PMS_BILL_ID" type="VARCHAR2(50)"/>
+
+
+
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-table-ins-proforma-bank-bill-exchange-aud" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="t_ins_proforma_bank_bill_aud"/>
+            </not>
+        </preConditions>
+        <createTable tableName="t_ins_proforma_bank_bill_aud">
+            <column name="rev" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill_aud"/>
+            </column>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="revtype" type="SMALLINT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill_aud"/>
+            </column>
+            <column name="c_issuer_bank_name" type="VARCHAR2(200)"/>
+
+            <column name="c_branch_code" type="VARCHAR2(50)"/>
+            <column name="c_branch_name" type="VARCHAR2(200)"/>
+            <column name="c_payment_city" type="VARCHAR2(100)"/>
+            <column name="c_agent_bank_name" type="VARCHAR2(200)"/>
+            <column name="N_AGENT_BANK_ID" type="BIGINT"/>
+            <column name="C_NOSA_CODE" type="VARCHAR2(100)"/>
+            <column name="c_sepam_code" type="VARCHAR2(100)"/>
+            <column name="c_treasury_id" type="VARCHAR2(100)"/>
+            <column name="d_issue_date" type="DATETIME"/>
+            <column name="d_due_date" type="DATETIME"/>
+            <column name="f_proforma_detail_id" type="BIGINT"/>
+            <column name="f_performa_master_id" type="BIGINT"/>
+            <column name="C_WORKFLOW_APPROVE_STATUS" type="VARCHAR2(100)"/>
+            <column name="C_REVERSAL_PROCESS_ID" type="VARCHAR2(50)"/>
+            <column name="C_PROCESS_ID" type="VARCHAR2(50)"/>
+            <column name="N_CONTRACT_NO" type="BIGINT"/>
+            <column name="F_TRADE_ID" type="BIGINT"/>
+
+
+
+            <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)"/>
+            <column name="IS_RECKONING_SEND" type="NUMBER(1)"/>
+            <column name="D_RECKONING_SEND_DATE" type="DATETIME"/>
+            <column name="C_CANCELLATION_REASON" type="VARCHAR2(50)"/>
+            <column name="D_CANCEL_DATE" type="DATETIME"/>
+            <column name="C_PMS_BILL_ID" type="VARCHAR2(50)"/>
+        </createTable>
+    </changeSet>
+
+
+
+
+
+    <changeSet id="20260719-06-idx-bank-bill-proforma-detail" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="t_ins_proforma_bank_bill"/>
+                <not>
+                    <indexExists indexName="idx_bank_bill_proforma_detail"/>
+                </not>
+            </and>
+        </preConditions>
+        <createIndex indexName="idx_bank_bill_proforma_detail" tableName="t_ins_proforma_bank_bill">
+            <column name="f_proforma_detail_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20260719-07-idx-bank-bill-proforma-master" author="soheil">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="t_ins_proforma_bank_bill"/>
+                <not>
+                    <indexExists indexName="idx_bank_bill_proforma_master"/>
+                </not>
+            </and>
+        </preConditions>
+        <createIndex indexName="idx_bank_bill_proforma_master" tableName="t_ins_proforma_bank_bill">
+            <column name="f_performa_master_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

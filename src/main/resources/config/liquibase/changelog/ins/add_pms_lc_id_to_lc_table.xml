@@ -1,0 +1,61 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<databaseChangeLog-->
+<!--        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+<!--        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"-->
+<!--        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-->
+<!--        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">-->
+<!-- <changeSet id="1404091201_addColumn_t_ins_lc_c_pms_lc_id2" author="saeb">-->
+<!--     <preConditions onFail="CONTINUE">-->
+<!--         <and>-->
+<!--             <tableExists tableName="t_ins_lc" />-->
+<!--             <not>-->
+<!--                 <columnExists tableName="t_ins_lc" columnName="c_pms_lc_id" />-->
+<!--             </not>-->
+<!--         </and>-->
+
+<!--     </preConditions>-->
+<!--     <addColumn tableName="t_ins_lc">-->
+<!--         <column name="c_pms_lc_id" type="VARCHAR2(255)" />-->
+<!--     </addColumn>-->
+<!-- </changeSet>-->
+<!--<changeSet id="140409120102_add_column_T_INS_LOADING_PLACE_N_PMS_LOADING_ID2" author="saeb">-->
+<!--     <preConditions onFail="CONTINUE">-->
+<!--         <and>-->
+<!--             <tableExists tableName="T_INS_LOADING_PLACE" />-->
+<!--             <not>-->
+<!--                 <columnExists tableName="t_ins_loading_place" columnName="n_pms_loading_id"/>-->
+<!--             </not>-->
+<!--         </and>-->
+<!--     </preConditions>-->
+<!--     <addColumn tableName="T_INS_LOADING_PLACE">-->
+<!--         <column name="N_PMS_LOADING_ID" type="NUMBER(38,0)" />-->
+<!--     </addColumn>-->
+<!-- </changeSet>-->
+<!--    <changeSet id="1404091201_addColumn_t_ins_lc_c_pms_lc_id2_aud" author="saeb">-->
+<!--        <preConditions onFail="CONTINUE">-->
+<!--            <and>-->
+<!--                <tableExists tableName="t_ins_lc_aud" />-->
+<!--                <not>-->
+<!--                    <columnExists tableName="t_ins_lc_aud" columnName="c_pms_lc_id" />-->
+<!--                </not>-->
+<!--            </and>-->
+
+<!--        </preConditions>-->
+<!--        <addColumn tableName="t_ins_lc_aud">-->
+<!--            <column name="c_pms_lc_id" type="VARCHAR2(255)" />-->
+<!--        </addColumn>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="140409120102_add_column_T_INS_LOADING_PLACE_N_PMS_LOADING_ID2_aud" author="saeb">-->
+<!--        <preConditions onFail="CONTINUE">-->
+<!--            <and>-->
+<!--                <tableExists tableName="T_INS_LOADING_PLACE_AUD" />-->
+<!--                <not>-->
+<!--                    <columnExists tableName="T_INS_LOADING_PLACE_AUD" columnName="n_pms_loading_id"/>-->
+<!--                </not>-->
+<!--            </and>-->
+<!--        </preConditions>-->
+<!--        <addColumn tableName="T_INS_LOADING_PLACE_AUD">-->
+<!--            <column name="N_PMS_LOADING_ID" type="NUMBER(38,0)" />-->
+<!--        </addColumn>-->
+<!--    </changeSet>-->
+<!--</databaseChangeLog>-->

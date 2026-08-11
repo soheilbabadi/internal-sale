@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="create_SEQ_INS_PERFORMA_GOOD_ITEM" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"/>
+            </not>
+        </preConditions>
+
+
+        <createSequence
+                sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"
+                startValue="1"
+                incrementBy="1"/>
+    </changeSet>
+
+
+    <changeSet id="create_SEQ_INS_REMITTANCE" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_INS_REMITTANCE"/>
+            </not>
+        </preConditions>
+
+
+        <createSequence
+                sequenceName="SEQ_INS_REMITTANCE"
+                startValue="1"
+                incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="create_T_INS_REMITTANCE_GOOD_ITEM" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_REMITTANCE_GOOD_ITEM"/>
+            </not>
+        </preConditions>
+
+
+        <createTable tableName="T_INS_REMITTANCE_GOOD_ITEM">
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="D_CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="N_VERSION" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_GOOD_ID" type="NUMBER(38,0)"/>
+            <column name="C_GOOD_NAME" type="VARCHAR2(100)"/>
+            <column name="N_UNIT_ID" type="NUMBER(38,0)"/>
+            <column name="N_QUANTITY" type="DECIMAL(10,3)"/>
+            <column name="N_CREDIT_AMOUNT" type="DECIMAL"/>
+            <column name="N_CASH_AMOUNT" type="DECIMAL"/>
+            <column name="N_TOTAL_AMOUNT" type="DECIMAL"/>
+            <column name="N_VAT_AMOUNT" type="DECIMAL"/>
+            <column name="N_UNIT_PRICE_CREDIT" type="DECIMAL"/>
+            <column name="N_UNIT_PRICE_CASH" type="DECIMAL"/>
+            <column name="N_NET_QUANTITY" type="DECIMAL(10,3)"/>
+            <column name="N_FINAL_AMOUNT" type="DECIMAL"/>
+            <column name="N_UNIT_PRICE" type="DECIMAL"/>
+            <column name="N_CREDIT_QUANTITY" type="DECIMAL(10,3)"/>
+            <column name="C_LOT_NUMBER" type="VARCHAR2(255)"/>
+            <column name="N_CREDIT_PERCENTAGE" type="DECIMAL"/>
+            <column name="F_REMITTANCE_ID" type="NUMBER(38,0)"/>
+
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+
+        <addPrimaryKey
+                tableName="T_INS_REMITTANCE_GOOD_ITEM"
+                columnNames="ID"
+                constraintName="PK_T_INS_REMITTANCE_GOOD_ITEM"/>
+    </changeSet>
+
+    <changeSet id="create_T_INS_REMITTANCE_MASTER" author="soheil babadi">
+
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_REMITTANCE_MASTER"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="T_INS_REMITTANCE_MASTER">
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="D_CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="N_VERSION" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_REMITTANCE_NO" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_REMITTANCE_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_VALIDITY_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_CUSTOMER_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_CUSTOMER_NAME" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_ECONOMIC_CODE" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_NATIONAL_CODE" type="VARCHAR2(15)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_TARGET_ADDRESS" type="VARCHAR2(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_LOADING_PORT_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LOADING_PORT" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_GOOD_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_GOOD_NAME" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_PACKING_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_PACKING_ID" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LOT_NUMBER" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_CONTRACT_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_CONTRACT_NO" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_SELLER_BROKER_NAME" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_BUYER_BROKER_NAME" type="VARCHAR2(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_CASH_PERCENTAGE" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_CREDIT_PERCENTAGE" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_QUANTITY" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_QUANTITY_CASH" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_QUANTITY_CREDIT" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_UNIT_PRICE_CASH" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_REMITTANCE_UNIT_PRICE_CREDIT" type="DECIMAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_LC_EXPIRY_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_SETTLEMENT_DUE_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_ISSUER_BANK_ID" type="NUMBER(38,0)"/>
+            <column name="C_ISSUER_BANK_NAME" type="VARCHAR2(200)"/>
+            <column name="C_ISSUER_BANK_BRANCH_NAME" type="VARCHAR2(200)"/>
+            <column name="C_ISSUER_BANK_CODE" type="VARCHAR2(200)"/>
+            <column name="C_PROCESS_ID" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_WORKFLOW_APPROVE_STATUS" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_PROFORMA_MASTER_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_PROFORMA_DETAIL_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_LC_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_LC_NO" type="VARCHAR2(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_ISSUE_PLACE_ID" type="NUMBER(38,0)"/>
+            <column name="C_ISSUE_PLACE" type="VARCHAR2(50)"/>
+            <column name="C_PROFORMA_NO" type="VARCHAR2(50)"/>
+            <column name="D_PROFORMA_DATE" type="DATETIME"/>
+            <column name="C_PROFORMA_ISSUE_TYPE" type="VARCHAR2(255)"/>
+            <column name="C_ISSUE_SOURCE_TYPE" type="VARCHAR2(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_ISSUER_NAME" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_ISSUER_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="IS_PROCESS_FINAL" type="NUMBER(1)" defaultValue="0"/>
+
+
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+                tableName="T_INS_REMITTANCE_MASTER"
+                columnNames="ID"
+                constraintName="PK_T_INS_REMITTANCE_MASTER"/>
+    </changeSet>
+
+    <changeSet id="4" author="soheil babadi">
+        <comment>Add foreign key constraint from remittance good item to performa detail</comment>
+
+        <addForeignKeyConstraint
+                baseTableName="T_INS_REMITTANCE_GOOD_ITEM"
+                baseColumnNames="F_REMITTANCE_ID"
+                constraintName="FK_T_INS_REMITTANCE_GOOD_ITEM_ON_F_REMIITANCE"
+                referencedTableName="T_INS_PERFORMA_DETAIL"
+                referencedColumnNames="ID"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,82 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//10.1.254.131:1521/fgostardb
+    username: prd_ime
+    password: ENC(6uZM4Iud5Aq7O4IaFe992g==)
+  liquibase:
+    enabled: false
+  jpa:
+    show-sql: true
+  redis:
+    host: redis
+    password: nicico
+  security:
+    oauth2:
+      client:
+        registration:
+          oserver:
+            client-id: ${spring.application.name}
+            client-secret: ENC(hcuMsGP1UnEd6arycWxifOhwXrLjDa3Uz4YvCUMHSd3gdqJvrchoviJi1MNFRiiB)
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            scope: user_info
+        provider:
+          oserver:
+            authorization-uri: http://apps.nicico.com/oauth/authorize
+            token-uri: http://apps.nicico.com/oauth/token
+            user-info-uri: http://apps.nicico.com/user/info
+            user-name-attribute: username
+  config:
+    activate:
+      on-profile: Production
+nicico:
+  swagger: http://apps.nicico.com/oauth/token
+  pdf-api: http://pdf-convertor:8080/pdf-convertor
+  mail-service-url: http://devops01.icico.net.ir/message/api/mail/nicico/v2
+  bcc-address: tehransaleoffice@nicico.com
+  lc-bcc-address: tehransaleoffice@nicico.com
+  terminate-remittance: tehransaleoffice@nicico.com
+  crm-link: http://prod_crm-gateway/sso/api/user-request-application/my-approved-company-requests
+ui:
+  landing-address: http://apps.nicico.com/internal-sales
+  redirect-address: http://apps.nicico.com/internal-sales/
+pms:
+  pre-factor:
+    default-pms-user: jafari-h
+  remittance:
+    title-base: "  ارسالی سامانه فروش: مقدار "
+rabbitmq:
+  config:
+    pms:
+      exchange: internal.sales
+      queues:
+        pre-factor:
+          name: internal.sales.pre-factor
+          response-queue: prd.internal.sales.retry-pre-factor
+          response-routing-key: prd-response-pre-factor
+          routing-key: pre-factor
+        lc:
+          name: internal.sales.lc
+          response-queue: prd.internal.sales.retry-lc
+          response-routing-key: prd-response-lc
+          routing-key: lc
+          update-response-queue: prd.internal.sales.retry-update-lc
+          update-response-routing-key: prd-response-update-lc
+          update-queue: internal.sales.update-lc
+        havaleh:
+          name: internal.sales.havaleh
+          response-queue: prd.internal.sales.retry-havaleh
+          response-routing-key: prd-response-havaleh
+          update-response-queue: prd.internal.sales.retry-update-havaleh
+          routing-key: havaleh
+        bank:
+          name: internal.sales.bank
+          response-queue: prd.internal.sales.response-bank
+          response-routing-key: prd-response-bank
+          routing-key: bank
+        customer:
+          name: internal.sales.customer
+          response-queue: prd.internal.sales.response-customer
+          response-routing-key: prd-response-customer
+          retry-routing-key: retry-customer
+          routing-key: customer

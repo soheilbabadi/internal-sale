@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet id="create-customer-view" author="saeb">
+        <createView viewName="vw_ime_customer" replaceIfExists="true">
+            SELECT t.BUYER_NAME,
+                   t.BUYER_NATIONAL_CODE,
+                   t.BUYER_CODE
+            FROM TBL_IME_TRADE t
+            WHERE t.BUYER_NATIONAL_CODE IS NOT NULL
+            GROUP BY t.BUYER_NAME,
+                     t.BUYER_NATIONAL_CODE, t.BUYER_CODE
+        </createView>
+    </changeSet>
+    <changeSet id="create-customer-view2" author="saeb">
+        <createView viewName="vw_ime_customer" replaceIfExists="true">
+            SELECT tt.BUYER_CODE,
+                   tt.BUYER_NATIONAL_CODE,
+                   tt.BUYER_NAME
+            FROM (SELECT max(t.ID) id
+                  FROM TBL_IME_TRADE t
+                  WHERE t.BUYER_NATIONAL_CODE IS NOT NULL
+                  GROUP BY t.BUYER_NATIONAL_CODE) t
+                     LEFT JOIN TBL_IME_TRADE tt ON t.id = tt.id
+        </createView>
+    </changeSet>
+    <changeSet id="VW_IME_TRADE_SETTLEMENT-1758536117124-1" author="saeb">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <viewExists viewName="VW_IME_TRADE_SETTLEMENT" />
+            </not>
+        </preConditions>
+        <createView viewName="VW_IME_TRADE_SETTLEMENT" replaceIfExists="false">
+            SELECT
+                trade."ID",
+                trade."BROKER_BUY_WAGE",
+                trade."BROKER_SELL_WAGE",
+                trade."BUYER_BROKER_CODE",
+                trade."BUYER_NAME",
+                trade."BUYER_NATIONAL_CODE",
+                trade."COMMODITY_CODE",
+                trade."CONTRACT_DATE",
+                trade."CONTRACT_DETAIL_NO",
+                trade."CONTRACT_NO",
+                trade."CONTRACT_TYPE_CODE",
+                trade."CURRENCY_CODE",
+                trade."DELIVERY_DATE",
+                trade."DELIVERY_PLACE_DESC",
+                trade."IME_BUY_WAGE",
+                trade."IME_SELL_WAGE",
+                trade."IS_CANCELED",
+                trade."IS_DELAY_PENALTY",
+                trade."LISTING_FEE",
+                trade."MANFACTURER_NAME",
+                trade."MEASURE_UNIT_CODE",
+                trade."OFFER_CODE",
+                trade."PAYMENT_CODE",
+                trade."SELLER_BROKER_CODE",
+                trade."SEO_BUY_WAGE",
+                trade."SEO_SELL_WAGE",
+                trade."SETTLEMENT_DATE",
+                trade."SETTLEMENT_DEADLINE",
+                trade."SETTLEMENT_TYPE",
+                trade."SUPPLIER_CODE",
+                trade."TOTAL_PRICE",
+                trade."UNIT_COUNT",
+                trade."UNIT_PRICE",
+                trade."D_CREATED_DATE",
+                trade."D_LAST_MODIFIED_DATE",
+                trade."C_CREATED_BY",
+                trade."C_LAST_MODIFIED_BY",
+                trade."CLOB_OPTIONS",
+                trade."RESPONSE_DATE",
+                trade."MESSAGE_TEXT",
+                trade."comment",
+                trade."DESCRIPTION"
+            FROM
+                (
+                    SELECT
+                        t.CONTRACT_NO ,
+                        t.CONTRACT_DETAIL_NO ,
+                        max(t.D_CREATED_DATE) D_CREATED_DATE
+                    FROM
+                        TBL_IME_TRADE_SETTLEMENT t
+                    GROUP BY
+                        t.CONTRACT_NO ,
+                        t.CONTRACT_DETAIL_NO
+                ) tt
+                    LEFT JOIN TBL_IME_TRADE_SETTLEMENT trade ON
+                    tt.D_CREATED_DATE = trade.D_CREATED_DATE
+                        AND tt.CONTRACT_NO = trade.CONTRACT_NO
+                        AND tt.CONTRACT_DETAIL_NO = trade.CONTRACT_DETAIL_NO
+        </createView>
+    </changeSet>
+</databaseChangeLog>

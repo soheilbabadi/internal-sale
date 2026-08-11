@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="mat-view-on-dblink-pmis-goods" author="saeb">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select count(*) from all_mviews WHERE mview_name='MVW_DBLINK_GOODS1TBL'
+            </sqlCheck>
+        </preConditions>
+        <sql>
+
+            CREATE MATERIALIZED VIEW MVW_DBLINK_GOODS1TBL
+            REFRESH COMPLETE ON
+            DEMAND
+            START WITH
+            SYSTIMESTAMP + 1 / 24
+            NEXT SYSTIMESTAMP + 1 / 24
+            AS
+            SELECT
+            GDSCODE,
+            GDSNAME,
+            GDSSTOCK,
+            PACKINGCODE,
+            --VAZN,
+            CODENOSA,
+            CODEMARKAZHAZINEH,
+            CODENOSAALAYANDEGI,
+            GROUPGSSID
+            FROM
+            PMS.GOODS1TBL@DBL_DS2_COPLINK
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

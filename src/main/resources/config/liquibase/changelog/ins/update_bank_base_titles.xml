@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <changeSet id="14040911-update-bank-base-titles-1" author="saeb">
+        <comment>Update bank titles in T_INS_BANK_BASE table and make them  PMS.BANKGROUPTBL@DBL_DS2_COPLINK BANKGROUPDESC</comment>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانک توسعه تعاون"/>
+            <where>c_bank_code='60'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانک ايران زمين"/>
+            <where>c_bank_code='40'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانک خاورميانه"/>
+            <where>c_bank_code='50'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك گردشگري"/>
+            <where>c_bank_code='21'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك تجارت"/>
+            <where>c_bank_code='01'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك ملي"/>
+            <where>c_bank_code='02'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك ملت"/>
+            <where>c_bank_code='03'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك سپه"/>
+            <where>c_bank_code='04'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك صادرات"/>
+            <where>c_bank_code='05'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك توسعه صادرات"/>
+            <where>c_bank_code='06'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك صنعت و معدن"/>
+            <where>c_bank_code='07'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك رفاه كارگران"/>
+            <where>c_bank_code='08'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك كشاورزي"/>
+            <where>c_bank_code='90'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك مسكن"/>
+            <where>c_bank_code='70'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك سامان"/>
+            <where>c_bank_code='49'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك سامان"/>
+            <where>c_bank_code='97'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك پارسيان"/>
+            <where>c_bank_code='30'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك پاسارگاد"/>
+            <where>c_bank_code='09'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك كارآفرين"/>
+            <where>c_bank_code='99'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك اقتصاد نوين"/>
+            <where>c_bank_code='15'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك سينا"/>
+            <where>c_bank_code='16'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانک شهر"/>
+            <where>c_bank_code='19'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانك آينده"/>
+            <where>c_bank_code='20'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="پست بانک"/>
+            <where>c_bank_code='81'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانک دي"/>
+            <where>c_bank_code='80'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانک سرمايه"/>
+            <where>c_bank_code='96'</where>
+        </update>
+
+        <update tableName="T_INS_BANK_BASE">
+            <column name="C_BANK_TITLE" value="بانک رسالت"/>
+            <where>c_bank_code='98'</where>
+        </update>
+
+        <rollback>
+            <comment>Rollback is not provided - manual intervention required</comment>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="update-trading-bank-titles-1" author="developer">
+        <comment>Update bank titles in T_INS_TRADING_BANK table based on IBAN and make them like T_INS_BANK_BASE </comment>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك تجارت"/>
+            <where>C_IBAN='IR490180000000000047385067'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك تجارت"/>
+            <where>C_IBAN='IR390180000000000131618301'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك تجارت"/>
+            <where>C_IBAN='IR620180000000002273384580'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانک شهر"/>
+            <where>C_IBAN='IR740610000000700842299433'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك تجارت"/>
+            <where>C_IBAN='IR060180000000002224324637'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك رفاه كارگران"/>
+            <where>C_IBAN='IR810130100000000276118492'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك صادرات"/>
+            <where>C_IBAN='IR200190000000205769398005'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك صادرات"/>
+            <where>C_IBAN='IR920190000000200444000000'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك ملت"/>
+            <where>C_IBAN='IR500120020000001755555512'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك ملت"/>
+            <where>C_IBAN='IR420120020000008629530302'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك ملت"/>
+            <where>C_IBAN='IR260120020000008629545431'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك سپه"/>
+            <where>C_IBAN='IR730150000001778600079704'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك اقتصاد نوين"/>
+            <where>C_IBAN='IR070550015285003133130001'</where>
+        </update>
+
+        <update tableName="T_INS_TRADING_BANK">
+            <column name="C_BANK_TITLE" value="بانك صنعت و معدن"/>
+            <where>C_IBAN='IR180110000000203917454001'</where>
+        </update>
+
+        <rollback>
+            <comment>Rollback is not provided - manual intervention required</comment>
+        </rollback>
+    </changeSet>
+
+
+
+
+</databaseChangeLog>

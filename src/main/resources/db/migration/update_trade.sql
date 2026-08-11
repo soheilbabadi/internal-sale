@@ -1,0 +1,22 @@
+
+UPDATE TBL_IME_TRADE
+SET
+    SETTLEMENT_TYPE_DESC =
+        CASE
+            WHEN (PAYMENT_CODE, CONTRACT_NO, CONTRACT_DETAIL_NO) NOT IN
+                 (SELECT PAYMENT_CODE, CONTRACT_NO, CONTRACT_DETAIL_NO FROM TBL_IME_SETTLEMENT)
+                THEN 'نامشخص'
+            ELSE REPLACE(SETTLEMENT_TYPE_DESC, ' ', '')
+            END,
+    SETTLEMENT_TYPE =
+        CASE
+            WHEN (PAYMENT_CODE, CONTRACT_NO, CONTRACT_DETAIL_NO) NOT IN
+                 (SELECT PAYMENT_CODE, CONTRACT_NO, CONTRACT_DETAIL_NO FROM TBL_IME_SETTLEMENT)
+                THEN '255'
+            WHEN REPLACE(SETTLEMENT_TYPE_DESC, ' ', '') = 'نقدی' THEN '0'
+            WHEN REPLACE(SETTLEMENT_TYPE_DESC, ' ', '') = 'اعتباری' THEN '1'
+            WHEN REPLACE(SETTLEMENT_TYPE_DESC, ' ', '') = 'نقدی/اعتباری' THEN '2'
+            WHEN REPLACE(SETTLEMENT_TYPE_DESC, ' ', '') = 'انفساخ' THEN '4'
+            ELSE SETTLEMENT_TYPE
+            END
+        

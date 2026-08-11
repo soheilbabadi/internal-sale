@@ -1,0 +1,23 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+				   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+    <include file="/changelog/ime/001-create-view.xml" relativeToChangelogFile="true"/>
+    <include file="/changelog/pms/customer/mat-view-on-dblink-pms-customer.xml" relativeToChangelogFile="true"/>
+    <include file="/changelog/pms/goods/000-mat-view-on-dblink-pmis-goods.xml" relativeToChangelogFile="true"/>
+    <include file="/changelog/pms/goods/000-mat-view-on-dblink-pms-goods.xml" relativeToChangelogFile="true"/>
+    <include file="db/changelog/2025/08/initdb.xml"/>
+
+    <include relativeToChangelogFile="true" file="changelog/ins/pms_mapping.xml" />
+    <include relativeToChangelogFile="true" file="changelog/ins/update_bank_base_titles.xml" />
+    <include relativeToChangelogFile="true" file="changelog/ins/add_pms_lc_id_to_lc_table.xml" />
+    <include relativeToChangelogFile="true" file="changelog/ins/ims_ime_pms_mapping.xml" />
+    <include relativeToChangelogFile="true" file="changelog/ins/create_t_ins_broker.xml" />
+    <include relativeToChangelogFile="true" file="changelog/ins/ins_proforma_bank_bill.xml" />
+
+
+
+
+</databaseChangeLog>

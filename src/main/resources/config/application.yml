@@ -1,0 +1,168 @@
+spring:
+  jackson:
+    deserialization:
+      read-date-timestamps-as-nanoseconds: false
+    serialization:
+      write-dates-as-timestamps: true
+  profiles:
+    include:
+      - url
+    active: uat
+  application:
+    name: internal-sales
+  rabbitmq:
+    host: 172.16.180.27
+    port: 5672
+    username: nicico
+    password: imyjnh
+    dynamic: true
+  liquibase:
+    database-change-log-table: Z_LIQ_CHANGELOG
+    database-change-log-lock-table: Z_LIQ_CHANGELOG_LOCK
+    change-log: classpath:config/liquibase/master.xml
+    enabled: true
+    contexts: ${spring.profiles.active}
+    clear-checksums: true
+    drop-first: false
+    parameters:
+      releaseLocksOnExit: true
+      shouldSnapshotRecycleBinObjects: false
+  jpa:
+    open-in-view: false
+    properties:
+      org:
+        hibernate:
+          ddl:
+            auto: validate
+          envers:
+            store_data_at_delete: true
+      hibernate:
+        enable_lazy_load_no_trans: true
+        format_sql: true
+  mail:
+    default-encoding: UTF-8
+    host: mail.nicico.com
+    test-connection: true
+    port: 25
+    username: tehransaleoffice
+    password: Aa@6029393863
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+            required: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  messages:
+    basename: message_fa
+    encoding: UTF-8
+    fallback-to-system-locale: false
+server:
+  servlet:
+    contextPath: /internal-sales-backend
+nicico:
+  version: 2.1.1
+  token:
+    revoke: false
+  username: db_internal_sales_test
+  password: password
+  server:
+    url: https://apps.nicico.com
+  upload:
+    dir: /var/nicico
+  api:
+    v1: /api/v1/
+  static-files:
+    internal-sale-pre-invoice: /var/nicico/internal-sale-backend/internal-sale-pre-invoice.docx
+    internal-sale-pre-invoice-signed: /var/nicico/internal-sale-backend/internal-sale-pre-invoice-sign.docx
+    internal-sale-pre-invoice-cash: /var/nicico/internal-sale-backend/internal-sale-pre-invoice-cash.docx
+    internal-sale-pre-invoice-cash-signed: /var/nicico/internal-sale-backend/internal-sale-pre-invoice-cash-sign.docx
+    internal-sale-remittance: /var/nicico/internal-sale-backend/internal-sale-remittance.docx
+    internal-sale-remittance-signed: /var/nicico/internal-sale-backend/internal-sale-remittance-sign.docx
+    internal-sale-extra-bill-signed: /var/nicico/internal-sale-backend/internal-sale-extra-bill-sign.docx
+    internal-sale-extra-bill-signed-zero: /var/nicico/internal-sale-backend/internal-sale-extra-bill-sign-zero.docx
+    internal-sale-gaam-sign-zero: /var/nicico/internal-sale-backend/internal-sale-gaam-sign-zero.docx
+    internal-sale-gaam-sign: /var/nicico/internal-sale-backend/internal-sale-gaam-sign.docx
+
+logging:
+  level:
+    root: info
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+jasypt:
+  encryptor:
+    bean: stringEncryptor
+    algorithm: PBEWithMD5AndDES
+pms:
+  pre-factor:
+    url: https://sale.nicico.com:8082/preFactor
+    user: favaGostar
+    pass: F@v@Gostar1404
+    default-pms-user: minaramezani
+  lc:
+    url: https://sale.nicico.com:8082/lc
+    default-pms-user: jafari-h
+  remittance:
+    url: https://sale.nicico.com:8082/havaleh
+    title-base: "مقدار "
+  bank:
+    url: https://sale.nicico.com:8082/api/v1/bank
+  customer:
+    url: https://sale.nicico.com:8082/api/v1/customer
+
+message-service:
+  sms:
+    pattern:
+      url:
+        nimad: http://devops01.icico.net.ir/message/api/sms/nimad
+      patterns:
+        pre-factor-emailed: n1zeqszslzid7da
+
+rabbitmq:
+  config:
+    pms:
+      exchange: internal.sales
+      queues:
+        pre-factor:
+          name: internal.sales.pre-factor
+          response-queue: dev.internal.sales.retry-pre-factor
+          response-routing-key: dev-response-pre-factor
+          routing-key: pre-factor
+        lc:
+          name: internal.sales.lc
+          response-queue: dev.internal.sales.retry-lc
+          response-routing-key: dev-response-lc
+          routing-key: lc
+          update-response-queue: dev.internal.sales.retry-update-lc
+          update-response-routing-key: dev-response-update-lc
+          update-queue: internal.sales.update-lc
+          update-routing-key: update-lc
+        havaleh:
+          name: internal.sales.havaleh
+          response-queue: dev.internal.sales.retry-havaleh
+          response-routing-key: dev-response-havaleh
+          update-response-queue: dev.internal.sales.retry-update-havaleh
+          update-response-routing-key: dev-response-update-havaleh
+          routing-key: havaleh
+          update-queue: internal.sales.update-havaleh
+          update-routing-key: update-havaleh
+        bank:
+          name: internal.sales.bank
+          routing-key: bank
+        customer:
+          name: internal.sales.customer
+          retry-routing-key: retry-customer
+          routing-key: customer

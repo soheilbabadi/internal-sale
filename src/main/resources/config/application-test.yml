@@ -1,0 +1,91 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@//172.16.180.49:1521/pdb_uat
+    username: uat_ime
+    password: uatime
+  liquibase:
+    enabled: false
+  jpa:
+    show-sql: true
+  redis:
+    host: uat.icico.net.ir
+    password: nicico
+  security:
+    oauth2:
+      client:
+        registration:
+          oserver:
+            client-id: ${spring.application.name}
+            client-secret: password
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            scope: user_info
+        provider:
+          oserver:
+            authorization-uri: http://uat.icico.net.ir/oauth/authorize
+            token-uri: http://uat.icico.net.ir/oauth/token
+            user-info-uri: http://uat.icico.net.ir/user/info
+            user-name-attribute: username
+  config:
+    activate:
+      on-profile: test
+nicico:
+  swagger: http://uat.icico.net.ir/oauth/token
+  pdf-api: http://uat.icico.net.ir/pdf-convertor
+  mail-service-url: http://devops01.icico.net.ir/message/api/mail/nicico/v2
+  bcc-address: minaramezani@nicico.com
+  lc-bcc-address: hassani_hos@nicico.com
+  terminate-remittance: tehransaleoffice@nicico.com
+  crm-link: http://uat.icico.net.ir/sso/api/user-request-application/my-approved-company-requests
+
+ins:
+  username: db_internal_sales_test
+  password: password
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: DEBUG  # Logs SQL queries
+    org.hibernate.type: TRACE # Logs parameter values
+ui:
+  landing-address: http://uat.icico.net.ir/internal-sales
+  redirect-address: http://uat.icico.net.ir/internal-sales/
+pms:
+  pre-factor:
+    default-pms-user: jafari-h
+  remittance:
+    title-base: " تست محیط test-uat ارسالی سامانه فروش: مقدار "
+rabbitmq:
+  config:
+    pms:
+      exchange: internal.sales
+      queues:
+        pre-factor:
+          name: internal.sales.pre-factor
+          response-queue: uat.internal.sales.retry-pre-factor-test
+          response-routing-key: uat-response-pre-factor-test
+          routing-key: pre-factor
+        lc:
+          name: internal.sales.lc
+          response-queue: uat.internal.sales.retry-lc-test
+          response-routing-key: uat-response-lc-test
+          routing-key: lc
+          update-response-queue: uat.internal.sales.retry-update-lc-test
+          update-response-routing-key: uat-response-update-lc-test
+          update-queue: internal.sales.update-lc
+        havaleh:
+          name: internal.sales.havaleh
+          response-queue: uat.internal.sales.retry-havaleh-test
+          response-routing-key: uat-response-havaleh-test
+          update-response-queue: uat.internal.sales.retry-update-havaleh-test
+          routing-key: havaleh
+        bank:
+          name: internal.sales.bank
+          response-queue: uat.internal.sales.response-bank-test
+          response-routing-key: uat-response-bank-test
+          routing-key: bank
+        customer:
+          name: internal.sales.customer
+          response-queue: local.internal.sales.response-customer-test
+          response-routing-key: local-response-customer-test
+          retry-routing-key: retry-customer-test
+          routing-key: customer

@@ -1,0 +1,9 @@
+UPDATE T_INS_LC lc
+SET C_PAYMENT_CODE = (SELECT pm.C_PAYMENT_CODE
+                      FROM T_INS_PERFORMA_DETAIL pd
+                               INNER JOIN T_INS_PERFORMA_MASTER pm ON pd.F_PERFORMA_MASTER_ID = pm.ID
+                      WHERE pd.C_PERFORMA_NO = lc.C_PERFORMA_NO)
+WHERE EXISTS (SELECT 1
+              FROM T_INS_PERFORMA_DETAIL pd
+                       INNER JOIN T_INS_PERFORMA_MASTER pm ON pd.F_PERFORMA_MASTER_ID = pm.ID
+              WHERE pd.C_PERFORMA_NO = lc.C_PERFORMA_NO);

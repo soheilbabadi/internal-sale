@@ -1,0 +1,196 @@
+{
+  "list": [
+    {
+      "code": "R_IME_TRADE",
+      "title": "مشاهده معاملات بورسی"
+    },
+    {
+      "code": "R_IME_BROKER",
+      "title": "مشاهده کارگزاری"
+    },
+    {
+      "code": "R_INS_GOODS",
+      "title": "مشاهده  جدول کالاها"
+    },
+    {
+      "code": "C_INS_GOODS",
+      "title": "ایجاد  جدول کالاها"
+    },
+    {
+      "code": "D_INS_GOODS",
+      "title": "حذف جدول کالاها"
+    },
+    {
+      "code": "R_INS_CUSTOMER",
+      "title": "مشاهده  جدول مشتریان"
+    },
+    {
+      "code": "C_INS_CUSTOMER",
+      "title": "ایجاد  جدول مشتریان"
+    },
+    {
+      "code": "D_INS_CUSTOMER",
+      "title": "حذف جدول مشتریان"
+    },
+    {
+      "code": "R_INS_CONTRACT_PERCENT",
+      "title": "مشاهده  جدول درصد قرارداد"
+    },
+    {
+      "code": "R_INS_BANK",
+      "title": "مشاهده  جدول بانک"
+    },
+    {
+      "code": "C_INS_BANK",
+      "title": "ایجاد  جدول بانک"
+    },
+    {
+      "code": "D_INS_BANK",
+      "title": "حذف جدول بانک"
+    },
+    {
+      "code": "R_INS_PROFORMA",
+      "title": "مشاهده  جدول پیش فاکتور"
+    },
+    {
+      "code": "C_INS_PROFORMA",
+      "title": "ایجاد  جدول پیش فاکتور"
+    },
+    {
+      "code": "D_INS_PROFORMA",
+      "title": "حذف جدول پیش فاکتور"
+    },
+    {
+      "code": "R_INS_LC",
+      "title": "مشاهده  جدول اعتبار اسنادی"
+    },
+    {
+      "code": "C_INS_LC",
+      "title": "ایجاد  جدول اعتبار اسنادی"
+    },
+    {
+      "code": "D_INS_LC",
+      "title": "حذف جدول اعتبار اسنادی"
+    },
+    {
+      "code": "R_INS_PROFORMA_WF",
+      "title": "مشاهده  گردش کار پیش فاکتور"
+    },
+    {
+      "code": "D_INS_PROFORMA_WF",
+      "title": "حذف  گردش کار پیش فاکتور"
+    },
+    {
+      "code": "C_INS_PROFORMA_WF",
+      "title": "ایجاد  گردش کار پیش فاکتور"
+    },
+    {
+      "code": "R_INS_VAT",
+      "title": "مشاهده  جدول مالیات بر ارزش افزوده"
+    },
+    {
+      "code": "C_INS_VAT",
+      "title": "ایجاد  جدول مالیات بر ارزش افزوده"
+    },
+    {
+      "code": "D_INS_VAT",
+      "title": "حذف جدول مالیات بر ارزش افزوده"
+    },
+    {
+      "code": "C_PMS_REMITTANCE",
+      "title": "ایجاد حواله در لجستیک"
+    },
+    {
+      "code": "SMS_NOTIFICATION",
+      "title": "ارسال اطلاع رسانی پیامکی"
+    },
+    {
+      "code": "C_PMS_BANK",
+      "title": "ایجاد بانک در سامانه لجستیک"
+    },
+    {
+      "code": "R_INS_REMITTANCE",
+      "title": "خواندن اطلاعات حواله"
+    },
+    {
+      "code": "C_INS_REMITTANCE",
+      "title": "ایجاد حواله"
+    },
+    {
+      "code": "R_INS_BROKER",
+      "title": "خواندن اطلاعات کارگزار"
+    },
+    {
+      "code": "C_INS_BROKER",
+      "title": "ایجاد/ویرایش اطلاعات کارگزار"
+    },
+    {
+      "code": "C_INS_ISSUE_PLACE",
+      "title": "ایجاد/ویرایش محل صدور "
+    },
+    {
+      "code": "R_INS_ISSUE_PLACE",
+      "title": "مشاهده محل صدور"
+    },
+    {
+      "code": "D_INS_ISSUE_PLACE",
+      "title": "حذف محل صدور"
+    },
+    {
+      "code": "R_INS_BILL",
+      "title": "مشاهده صورتحساب"
+    },
+    {
+      "code": "C_INS_BILL",
+      "title": "صدور صورتحساب"
+    },
+    {
+      "code": "D_INS_BILL",
+      "title": "حذف صورتحساب"
+    },
+    {
+      "code": "R_INS_PRICING",
+      "title": "مشاهده قیمت گذاری"
+    },
+    {
+      "code": "D_INS_PRICING",
+      "title": "حذف قیمت گذاری"
+    },
+    {
+      "code": "C_INS_PRICING",
+      "title": "ایجاد قیمت گذاری"
+    },
+    {
+      "code": "C_INS_NOTIFICATION",
+      "title": "ایجاد و پیکربندی پیام"
+    },
+    {
+      "code": "C_INS_SEND_NOTIFICATION",
+      "title": "ارسال ایمیلهای اطلاع رسانی"
+    }
+  ,
+    {
+      "code": "R_INS_LOADING_PLACE",
+      "title": "خواندن محل بارگیری"
+    }
+  ,
+    {
+      "code": "C_INS_LOADING_PLACE",
+      "title": "ایجاد محل بارگیری"
+    }
+  ,
+    {
+      "code": "R_INS_EXTRA_BILL",
+      "title": "مشاهده  جدول برات الکترونیک"
+    },
+    {
+      "code": "C_INS_EXTRA_BILL",
+      "title": "ایجاد  آیتم برات الکترونیک"
+    },
+    {
+      "code": "D_INS_EXTRA_BILL",
+      "title": "حذف آیتم برات الکترونیک"
+    }
+
+  ]
+}

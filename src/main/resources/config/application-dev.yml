@@ -1,0 +1,88 @@
+spring:
+  zipkin:
+    base-url: http://zipkin.icico.net.ir
+  datasource:
+    url: jdbc:oracle:thin:@//172.16.180.49:1521/pdb_dev
+    username: dev_ime
+    password: devime
+  liquibase:
+    enabled: false
+  jpa:
+    show-sql: true
+  redis:
+    host: devapp01.icico.net.ir
+    password: nicico
+  security:
+    oauth2:
+      client:
+        registration:
+          oserver:
+            client-id: ${spring.application.name}
+            client-secret: password
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            scope: user_info
+        provider:
+          oserver:
+            authorization-uri: http://devapp01.icico.net.ir/oauth/authorize
+            token-uri: http://devapp01.icico.net.ir/oauth/token
+            user-info-uri: http://devapp01.icico.net.ir/user/info
+            user-name-attribute: username
+  config:
+    activate:
+      on-profile: dev
+nicico:
+  swagger: http://devapp01.icico.net.ir/oauth/token
+  pdf-api: http://pdf-convertor:8080/pdf-convertor
+  mail-service-url: http://devops01.icico.net.ir/message/api/mail/nicico/v2
+  bcc-address: babadishyl@gmail.com
+  lc-bcc-address: hassani_hos@nicico.com
+  terminate-remittance: tehransaleoffice@nicico.com
+  crm-link: http://devapp01.icico.net.ir/sso/api/user-request-application/my-approved-company-requests
+ui:
+  landing-address: http://devapp01.icico.net.ir/internal-sales
+  redirect-address: http://devapp01.icico.net.ir/internal-sales/
+
+
+pms:
+  pre-factor:
+    default-pms-user: jafari-h
+  remittance:
+    title-base: " تست محیط dev ارسالی سامانه فروش: مقدار "
+rabbitmq:
+  config:
+    pms:
+      exchange: internal.sales
+      queues:
+        pre-factor:
+          name: internal.sales.pre-factor
+          response-queue: dev.internal.sales.retry-pre-factor
+          response-routing-key: dev-response-pre-factor
+          routing-key: pre-factor
+        lc:
+          name: internal.sales.lc
+          response-queue: dev.internal.sales.retry-lc
+          response-routing-key: dev-response-lc
+          routing-key: lc
+          update-response-queue: dev.internal.sales.retry-update-lc
+          update-response-routing-key: dev-response-update-lc
+          update-queue: internal.sales.update-lc
+          update-routing-key: update-lc
+        havaleh:
+          name: internal.sales.havaleh
+          response-queue: dev.internal.sales.retry-havaleh
+          response-routing-key: dev-response-havaleh
+          update-response-queue: dev.internal.sales.retry-update-havaleh
+          update-response-routing-key: dev-response-update-havaleh
+          routing-key: havaleh
+        bank:
+          name: internal.sales.bank
+          response-queue: dev.internal.sales.response-bank
+          response-routing-key: dev-response-bank
+          routing-key: bank
+        customer:
+          name: internal.sales.customer
+          response-queue: dev.internal.sales.response-customer
+          response-routing-key: dev-response-customer
+          retry-routing-key: retry-customer
+          routing-key: customer

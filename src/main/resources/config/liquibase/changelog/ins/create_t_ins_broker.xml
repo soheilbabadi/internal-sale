@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+
+
+
+
+    <changeSet id="create-t-ins-broker" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_BROKER"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_BROKER">
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="C_NAME" type="VARCHAR2(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="C_NATIONAL_CODE" type="VARCHAR2(15)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="C_PHONE" type="VARCHAR2(255)"/>
+            <column name="C_ECONOMIC_CODE" type="VARCHAR2(50)"/>
+            <column name="C_POST_CODE" type="VARCHAR2(10)"/>
+            <column name="C_EMAIL" type="VARCHAR2(100)"/>
+            <column name="C_MOBILE" type="VARCHAR2(11)"/>
+            <column name="C_COORDINATOR" type="VARCHAR2(100)"/>
+            <column name="C_ADDRESS" type="VARCHAR2(4000)"/>
+            <column name="C_CEO_NAME" type="VARCHAR2(100)"/>
+            <column name="C_CEO_PHONE" type="VARCHAR2(20)"/>
+            <column name="d_created_date" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="create-t-ins-broker-aud" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_BROKER_AUD"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_BROKER_AUD">
+            <column name="REV" type="NUMBER(38,0)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="REVTYPE" type="SMALLINT"/>
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_NAME" type="VARCHAR2(255)"/>
+            <column name="C_NATIONAL_CODE" type="VARCHAR2(15)"/>
+            <column name="C_PHONE" type="VARCHAR2(255)"/>
+            <column name="C_ECONOMIC_CODE" type="VARCHAR2(50)"/>
+            <column name="C_POST_CODE" type="VARCHAR2(10)"/>
+            <column name="C_EMAIL" type="VARCHAR2(100)"/>
+            <column name="C_MOBILE" type="VARCHAR2(11)"/>
+            <column name="C_COORDINATOR" type="VARCHAR2(100)"/>
+            <column name="C_ADDRESS" type="VARCHAR2(4000)"/>
+            <column name="C_CEO_NAME" type="VARCHAR2(100)"/>
+            <column name="C_CEO_PHONE" type="VARCHAR2(20)"/>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="T_INS_BROKER_AUD_FK" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_BROKER_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_broker_aud"
+                                 constraintName="FK_T_INS_BROKER_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+
+</databaseChangeLog>

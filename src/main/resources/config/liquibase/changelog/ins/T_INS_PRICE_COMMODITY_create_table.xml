@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" author="developer">
+        <createSequence sequenceName="SEQ_PRICE_FORMULA" startValue="1" incrementBy="1" cacheSize="20"/>
+    </changeSet>
+
+    <changeSet id="create_table_T_INS_PRICE_COMMODITY" author="soheil babadi">
+        <createTable tableName="T_INS_PRICE_COMMODITY">
+            <column name="ID" type="NUMBER(19,0)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="DAY_OF_WEEK" type="VARCHAR2(20)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="PERSIAN_SHORT_DATE" type="VARCHAR2(20)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="SHORT_DATE" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="N_USD_PER_MT_CU" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_OUNCE_GOLD" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_OUNCE_SILVER" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_LB_SELENIUM_BID" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_LB_SELENIUM_ASK" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_LB_MOLYBDENUM_LOW" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_LB_MOLYBDENUM_HIGH" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_TO_PLATINUM_AM" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_TO_PLATINUM_PM" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_TO_PALLADIUM_AM" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_TO_PALLADIUM_PM" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_LB_MOLYBDENUM_AM" type="NUMBER(19,3)"/>
+            <column name="N_USD_PER_LB_MOLYBDENUM_PM" type="NUMBER(19,3)"/>
+
+            <column name="D_CREATED_DATE" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+
+            <column name="C_CREATED_BY" type="VARCHAR2(250)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+
+            <column name="N_VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+<!--    <changeSet id="14040910-add-column-packing-code-to-pms-mapping" author="saeb">-->
+<!--         <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--             <columnExists tableName="t_ins_pms_mapping" columnName="t_ins_pms_mapping"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addColumn tableName="t_ins_pms_mapping">-->
+<!--            <column name="n_pms_packing_code" type="NUMBER(38,0)" />-->
+<!--        </addColumn>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="14040910-02-update-pms-mapping-packing-code" author="saeb">-->
+<!--        <sql>-->
+<!--            UPDATE T_INS_PMS_MAPPING m-->
+<!--            SET N_PMS_PACKING_CODE = (-->
+<!--                SELECT PACKINGCODE-->
+<!--                FROM PMS.GOODS1TBL@DBL_DS2_COPLINK g-->
+<!--                WHERE g.gdscode = m.N_PMS_ID-->
+<!--            )-->
+<!--            WHERE    EXISTS (-->
+<!--                SELECT 1-->
+<!--                FROM PMS.GOODS1TBL@DBL_DS2_COPLINK g-->
+<!--                WHERE g.gdscode = m.N_PMS_ID-->
+<!--            )-->
+<!--        </sql>-->
+<!--    </changeSet>-->
+
+</databaseChangeLog>
