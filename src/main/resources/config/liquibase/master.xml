@@ -8,7 +8,7 @@
     <include file="/changelog/pms/customer/mat-view-on-dblink-pms-customer.xml" relativeToChangelogFile="true"/>
     <include file="/changelog/pms/goods/000-mat-view-on-dblink-pmis-goods.xml" relativeToChangelogFile="true"/>
     <include file="/changelog/pms/goods/000-mat-view-on-dblink-pms-goods.xml" relativeToChangelogFile="true"/>
-    <include file="db/changelog/2025/08/initdb.xml"/>
+    <include file="../../../db/changelog/2025/08/initdb.xml" relativeToChangelogFile="true"/>
 
     <include relativeToChangelogFile="true" file="changelog/ins/pms_mapping.xml" />
     <include relativeToChangelogFile="true" file="changelog/ins/update_bank_base_titles.xml" />
@@ -16,6 +16,9 @@
     <include relativeToChangelogFile="true" file="changelog/ins/ims_ime_pms_mapping.xml" />
     <include relativeToChangelogFile="true" file="changelog/ins/create_t_ins_broker.xml" />
     <include relativeToChangelogFile="true" file="changelog/ins/ins_proforma_bank_bill.xml" />
+    <include relativeToChangelogFile="true" file="changelog/ins/create_remittance_table.xml" />
+    <include relativeToChangelogFile="true" file="changelog/ins/pricing_currency_table.xml" />
+    <include relativeToChangelogFile="true" file="changelog/ins/T_INS_PRICE_COMMODITY_create_table.xml" />
 
 
 
