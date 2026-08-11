@@ -78,7 +78,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 
 	@Override
 	public Map<String, Object> createExtraBillRequestVariables(ProformaVariablesInput input) {
-		return createRequestVariables(input, getLcUserAccess());
+		return createRequestVariables(input, getExtraBillUserAccess());
 	}
 
 	@Override

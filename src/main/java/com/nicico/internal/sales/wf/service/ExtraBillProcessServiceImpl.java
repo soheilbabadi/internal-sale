@@ -31,6 +31,11 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
 	private static final String PROCESS_TITLE_EXTRA_BILL = "EXTRA_BILL";
 	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
+	private static final String ACCESS_DENIED_MESSAGE = "شما اجازه شروع فرایند برات الکترونیک را ندارید";
+	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور پیدا نشد";
+	private static final String ERROR_REFRESHING_STATUS = "خطا در بروز رسانی وضعیت براتها";
+	private static final String ERROR_REJECTING_EXTRA_BILL = "خطا در رد کردن فرایند {}: {}";
+	private static final String ERROR_DETECTING_STEP = "خطا در تشخیص مرحله فرایند {}";
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
@@ -38,20 +43,14 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final ProcessVariableProvider processVariableProvider;
 	private final ExtraBillRepository extraBillRepository;
 
-
 	@Override
 	public ProcessInstance startExtraBillProcess(Long masterId) {
 		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException(
-					"شما اجازه شروع فرایند برات الکترونیک را ندارید");
+			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
 		}
 
-		refreshExtraBillStatus();
-
-		ProformaBankBillModel bankBillModel = extraBillRepository.findById(masterId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						"پیش فاکتور پیدا نشد"));
-
+		ProformaMasterModel bankBillModel = proformaMasterRepository.findById(masterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
 
 		StartProcessWithDataDTO startProcessDto = new StartProcessWithDataDTO();
 		startProcessDto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
@@ -62,7 +61,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	@Override
 	public ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto) {
 		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException("شما اجازه شروع فرایند برات الکترونیک را ندارید");
+			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
 		}
 		try {
 			startProcessDto.setProcessDefinitionKey(
@@ -72,7 +71,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			throw bpmsException(ex);
 		}
 	}
-
 
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
@@ -84,9 +82,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		handleTaskAction(taskActionDto, false);
 	}
 
-
 	private void handleTaskAction(TaskActionDto dto, boolean approve) {
-
 		dto.setApprove(approve);
 		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
 		try {
@@ -103,9 +99,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
 			ProformaBankBillModel proformaBankBillModel = extraBillRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
 			applyCurrentStatus(proformaBankBillModel);
-
 			extraBillRepository.save(proformaBankBillModel);
-
 
 		} catch (Exception ex) {
 			throw bpmsException(ex);
@@ -117,7 +111,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		billModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 		billModel.setAcknowledgment(Acknowledgment.FINISHED);
 		extraBillRepository.save(billModel);
-
 	}
 
 	@Override
@@ -133,7 +126,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			extraBillRepository.saveAll(billModels);
 
 		} catch (Exception ex) {
-			log.error("Error refreshing status", ex);
+			log.error(ERROR_REFRESHING_STATUS, ex);
 		}
 	}
 
@@ -167,10 +160,9 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			bankBillModel.setAcknowledgment(Acknowledgment.CANCELED);
 			extraBillRepository.save(bankBillModel);
 		} catch (Exception ex) {
-			log.error("Error while rejecting  for process {}: {}", processInstanceId, ex.getMessage(), ex);
+			log.error(ERROR_REJECTING_EXTRA_BILL, processInstanceId, ex.getMessage(), ex);
 		}
 	}
-
 
 	@Override
 	public boolean canStartProcess() {
@@ -185,7 +177,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 								variable.name().equalsIgnoreCase(access.getProcessVariable()));
 	}
 
-
 	@Override
 	public ExtraBillProcessVariable detectExtraBillStep(String processInstanceId) {
 		if (!TextUtility.isValidUUID(processInstanceId)) {
@@ -199,7 +190,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			String taskName = tasks.get(0).getName();
 			return ExtraBillProcessVariable.fromString(taskName);
 		} catch (Exception ex) {
-			log.debug("Failed to detect step for process {}", processInstanceId, ex);
+			log.debug(ERROR_DETECTING_STEP, processInstanceId, ex);
 			return null;
 		}
 	}
@@ -222,18 +213,17 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		};
 	}
 
-
-	private ProformaVariablesInput buildExtraBillVariablesInput(ProformaBankBillModel proformaBankBillModel) {
-		ProformaMasterModel ProformaMasterModel = proformaMasterRepository.findById(proformaBankBillModel.getProformaMasterId())
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("پیش فاکتور پیدا نشد"));
+	private ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMasterModel) {
+		ProformaMasterModel ProformaMasterModel = proformaMasterRepository.findById(proformaMasterModel.getId())
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
 
 		ProformaVariablesInput input = new ProformaVariablesInput();
-		input.setProformaMasterId(proformaBankBillModel.getId());
+		input.setProformaMasterId(proformaMasterModel.getId());
 		input.setContractDate(ProformaMasterModel.getContractDate());
 		input.setGoodId(ProformaMasterModel.getGoodId());
 		input.setGoodName(ProformaMasterModel.getGoodName());
 		input.setCustomerName(ProformaMasterModel.getCustomerName());
-		input.setContractNo(String.valueOf(proformaBankBillModel.getContractNo()));
+		input.setContractNo(String.valueOf(proformaMasterModel.getContractNo()));
 		input.setCommission(ProformaMasterModel.getCommissionPercentage());
 		return input;
 	}
