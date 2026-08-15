@@ -4,6 +4,7 @@ import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,7 +18,6 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-
 public class ProformaBankBillReportDto implements Serializable {
 
 	@Serial
@@ -90,6 +90,28 @@ public class ProformaBankBillReportDto implements Serializable {
 	private BigDecimal totalCreditAmount;
 
 	private WorkflowApproveStatus proformaStatus;
+
+	// فیلدهای جدید اضافه شده از پیش‌فاکتور
+	@Schema(description = "شناسه کارگزار")
+	private Long brokerId;
+
+	@Schema(description = "نام کارگزار")
+	private String brokerName;
+
+	@Schema(description = "کد ملی کارگزار")
+	private String brokerNationalCode;
+
+	@Schema(description = "مقدار کل")
+	private BigDecimal totalQuantity;
+
+	@Schema(description = "متن آگهی عرضه")
+	private String offerDescription;
+
+	@Schema(description = "نماد کالا در بورس")
+	private String imeCommoditySymbol;
+
+	@Schema(description = "شناسه کالا")
+	private Long goodId;
 
 
 	@EqualsAndHashCode(callSuper = true)

@@ -1,4 +1,4 @@
-package com.example.dto;
+package com.nicico.internal.sales.extrabill.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

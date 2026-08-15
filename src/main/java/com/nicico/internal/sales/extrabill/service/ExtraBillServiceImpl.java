@@ -210,4 +210,33 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.commission(model.getCommissionPercentage())
 				.build();
 	}
+
+
+	/**
+	 * بروزرسانی فایل‌های پیوست برات
+	 * این متد فقط فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می‌کند
+	 */
+	@Override
+	@Transactional
+	public ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto) {
+		// یافتن برات بر اساس شناسه
+		ProformaBankBill bill = repository.findById(updateDto.getId())
+				.orElseThrow(() -> new RuntimeException("برات با شناسه " + updateDto.getId() + " یافت نشد"));
+
+		// بروزرسانی فیلدهای مورد نظر
+		if (updateDto.getExtraBillFileId() != null) {
+			bill.setExtraBillFileId(updateDto.getExtraBillFileId());
+		}
+
+		if (updateDto.getDispatchAttachmentId() != null) {
+			bill.setDispatchAttachmentId(updateDto.getDispatchAttachmentId());
+		}
+
+		// ذخیره تغییرات
+		ProformaBankBill savedBill = repository.save(bill);
+
+		// تبدیل به DTO و بازگشت
+		return mapToInfo(savedBill);
+	}
+
 }

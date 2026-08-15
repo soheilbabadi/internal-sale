@@ -79,4 +79,23 @@ public class ExtraBillController {
 	public ResponseEntity<ProformaBankBillDto.Info> save(@RequestBody ProformaBankBillRequest proformaBankBillRequest) {
 		return ResponseEntity.ok(service.save(proformaBankBillRequest));
 	}
+
+	/**
+	 * بروزرسانی فایل‌های پیوست برات
+	 * این متد فقط فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می‌کند
+	 * نیاز به مجوز C_UPD_EXTRA_BILL دارد
+	 */
+	@Operation(
+			summary = "بروزرسانی فایل‌های پیوست برات",
+			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می‌کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
+	)
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+	@PutMapping("/update-files")
+	@ApiResponse(responseCode = "200", description = "بروزرسانی با موفقیت انجام شد",
+			content = @Content(schema = @Schema(implementation = ProformaBankBillDto.Info.class)))
+	public ResponseEntity<ProformaBankBillDto.Info> updateBillFiles(
+			@RequestBody ProformaBankBillFileUpdateDto updateDto) {
+
+		return ResponseEntity.ok(service.updateBillFiles(updateDto));
+	}
 }

@@ -60,7 +60,14 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    tipm.N_TOTAL_FINAL_AMOUNT,
 		    tipm.N_TOTAL_CASH_AMOUNT,
 		    tipm.N_TOTAL_CREDIT_AMOUNT,
-		    tipm.C_WORKFLOW_APPROVE_STATUS AS PROFORMA_STATUS
+		    tipm.C_WORKFLOW_APPROVE_STATUS AS PROFORMA_STATUS,
+		    tipm.N_BROKER_ID,
+		    tipm.C_BROKER_NAME,
+		    tipm.C_BROKER_NATIONAL_CODE,
+		    tipm.N_TOTAL_QUANTITY,
+		    tipm.C_OFFER_DESCRIPTION,
+		    tipm.C_IME_COMMODITY_SYMBOL,
+		    tipm.N_GOOD_ID
 		FROM T_INS_PROFORMA_BANK_BILL tpbb
 		         LEFT JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
 		         LEFT JOIN T_INS_PERFORMA_MASTER tipm ON tipm.ID = tpbb.F_PERFORMA_MASTER_ID
@@ -180,4 +187,26 @@ public class ProformaBankBillReportModel implements Serializable {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "PROFORMA_STATUS")
 	private WorkflowApproveStatus proformaStatus;
+
+	// فیلدهای جدید اضافه شده از پیش‌فاکتور
+	@Column(name = "N_BROKER_ID")
+	private Long brokerId;
+
+	@Column(name = "C_BROKER_NAME")
+	private String brokerName;
+
+	@Column(name = "C_BROKER_NATIONAL_CODE")
+	private String brokerNationalCode;
+
+	@Column(name = "N_TOTAL_QUANTITY")
+	private BigDecimal totalQuantity;
+
+	@Column(name = "C_OFFER_DESCRIPTION")
+	private String offerDescription;
+
+	@Column(name = "C_IME_COMMODITY_SYMBOL")
+	private String imeCommoditySymbol;
+
+	@Column(name = "N_GOOD_ID")
+	private Long goodId;
 }
