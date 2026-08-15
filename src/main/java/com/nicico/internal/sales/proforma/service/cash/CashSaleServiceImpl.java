@@ -18,8 +18,6 @@ import com.nicico.internal.sales.proforma.enums.*;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaGoodItemModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
-import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
-import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.proforma.service.ProformaContractService;
 import com.nicico.internal.sales.proforma.service.ProformaSerialService;
@@ -65,8 +63,6 @@ public class CashSaleServiceImpl implements CashSaleService {
 	private final ProformaValidationService proformaValidationService;
 	private final OfferTextProcess offerTextProcess;
 	private final ProformaMasterRepository proformaMasterRepository;
-	private final ProformaDetailRepository proformaDetailRepository;
-	private final ProformaGoodItemRepository proformaGoodItemRepository;
 	private final ProformaProcessService proformaProcessService;
 	private final ProformaContractService proformaContractService;
 	private final TradeExtractRepository tradeExtractRepository;
