@@ -1,0 +1,26 @@
+package com.example.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * DTO برای بروزرسانی فایل‌های پیوست برات
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProformaBankBillFileUpdateDto {
+
+    @Schema(description = "شناسه برات")
+    private String id;
+
+    @Schema(description = "شناسه فایل پیوست برات")
+    private String extraBillFileId;
+
+    @Schema(description = "شناسه فایل اصلاحیه")
+    private String dispatchAttachmentId;
+}
