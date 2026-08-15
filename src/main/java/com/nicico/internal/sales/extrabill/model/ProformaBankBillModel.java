@@ -48,23 +48,31 @@ public class ProformaBankBillModel extends BaseClassModel {
 	private String paymentCity;
 
 	@Schema(description = "بانک عامل")
-	@Column(name = "C_AGENT_BANK_NAME", length = 200)
+	@Column(name = "C_AGENT_BANK_NAME", length = 100)
 	private String agentBankName;
 
 	@Schema(description = "شناسه بانک عامل")
 	@Column(name = "N_AGENT_BANK_ID")
 	private Long agentBankId;
 
+	@Schema(description = "شناسه فایل پیوست برات")
+	@Column(name = "C_EXTRA_BILL_FILE_ID", length = 100)
+	private String extraBillFileId;
+
+	@Schema(description = "شناسه فایل اصلاحیه")
+	@Column(name = "C_DISPATCH_FILE_ID", length = 100)
+	private String dispatchAttachmentId;
+
 	@Schema(description = "کد تفصیلی")
-	@Column(name = "C_NOSA_CODE", length = 100)
+	@Column(name = "C_NOSA_CODE", length = 50)
 	private String nosaCode;
 
 	@Schema(description = "کد سپام")
-	@Column(name = "C_SEPAM_CODE", length = 100)
+	@Column(name = "C_SEPAM_CODE", length = 50)
 	private String sepamCode;
 
 	@Schema(description = "شناسه خزانه داری")
-	@Column(name = "C_TREASURY_ID", length = 100)
+	@Column(name = "C_TREASURY_ID", length = 50)
 	private String treasuryId;
 
 	@Schema(description = "تاریخ صدور برات")

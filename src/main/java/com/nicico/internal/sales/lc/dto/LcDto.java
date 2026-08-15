@@ -76,7 +76,7 @@ public class LcDto implements Serializable {
 	private String lcInstanceId;
 	@Schema(description = "شناسه فایل پیوست اعتبار اسنادی")
 	private String lcAttachmentId;
-	@Schema(description = "شناسه فایل اصلاحیه بارنامه")
+	@Schema(description = "شناسه فایل اصلاحیه")
 	private String dispatchAttachmentId;
 	@Schema(description = "شناسه فایل پیوست پیش فاکتور")
 	private String proformaFileId;

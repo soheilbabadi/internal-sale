@@ -33,7 +33,8 @@ public class UpdateAcceptedLcRequest implements Serializable {
 	private Long issuerBankId;
 	@Schema(description = "شناسه فایل پیوست اعتبار اسنادی")
 	private String lcAttachmentId;
-	@Schema(description = "شناسه فایل اصلاحیه بارنامه")
+
+	@Schema(description = "شناسه فایل اصلاحیه ")
 	private String dispatchAttachmentId;
 
 	@Schema(description = "شناسه سند ابلاغیه", name = "notificationDocumentId", example = "12345")

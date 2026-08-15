@@ -4,6 +4,7 @@ import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.proforma.enums.SaleType;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -158,7 +159,8 @@ public class LcWithProformaView {
 	@Column(name = "C_LC_FILE_ID")
 	private String lcAttachmentId;
 
-	@Column(name = "C_DISPATCH_FILE_ID")
+	@Schema(description = "شناسه فایل اصلاحیه")
+	@Column(name = "C_DISPATCH_FILE_ID",length = 100)
 	private String dispatchAttachmentId;
 
 	@Column(name = "C_PROFORMA_FILE_ID")

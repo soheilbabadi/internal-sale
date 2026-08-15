@@ -65,7 +65,7 @@ public class LcWithProformaDto implements Serializable {
 	private String issuerBankCode;
 	@Schema(description = "شناسه فایل اعتبار اسنادی", name = "lcAttachmentId", example = "FILE-LC-123")
 	private String lcAttachmentId;
-	@Schema(description = "شناسه فایل ارسال", name = "dispatchAttachmentId", example = "FILE-DISP-456")
+	@Schema(description = "شناسه فایل اصلاحیه", name = "dispatchAttachmentId", example = "FILE-DISP-456")
 	private String dispatchAttachmentId;
 	@Schema(description = "شناسه فایل پیش فاکتور", name = "proformaFileId", example = "FILE-PROF-789")
 	private String proformaFileId;
