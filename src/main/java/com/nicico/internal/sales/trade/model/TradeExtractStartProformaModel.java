@@ -89,6 +89,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		WHERE tit.CONTRACT_DATE > '1405/01/01'
 		  AND tit.CURRENCY_CODE = 1
 		  AND s.PAYMENT_CODE IS NULL
+		  AND tig.SYMBOL != 'SUACB'
 		  AND NOT EXISTS (
 		    SELECT 1
 		    FROM (
