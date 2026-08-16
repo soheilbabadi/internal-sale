@@ -3663,7 +3663,17 @@
             <column name="c_branch_name" type="VARCHAR2(200)"/>
             <column name="c_payment_city" type="VARCHAR2(100)"/>
             <column name="c_agent_bank_name" type="VARCHAR2(200)"/>
-            <column name="C_NOSA_CODE" type="VARCHAR2(100)"/>
+
+            <!-- فیلد جدید: شناسه بانک عامل -->
+            <column name="n_agent_bank_id" type="BIGINT"/>
+
+            <!-- فیلد جدید: شناسه فایل پیوست برات -->
+            <column name="c_extra_bill_file_id" type="VARCHAR2(100)"/>
+
+            <!-- فیلد جدید: شناسه فایل اصلاحیه -->
+            <column name="c_dispatch_file_id" type="VARCHAR2(100)"/>
+
+            <column name="c_nosa_code" type="VARCHAR2(100)"/>
             <column name="c_sepam_code" type="VARCHAR2(100)"/>
             <column name="c_treasury_id" type="VARCHAR2(100)"/>
             <column name="d_issue_date" type="DATETIME"/>
@@ -3671,37 +3681,35 @@
             <column name="f_proforma_detail_id" type="BIGINT"/>
             <column name="f_performa_master_id" type="BIGINT"/>
 
-            <column name="C_WORKFLOW_APPROVE_STATUS" type="VARCHAR2(100)"/>
-            <column name="C_REVERSAL_PROCESS_ID" type="VARCHAR2(50)"/>
-            <column name="C_PROCESS_ID" type="VARCHAR2(50)">
+            <column name="c_workflow_approve_status" type="VARCHAR2(100)"/>
+            <column name="c_reversal_process_id" type="VARCHAR2(50)"/>
+            <column name="c_process_id" type="VARCHAR2(50)">
                 <constraints nullable="false"/>
             </column>
 
-            <column name="N_CONTRACT_NO" type="BIGINT">
+            <column name="n_contract_no" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
 
-            <column name="F_TRADE_ID" type="BIGINT">
+            <column name="f_trade_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
 
-            <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)" defaultValue="UNKNOWN">
+            <column name="c_acknowledgment" type="VARCHAR2(50)" defaultValue="UNKNOWN">
                 <constraints nullable="false"/>
             </column>
 
-            <column name="IS_RECKONING_SEND" type="NUMBER(1)" defaultValue="0">
+            <column name="is_reckoning_send" type="NUMBER(1)" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
 
-            <column name="D_RECKONING_SEND_DATE" type="DATETIME">
+            <column name="d_reckoning_send_date" type="DATETIME">
                 <constraints nullable="true"/>
             </column>
 
-            <column name="C_CANCELLATION_REASON" type="VARCHAR2(50)"/>
-            <column name="D_CANCEL_DATE" type="DATETIME"/>
-            <column name="C_PMS_BILL_ID" type="VARCHAR2(50)"/>
-
-
+            <column name="c_cancellation_reason" type="VARCHAR2(50)"/>
+            <column name="d_cancel_date" type="DATETIME"/>
+            <column name="c_pms_bill_id" type="VARCHAR2(50)"/>
 
         </createTable>
     </changeSet>

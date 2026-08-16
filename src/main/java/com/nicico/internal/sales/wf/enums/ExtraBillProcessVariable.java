@@ -1,23 +1,14 @@
 package com.nicico.internal.sales.wf.enums;
 
+import lombok.Getter;
 
 @Getter
 public enum ExtraBillProcessVariable {
 
-	// ==================== مرحله اول: ثبت و تشکیل پرونده ====================
-	BillRegistration("ثبت برات الکترونیک"),
-
-	// ==================== مرحله دوم: تایید تسویه ====================
-	SettlementReview("بررسی اطلاعات تسویه برات"),
-	SettlementApproval("تایید تسویه برات"),
-
-	// ==================== مرحله سوم: تایید حواله ====================
-	TransferReview("بررسی اطلاعات حواله برات"),
-	TransferApproval("تایید حواله برات"),
-
-	// ==================== مرحله چهارم: بررسی نهایی ====================
-	FinalVerification("کنترل و تایید نهایی برات"),
-	BillArchiving("بایگانی برات الکترونیک");
+	BillDraftRegistration("ثبت برات الکترونیک"),
+	BillSettleSure("بررسی جهت تایید تسویه"),
+	BillRemitSure("ثبت اطلاعات برات و تایید حواله"),
+	BillFinalCheck("مشاهده تاریخچه و بررسی نهایی");
 
 	private final String value;
 
@@ -33,4 +24,5 @@ public enum ExtraBillProcessVariable {
 		}
 		return null;
 	}
+
 }

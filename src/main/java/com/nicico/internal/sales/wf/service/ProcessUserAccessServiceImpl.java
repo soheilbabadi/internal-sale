@@ -10,10 +10,7 @@ import com.nicico.internal.sales.wf.dto.ProcessUserAccessDto;
 import com.nicico.internal.sales.wf.dto.ProcessUserAccessRequest;
 import com.nicico.internal.sales.wf.dto.mapper.ProcessUserAccessMapper;
 import com.nicico.internal.sales.wf.dto.request.UserDataDto;
-import com.nicico.internal.sales.wf.enums.LcProcessVariable;
-import com.nicico.internal.sales.wf.enums.ProformaProcessVariable;
-import com.nicico.internal.sales.wf.enums.RemittanceProcessVariable;
-import com.nicico.internal.sales.wf.enums.ReversalProcessVariable;
+import com.nicico.internal.sales.wf.enums.*;
 import com.nicico.internal.sales.wf.model.ProcessUserAccessModel;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import com.nicico.internal.sales.wf.repository.WorkflowRepository;
@@ -48,9 +45,6 @@ public class ProcessUserAccessServiceImpl implements ProcessUserAccessService {
 		var workflow = workflowRepository.findByProcessTitleIgnoreCase(request.getProcessTitle()).orElseThrow();
 		var userInfo = oaUserDAO.findById(request.getUserId()).orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("کاربر در سیستم ثب نشده است"));
 
-		Set<String> authorities = SecurityUtil.getAuthorities();
-		boolean hasProforma = authorities.contains("C_INS_PROFORMA");
-		boolean haslc = authorities.contains("C_INS_LC");
 
 		var model = new ProcessUserAccessModel();
 		model.setProcessId(workflow.getId());
@@ -82,6 +76,12 @@ public class ProcessUserAccessServiceImpl implements ProcessUserAccessService {
 			}
 			case "REVERSAL" -> {
 				var processVar = ReversalProcessVariable.fromString(variable);
+				model.setProcessVariable(processVar.name());
+				model.setProcessVariableTitle(processVar.getValue());
+			}
+
+			case "EXTRA_BILL" -> {
+				var processVar = ExtraBillProcessVariable.fromString(variable);
 				model.setProcessVariable(processVar.name());
 				model.setProcessVariableTitle(processVar.getValue());
 			}

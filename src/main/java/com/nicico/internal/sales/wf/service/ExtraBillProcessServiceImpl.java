@@ -166,7 +166,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
 	@Override
 	public boolean canStartProcess() {
-		return hasAccessForVariable(ExtraBillProcessVariable.DraftRegistration);
+		return hasAccessForVariable(ExtraBillProcessVariable.BillDraftRegistration);
 	}
 
 	private boolean hasAccessForVariable(ExtraBillProcessVariable variable) {
@@ -207,8 +207,9 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			return Acknowledgment.UNKNOWN;
 		}
 		return switch (step) {
-			case DraftIssuance -> Acknowledgment.REMITTANCE;
-			case FinalVerification -> Acknowledgment.FINISHED;
+			case BillDraftRegistration -> Acknowledgment.RECKONING;
+			case BillSettleSure -> Acknowledgment.REMITTANCE;
+			case BillFinalCheck -> Acknowledgment.FINISHED;
 			default -> Acknowledgment.UNKNOWN;
 		};
 	}

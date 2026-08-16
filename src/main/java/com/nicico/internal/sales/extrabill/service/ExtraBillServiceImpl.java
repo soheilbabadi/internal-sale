@@ -220,7 +220,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Transactional
 	public ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto) {
 		// یافتن برات بر اساس شناسه
-		ProformaBankBill bill = repository.findById(updateDto.getId())
+		ProformaBankBillModel bill = repository.findById(updateDto.getId())
 				.orElseThrow(() -> new RuntimeException("برات با شناسه " + updateDto.getId() + " یافت نشد"));
 
 		// بروزرسانی فیلدهای مورد نظر
@@ -233,10 +233,10 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		}
 
 		// ذخیره تغییرات
-		ProformaBankBill savedBill = repository.save(bill);
+		ProformaBankBillModel savedBill = repository.save(bill);
 
 		// تبدیل به DTO و بازگشت
-		return mapToInfo(savedBill);
+		return mapper.toDTO(savedBill);
 	}
 
 }

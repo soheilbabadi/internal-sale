@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class ProformaBankBillFileUpdateDto {
 
     @Schema(description = "شناسه برات")
-    private String id;
+    private long id;
 
     @Schema(description = "شناسه فایل پیوست برات")
     private String extraBillFileId;
