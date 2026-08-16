@@ -20,9 +20,12 @@ import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @Slf4j
 @Service
@@ -34,8 +37,9 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private static final String ACCESS_DENIED_MESSAGE = "شما اجازه شروع فرایند برات الکترونیک را ندارید";
 	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور پیدا نشد";
 	private static final String ERROR_REFRESHING_STATUS = "خطا در بروز رسانی وضعیت براتها";
-	private static final String ERROR_REJECTING_EXTRA_BILL = "خطا در رد کردن فرایند {}: {}";
+	private static final String ERROR_REJECTING_EXTRA_BILL = "خطا در رد کردن فرایند {}";
 	private static final String ERROR_DETECTING_STEP = "خطا در تشخیص مرحله فرایند {}";
+	private static final String ERROR_HANDLING_TASK_ACTION = "خطا در انجام عملیات تسک {}";
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
@@ -44,40 +48,40 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final ExtraBillRepository extraBillRepository;
 
 	@Override
+	@Transactional
 	public ProcessInstance startExtraBillProcess(Long masterId) {
-		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
-		}
-
-		ProformaMasterModel bankBillModel = proformaMasterRepository.findById(masterId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
-
-		StartProcessWithDataDTO startProcessDto = new StartProcessWithDataDTO();
-		startProcessDto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
-		startProcessDto.setVariables(processVariableProvider.createExtraBillRequestVariables(buildExtraBillVariablesInput(bankBillModel)));
-		return startProcessWithData(startProcessDto);
+		validateAccess();
+		
+		ProformaMasterModel proformaMaster = getProformaMasterOrThrow(masterId);
+		
+		StartProcessWithDataDTO startProcessDto = buildStartProcessDto(proformaMaster);
+		ProcessInstance processInstance = startProcessWithData(startProcessDto);
+		
+		refreshExtraBillStatus();
+		
+		return processInstance;
 	}
 
 	@Override
+	@Transactional
 	public ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto) {
-		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
-		}
 		try {
 			startProcessDto.setProcessDefinitionKey(
 					processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
 			return bpmsClientService.startProcessWithData(startProcessDto);
 		} catch (Exception ex) {
-			throw bpmsException(ex);
+			throw wrapBpmsException(ex);
 		}
 	}
 
 	@Override
+	@Transactional
 	public void approveTask(TaskActionDto taskActionDto) {
 		handleTaskAction(taskActionDto, true);
 	}
 
 	@Override
+	@Transactional
 	public void rejectTask(TaskActionDto taskActionDto) {
 		handleTaskAction(taskActionDto, false);
 	}
@@ -85,6 +89,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private void handleTaskAction(TaskActionDto dto, boolean approve) {
 		dto.setApprove(approve);
 		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
+		
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
 
@@ -97,32 +102,43 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 				acceptByProcessId(reviewTaskRequest.getProcessInstanceId());
 			}
 
-			ProformaBankBillModel proformaBankBillModel = extraBillRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
-			applyCurrentStatus(proformaBankBillModel);
-			extraBillRepository.save(proformaBankBillModel);
+			updateBillStatusByProcessId(reviewTaskRequest.getProcessInstanceId());
 
 		} catch (Exception ex) {
-			throw bpmsException(ex);
+			log.error(ERROR_HANDLING_TASK_ACTION, dto.getTaskId(), ex);
+			throw wrapBpmsException(ex);
 		}
 	}
 
+	private void updateBillStatusByProcessId(String processInstanceId) {
+		Optional<ProformaBankBillModel> billOpt = Optional.ofNullable(
+				extraBillRepository.findByProcessId(processInstanceId));
+		
+		billOpt.ifPresent(bill -> {
+			applyCurrentStatus(bill);
+			extraBillRepository.save(bill);
+		});
+	}
+
 	private void acceptByProcessId(String processInstanceId) {
-		ProformaBankBillModel billModel = extraBillRepository.findByProcessId(processInstanceId);
-		billModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-		billModel.setAcknowledgment(Acknowledgment.FINISHED);
-		extraBillRepository.save(billModel);
+		Optional<ProformaBankBillModel> billOpt = Optional.ofNullable(
+				extraBillRepository.findByProcessId(processInstanceId));
+		
+		billOpt.ifPresent(bill -> {
+			bill.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			bill.setAcknowledgment(Acknowledgment.FINISHED);
+			extraBillRepository.save(bill);
+		});
 	}
 
 	@Override
+	@Transactional
 	public void refreshExtraBillStatus() {
 		try {
 			List<ProformaBankBillModel> billModels = extraBillRepository.findAllByWorkflowApproveStatusIn(
 					List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
 
-			for (ProformaBankBillModel bankBillModel : billModels) {
-				applyCurrentStatus(bankBillModel);
-			}
-
+			billModels.forEach(this::applyCurrentStatus);
 			extraBillRepository.saveAll(billModels);
 
 		} catch (Exception ex) {
@@ -132,6 +148,9 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
 	private void applyCurrentStatus(ProformaBankBillModel bankBillModel) {
 		String processId = bankBillModel.getProcessId();
+		if (processId == null) {
+			return;
+		}
 
 		boolean finished = processVariableProvider.isProcessFinished(processId);
 		boolean accepted = processVariableProvider.isProcessAcceptedFinally(processId);
@@ -152,21 +171,35 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	}
 
 	@Override
+	@Transactional
 	public void rejectExtraBill(String processInstanceId) {
-		if (!TextUtility.isValidUUID(processInstanceId)) return;
+		if (!TextUtility.isValidUUID(processInstanceId)) {
+			return;
+		}
+		
 		try {
-			ProformaBankBillModel bankBillModel = extraBillRepository.findByProcessId(processInstanceId);
-			bankBillModel.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-			bankBillModel.setAcknowledgment(Acknowledgment.CANCELED);
-			extraBillRepository.save(bankBillModel);
+			Optional<ProformaBankBillModel> billOpt = Optional.ofNullable(
+					extraBillRepository.findByProcessId(processInstanceId));
+			
+			billOpt.ifPresent(bill -> {
+				bill.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+				bill.setAcknowledgment(Acknowledgment.CANCELED);
+				extraBillRepository.save(bill);
+			});
 		} catch (Exception ex) {
-			log.error(ERROR_REJECTING_EXTRA_BILL, processInstanceId, ex.getMessage(), ex);
+			log.error(ERROR_REJECTING_EXTRA_BILL, processInstanceId, ex);
 		}
 	}
 
 	@Override
 	public boolean canStartProcess() {
 		return hasAccessForVariable(ExtraBillProcessVariable.BillDraftRegistration);
+	}
+
+	private void validateAccess() {
+		if (!canStartProcess()) {
+			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
+		}
 	}
 
 	private boolean hasAccessForVariable(ExtraBillProcessVariable variable) {
@@ -197,8 +230,9 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
 	@Override
 	public ExtraBillProcessVariable detectExtraBillStep(long extraBillId) {
-		return extraBillRepository.findById(extraBillId)
-				.map(model -> detectExtraBillStep(model.getProcessId()))
+		return Optional.ofNullable(extraBillRepository.findById(extraBillId).orElse(null))
+				.map(ProformaBankBillModel::getProcessId)
+				.map(this::detectExtraBillStep)
 				.orElse(null);
 	}
 
@@ -215,21 +249,31 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	}
 
 	private ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMasterModel) {
-		ProformaMasterModel ProformaMasterModel = proformaMasterRepository.findById(proformaMasterModel.getId())
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
-
 		ProformaVariablesInput input = new ProformaVariablesInput();
 		input.setProformaMasterId(proformaMasterModel.getId());
-		input.setContractDate(ProformaMasterModel.getContractDate());
-		input.setGoodId(ProformaMasterModel.getGoodId());
-		input.setGoodName(ProformaMasterModel.getGoodName());
-		input.setCustomerName(ProformaMasterModel.getCustomerName());
+		input.setContractDate(proformaMasterModel.getContractDate());
+		input.setGoodId(proformaMasterModel.getGoodId());
+		input.setGoodName(proformaMasterModel.getGoodName());
+		input.setCustomerName(proformaMasterModel.getCustomerName());
 		input.setContractNo(String.valueOf(proformaMasterModel.getContractNo()));
-		input.setCommission(ProformaMasterModel.getCommissionPercentage());
+		input.setCommission(proformaMasterModel.getCommissionPercentage());
 		return input;
 	}
 
-	private InternalSaleCustomException.BpmsClientException bpmsException(Exception ex) {
+	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel proformaMaster) {
+		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
+		dto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
+		dto.setVariables(processVariableProvider.createExtraBillRequestVariables(
+				buildExtraBillVariablesInput(proformaMaster)));
+		return dto;
+	}
+
+	private ProformaMasterModel getProformaMasterOrThrow(Long masterId) {
+		return proformaMasterRepository.findById(masterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
+	}
+
+	private InternalSaleCustomException.BpmsClientException wrapBpmsException(Exception ex) {
 		return new InternalSaleCustomException.BpmsClientException(BPMS_ERROR, List.of(ex.getMessage()));
 	}
 }

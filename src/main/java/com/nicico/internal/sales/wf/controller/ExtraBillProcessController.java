@@ -27,7 +27,7 @@ public class ExtraBillProcessController {
 			description = "با دریافت شناسه پیش فاکتور اصلی (Master ID)،  فرایند ایجاد اعتبار اسنادی را آغاز می کند. این عملیات شامل ایجاد تسک های اولیه، تنظیم وضعیت اولیه برات الکترونیک و شروع جریان کاری مطابق با قوانین و ضوابط تعیین شده می باشد."
 	)
 	@PostMapping("/start-extra-bill/{masterId}")
-	public ResponseEntity<?> startLcProcess(@PathVariable Long masterId) {
+	public ResponseEntity<?> startExtraBillProcess(@PathVariable Long masterId) {
 		return ResponseEntity.ok(extraBillProcessService.startExtraBillProcess(masterId));
 	}
 

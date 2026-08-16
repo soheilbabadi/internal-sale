@@ -9,10 +9,7 @@ target/
 
 # Dependencies
 .gradle/
-node_modules/
-venv/
-.venv/
-__pycache__/
+lib/
 
 # Logs and temp files
 *.log
@@ -33,7 +30,25 @@ coverage/
 htmlcov/
 .coverage
 
-# System files
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg-info/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+
+# Java specific
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# OS generated files
 .DS_Store
 Thumbs.db
 ```
