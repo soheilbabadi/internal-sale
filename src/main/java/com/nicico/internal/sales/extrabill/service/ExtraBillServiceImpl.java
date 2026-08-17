@@ -11,12 +11,11 @@ import com.nicico.internal.sales.extrabill.dto.*;
 import com.nicico.internal.sales.extrabill.model.ProformaBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillReportRepository;
-import com.nicico.internal.sales.proforma.dto.PerfomaCreateRequest;
+import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
-import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,36 +44,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private final ProformaBankBillReportMapper proformaBankBillReportMapper;
 
 	// ==================== PROFORMA CREATION ====================
-
-	@Override
-	@Transactional
-	public String createProforma(PerfomaCreateRequest requestDto) {
-		log.debug("Creating extra bill proforma for tradeId: {}", requestDto.getTradeId());
-
-		// TODO: Implement extra bill proforma creation logic
-		// This method is currently disabled and returns empty string
-		log.warn("Extra bill proforma creation is not implemented yet");
-		return "";
-
-        /*
-        // Implementation example (commented out):
-        proformaValidationService.validateDate(requestDto);
-        ProformaMasterModel model = createProformaMaster(requestDto);
-        model.setProformaIssueType(ProformaIssueType.EXTRA_BILL_OF_EXCHANGE);
-
-        proformaMasterRepository.saveAndFlush(model);
-        saveProformaDetails(model);
-
-        ProformaVariablesInput input = buildProformaVariablesInput(model);
-        var process = proformaProcessService.startProformaProcess(input);
-        model.setProcessId(process.getId());
-        model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-        proformaMasterRepository.saveAndFlush(model);
-
-        log.info("Extra bill proforma created successfully with contractNo: {}", model.getContractNo());
-        return model.getContractNo().toString();
-        */
-	}
 
 	// ==================== BANK BILL CRUD ====================
 
@@ -178,36 +147,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.processId(DEFAULT_PLACEHOLDER)
 				.reversalProcessId(DEFAULT_PLACEHOLDER)
 				.workflowApproveStatus(WorkflowApproveStatus.DRAFT)
-				.build();
-	}
-
-	/**
-	 * ذخیره جزئیات پیش فاکتور
-	 */
-	private void saveProformaDetails(ProformaMasterModel model) {
-		model.getProformaDetailModelLists().forEach(detail -> {
-			detail.setProformaMasterId(model.getId());
-			proformaDetailRepository.save(detail);
-
-			detail.getProformaGoodItemModels().forEach(goodItem -> {
-				goodItem.setProformaDetailId(detail.getId());
-				proformaDetailRepository.saveAndFlush(detail);
-			});
-		});
-	}
-
-	/**
-	 * ساخت ورودی فرآیند
-	 */
-	private ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model) {
-		return ProformaVariablesInput.builder()
-				.contractDate(model.getProformaDetailModelLists().get(0).getContractDate())
-				.proformaMasterId(model.getId())
-				.goodId(model.getGoodId())
-				.contractNo(String.valueOf(model.getContractNo()))
-				.customerName(model.getCustomerName())
-				.goodName(model.getGoodName())
-				.commission(model.getCommissionPercentage())
+				.acknowledgment(Acknowledgment.UNKNOWN)
+				.extraBillFileId(request.getExtraBillFileId())
 				.build();
 	}
 
@@ -224,19 +165,17 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new RuntimeException("برات با شناسه " + updateDto.getId() + " یافت نشد"));
 
 		// بروزرسانی فیلدهای مورد نظر
-		if (updateDto.getExtraBillFileId() != null) {
-			bill.setExtraBillFileId(updateDto.getExtraBillFileId());
-		}
 
 		if (updateDto.getDispatchAttachmentId() != null) {
 			bill.setDispatchAttachmentId(updateDto.getDispatchAttachmentId());
+			repository.save(bill);
 		}
 
 		// ذخیره تغییرات
-		ProformaBankBillModel savedBill = repository.save(bill);
+
 
 		// تبدیل به DTO و بازگشت
-		return mapper.toDTO(savedBill);
+		return mapper.toDTO(bill);
 	}
 
 }

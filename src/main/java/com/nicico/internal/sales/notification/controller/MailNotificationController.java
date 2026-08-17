@@ -26,7 +26,7 @@ public class MailNotificationController {
 
 	}
 
-//	@PreAuthorize("@secUtil.hasAuthority('C_INS_SEND_NOTIFICATION') and @secUtil.hasAuthority('C_INS_PROFORMA')")
+	//	@PreAuthorize("@secUtil.hasAuthority('C_INS_SEND_NOTIFICATION') and @secUtil.hasAuthority('C_INS_PROFORMA')")
 	@GetMapping("/retry-proforma-email/{proformaMasterId}")
 	public ResponseEntity<?> retrySendProformaAttachment(@PathVariable Long proformaMasterId) {
 

@@ -31,11 +31,14 @@ import java.util.stream.Collectors;
 public final class ProformaModelHelper {
 
 	private static final String DEFAULT_PLACEHOLDER = "-";
-	private static final BigDecimal TOTAL_PERCENTAGE = BigDecimal.valueOf(100);
+	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
+	private static final BigDecimal ZERO = BigDecimal.ZERO;
+
 	private static final String UNIT_NAME = "کیلوگرم";
 	private static final String DEFAULT_LOT_NUMBER = "-";
 	private static final String SARCHESHMEH = "سرچشمه";
 	private static final String EMPTY_STRING = "";
+
 
 	private ProformaModelHelper() {
 	}
@@ -344,12 +347,11 @@ public final class ProformaModelHelper {
 			creditPercentage = BigDecimal.ZERO;
 		} else {
 			cashPercentage = goodsBucketModel.getCashPercentage();
-			creditPercentage = TOTAL_PERCENTAGE.subtract(goodsBucketModel.getCashPercentage());
+			creditPercentage = HUNDRED.subtract(goodsBucketModel.getCashPercentage());
 		}
 
 		return new CashCreditPercentages(cashPercentage, creditPercentage);
 	}
-
 
 
 	public static String processGoodName(GoodsModel goodsModel, String description) {
@@ -406,7 +408,7 @@ public final class ProformaModelHelper {
 				.cashPercentage(goodsBucketModel.getCashPercentage())
 				.commissionPercentage(goodsBucketModel.getCommission())
 				.deadlineDays(deadlineDays)
-				.creditPercentage(TOTAL_PERCENTAGE.subtract(goodsBucketModel.getCashPercentage()))
+				.creditPercentage(HUNDRED.subtract(goodsBucketModel.getCashPercentage()))
 				.customerId(customerModel.getId())
 				.customerName(customerModel.getName())
 				.nationalCode(customerModel.getNationalCode())
@@ -457,7 +459,7 @@ public final class ProformaModelHelper {
 
 		int gaamcount = 0;
 		if (proformaIssueType == ProformaIssueType.GAM_BONDS) {
-			gaamcount = calculateGamCertificateCount(detailTotals.finalAmount());
+			gaamcount = detailTotals.finalAmount().divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
 		}
 		return ProformaDetailModel.builder()
 				.proformaGoodItemModels(goodItems)
@@ -485,9 +487,6 @@ public final class ProformaModelHelper {
 				.build();
 	}
 
-	public static Integer calculateGamCertificateCount(BigDecimal finalAmount) {
-		return finalAmount.divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
-	}
 
 	// ==================== CONVERSION METHODS ====================
 
@@ -735,8 +734,8 @@ public final class ProformaModelHelper {
 			extraPercent = saleConditionModel.getExtraBillOfExchangePercent();
 		}
 
-		if (extraPercent != null && extraPercent.compareTo(BigDecimal.ZERO) > 0) {
-			return totalPrice.multiply(extraPercent).divide(BigDecimal.valueOf(100), 0, RoundingMode.UP);
+		if (extraPercent != null && extraPercent.compareTo(ZERO) > 0) {
+			return totalPrice.multiply(extraPercent).divide(HUNDRED, 0, RoundingMode.UP);
 		}
 
 		return BigDecimal.ZERO;

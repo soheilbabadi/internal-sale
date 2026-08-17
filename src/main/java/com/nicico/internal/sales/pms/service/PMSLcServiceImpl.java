@@ -93,7 +93,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 				return;
 			}
 			try {
-			sendLcModelToPMS(lc, username);
+				sendLcModelToPMS(lc, username);
 			} catch (Exception e) {
 				log.error(e.getMessage());
 				throw new InternalSaleCustomException.ApplicationServerException(e.getMessage());

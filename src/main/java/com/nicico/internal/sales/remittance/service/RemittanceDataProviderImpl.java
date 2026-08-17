@@ -53,8 +53,6 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 	private static final Date DEFAULT_DATE = new Date(0);
 	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 	private static final BigDecimal ZERO = BigDecimal.ZERO;
-	private static final String SETTLEMENT_TYPE_CASH = "نقدی";
-	private static final double MIN_NET_WEIGHT = 1.0;
 	// Error messages
 	private static final String ERROR_PROFORMA_NOT_FOUND = "پیش فاکتور وجود ندارد";
 	private static final String ERROR_LC_NOT_FOUND = "اعتبار اسنادی وجود ندارد";

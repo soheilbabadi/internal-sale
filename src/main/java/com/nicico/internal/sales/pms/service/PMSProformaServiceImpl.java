@@ -12,7 +12,6 @@ import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.pms.dto.PMSPreFactorDto;
 import com.nicico.internal.sales.pms.model.PMSCustomerModel;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
-import com.nicico.internal.sales.proforma.enums.SettlementType;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaGoodItemModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,6 +36,7 @@ import java.util.Optional;
 public class PMSProformaServiceImpl implements PMSProformaService {
 
 	private static final String CONFIG_NOT_FOUND_MESSAGE = "تنظیمات پیکربندی وجود ندارد";
+	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور وجود ندارد";
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final GoodsService goodsService;
 	private final PMSProperties pmsProperties;
@@ -46,34 +45,10 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 	private final RabbitConfigPMSProperties rabbitConfigPMSProperties;
 	private final RabbitTemplate rabbitTemplate;
 	private final ObjectMapper objectMapper;
-
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final ExportNotificationConfigRepository exportNotificationConfigRepository;
 
 
-	private BigDecimal getMeghdar(ProformaGoodItemModel goodItem) {
-
-		var performaDetailModel = proformaDetailRepository.findById(goodItem.getProformaDetailId()).get();
-
-		if (Objects.nonNull(goodItem.getNetQuantity()) && goodItem.getNetQuantity().longValue() > 0) {
-			return goodItem.getNetQuantity();
-		}
-		if (!performaDetailModel.getSettlementType().equals(SettlementType.CASH) &&
-				Objects.nonNull(goodItem.getCreditQuantity()) && goodItem.getCreditQuantity().longValue() > 0) {
-			return goodItem.getCreditQuantity();
-		}
-		return goodItem.getQuantity();
-	}
-
-	private BigDecimal getUnitPrice(ProformaGoodItemModel goodItem) {
-		var performaDetailModel = proformaDetailRepository.findById(goodItem.getProformaDetailId()).get();
-		if (performaDetailModel.getProformaIssueType().equals(ProformaIssueType.FROM_CREDIT_FACILITIES) &&
-				Objects.nonNull(goodItem.getUnitPriceCash()) &&
-				goodItem.getUnitPriceCash().longValue() > 0) {
-			return goodItem.getUnitPriceCash();
-		}
-		return goodItem.getUnitPriceCredit();
-	}
 
 	@Override
 	public void validateForCreatePreFactorFromProformaMasterId(Long proformaMasterId) {
@@ -89,12 +64,13 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 		List<ProformaGoodItemModel> goodItems = cacheService.getPerformaGoodItems(proformaMasterId);
 		if (goodItems.isEmpty()) {
 			throw new InternalSaleCustomException.ValidationException(
-					"no performa good items found for master id " + proformaMasterId);
+					"no proforma good items found for master id " + proformaMasterId);
 		}
 		// Validation برای هر آیتم
 		for (ProformaGoodItemModel goodItem : goodItems) {
 //            var performaDetailModel = proformaDetailRepository.findById(goodItem.getProformaDetailId()).get();
-			var masterModel = proformaMasterRepository.findById(proformaMasterId).get();
+			var masterModel = proformaMasterRepository.findById(proformaMasterId)
+					.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
 			// بررسی وجود PMS Goods ID
 			Long pmsGoodsId = goodsService.findPmsIdByGoodName(goodItem.getGoodName());
 			if (pmsGoodsId == null) {
@@ -133,11 +109,12 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 		List<ProformaGoodItemModel> goodItems = cacheService.getPerformaGoodItems(proformaMasterId);
 		if (goodItems.isEmpty()) {
 			throw new InternalSaleCustomException.ValidationException(
-					"no performa good items found for master id " + proformaMasterId);
+					"no proforma good items found for master id " + proformaMasterId);
 		}
 		goodItems.forEach(goodItem -> {
 
-			var performaDetailModel = proformaDetailRepository.findById(goodItem.getProformaDetailId()).get();
+			var performaDetailModel = proformaDetailRepository.findById(goodItem.getProformaDetailId())
+					.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
 
 			if (!resend && Objects.nonNull(performaDetailModel.getPmsId())) {
 				log.info("Proforma detail id {} already sent to PMS with pms id {}, skipping resend",
@@ -151,7 +128,7 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 					.customerId(extractCustomerId(goodItem))
 					.meghdar(getMeghdar(goodItem))
 					.priceUnit(getUnitPrice(goodItem).toString())
-					.sodorDate(formatDateToShamsi(performaDetailModel.getPerformaDate()))
+					.sodorDate(DateUtility.getJalaliDate(performaDetailModel.getPerformaDate()))
 					.username(extractPmsUserName(userName))
 					.letterNumber(performaDetailModel.getPerformaNo())
 					.user(pmsProperties.getPreFactor().getUser())
@@ -191,25 +168,45 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 	}
 
 	private String extractCustomerId(ProformaGoodItemModel goodItem) {
-
-		var performaDetailModel = proformaDetailRepository.findById(goodItem.getProformaDetailId()).get();
-		var masterModel = proformaMasterRepository.findById(performaDetailModel.getProformaMasterId()).get();
-		if (performaDetailModel != null && masterModel != null) {
+		var performaDetailModel = proformaDetailRepository.findById(goodItem.getProformaDetailId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
+		var masterModel = proformaMasterRepository.findById(performaDetailModel.getProformaMasterId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
 			String nationalCode = masterModel.getNationalCode();
 			CustomerModel customer = cacheService.getCustomerByNationalCode(nationalCode);
 			PMSCustomerModel pmsCustomer = pmsCustomerService.findByEconomicCodeOrRegisterNumber(customer.getEconomicCode(),
 					customer.getRegisterNumber() != null && !customer.getRegisterNumber().isEmpty() ? customer.getRegisterNumber() : customer.getNationalCode());
 			return pmsCustomer.getId();
-		}
-		throw new InternalSaleCustomException.ValidationException("شماره قراردادد وجود ندارد");
+
+
 	}
 
-	private String formatDateToShamsi(Date date) {
-		return DateUtility.getJalaliDate(date);
-	}
+
 
 	private String extractPmsUserName(String userName) {
 		return Objects.nonNull(userName) ? userName :
 				pmsProperties.getPreFactor().getDefaultPmsUser();
 	}
+
+	private BigDecimal getMeghdar(ProformaGoodItemModel goodItem) {
+		if (Objects.nonNull(goodItem.getNetQuantity()) && goodItem.getNetQuantity().longValue() > 0) {
+			return goodItem.getNetQuantity();
+		}
+		if (Objects.nonNull(goodItem.getCreditQuantity()) && goodItem.getCreditQuantity().longValue() > 0) {
+			return goodItem.getCreditQuantity();
+		}
+		return goodItem.getQuantity();
+	}
+
+	private BigDecimal getUnitPrice(ProformaGoodItemModel goodItem) {
+		var detailModel = proformaDetailRepository.findById(goodItem.getProformaDetailId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
+		if (detailModel.getProformaIssueType().equals(ProformaIssueType.FROM_CREDIT_FACILITIES) &&
+				Objects.nonNull(goodItem.getUnitPriceCash()) &&
+				goodItem.getUnitPriceCash().longValue() > 0) {
+			return goodItem.getUnitPriceCash();
+		}
+		return goodItem.getUnitPriceCredit();
+	}
+
 }

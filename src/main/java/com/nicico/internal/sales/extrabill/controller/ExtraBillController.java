@@ -33,7 +33,7 @@ public class ExtraBillController {
 
 	@Operation(summary = "جستجوی براتهای قابل صدور", description = "لیست براتها که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی‌گرداند.")
 	@PostMapping("/search-issuable")
-	public ResponseEntity<SearchDTO.SearchRs<ExtraBillIssueProviderDto.Info> > searchIssuable(
+	public ResponseEntity<SearchDTO.SearchRs<ExtraBillIssueProviderDto.Info>> searchIssuable(
 			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
 			@RequestParam(required = false) MultiValueMap<String, String> criteria) {
 		if (criteria != null && !criteria.isEmpty()) {

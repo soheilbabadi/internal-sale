@@ -26,10 +26,12 @@ import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -38,6 +40,12 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 	private static final String PROCESS_TITLE_LC = "LC";
 	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
+	private static final String ACCESS_DENIED_MESSAGE = "شما اجازه شروع فرایند اعتبار اسنادی را ندارید";
+	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور پیدا نشد";
+	private static final String ERROR_REFRESHING_STATUS = "خطا در بروز رسانی وضعیت اعتبارات اسنادی";
+	private static final String ERROR_REJECTING_LC = "خطا در رد کردن فرایند {}";
+	private static final String ERROR_DETECTING_STEP = "خطا در تشخیص مرحله فرایند {}";
+	private static final String ERROR_HANDLING_TASK_ACTION = "خطا در انجام عملیات تسک {}";
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
@@ -48,27 +56,18 @@ public class LcProcessServiceImpl implements LcProcessService {
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final ProformaGoodItemRepository proformaGoodItemRepository;
 
-
+	// Process lifecycle
 	@Override
+	@Transactional
 	public ProcessInstance startLcProcess(Long masterId) {
-		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException(
-					"شما اجازه شروع فرایند اعتبار اسنادی را ندارید");
-		}
-
+		validateAccess();
 		refreshLcStatus();
 		lcValidationService.validateStart(masterId);
 
-		ProformaMasterModel masterModel = proformaMasterRepository.findById(masterId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						"پیش فاکتور پیدا نشد"));
-
+		ProformaMasterModel masterModel = getProformaMasterOrThrow(masterId);
 		List<ProformaDetailModel> details = proformaDetailRepository.findAllByProformaMasterId(masterId);
 
-		StartProcessWithDataDTO startProcessDto = new StartProcessWithDataDTO();
-		startProcessDto.setProcessDefinitionKey(processVariableProvider.getLcWorkflowByTitle().getDefinitionKey());
-		startProcessDto.setVariables(processVariableProvider.createLCRequestVariables(buildProformaVariablesInput(masterModel)));
-
+		StartProcessWithDataDTO startProcessDto = buildStartProcessDto(masterModel);
 		ProcessInstance instance = startProcessWithData(startProcessDto);
 
 		details.stream()
@@ -80,185 +79,24 @@ public class LcProcessServiceImpl implements LcProcessService {
 	}
 
 	@Override
+	@Transactional
 	public ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto) {
-		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException(
-					"شما اجازه شروع فرایند اعتبار اسنادی را ندارید");
-		}
+		validateAccess();
 		try {
 			startProcessDto.setProcessDefinitionKey(
 					processVariableProvider.getLcWorkflowByTitle().getDefinitionKey());
 			return bpmsClientService.startProcessWithData(startProcessDto);
 		} catch (Exception ex) {
-			throw bpmsException(ex);
+			throw wrapBpmsException(ex);
 		}
 	}
 
-
-	@Override
-	public void approveTask(TaskActionDto taskActionDto) {
-		handleTaskAction(taskActionDto, true);
+	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel masterModel) {
+		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
+		dto.setProcessDefinitionKey(processVariableProvider.getLcWorkflowByTitle().getDefinitionKey());
+		dto.setVariables(processVariableProvider.createLCRequestVariables(buildProformaVariablesInput(masterModel)));
+		return dto;
 	}
-
-	@Override
-	public void rejectTask(TaskActionDto taskActionDto) {
-		handleTaskAction(taskActionDto, false);
-	}
-
-	private void handleTaskAction(TaskActionDto dto, boolean approve) {
-
-		dto.setApprove(approve);
-		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
-		try {
-			bpmsClientService.reviewTask(reviewTaskRequest);
-
-			if (!approve) {
-				rejectLc(reviewTaskRequest.getProcessInstanceId());
-				return;
-			}
-
-			if (processVariableProvider.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId())) {
-				acceptLcsByProcessId(reviewTaskRequest.getProcessInstanceId());
-			}
-
-			List<LcModel> lcList = lcRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
-			for (LcModel lc : lcList) {
-				applyCurrentStatus(lc);
-			}
-			lcRepository.saveAll(lcList);
-
-
-		} catch (Exception ex) {
-			throw bpmsException(ex);
-		}
-	}
-
-	private void acceptLcsByProcessId(String processInstanceId) {
-		List<LcModel> lcList = lcRepository.findByProcessId(processInstanceId);
-		for (LcModel lc : lcList) {
-			lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-			lc.setAcknowledgment(Acknowledgment.FINISHED);
-		}
-		lcRepository.saveAll(lcList);
-
-	}
-
-	// -------------------------------------------------------------------------
-	// Status refresh
-	// -------------------------------------------------------------------------
-
-	@Override
-	public void refreshLcStatus() {
-		try {
-			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(
-					List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
-
-			for (LcModel lc : lcList) {
-				applyCurrentStatus(lc);
-			}
-
-			lcRepository.saveAll(lcList);
-
-		} catch (Exception ex) {
-			log.error("Error refreshing LC status", ex);
-		}
-	}
-
-	private void applyCurrentStatus(LcModel lc) {
-		String processId = lc.getProcessId();
-
-		boolean finished = processVariableProvider.isProcessFinished(processId);
-		boolean accepted = processVariableProvider.isProcessAcceptedFinally(processId);
-
-		if (accepted) {
-			lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-			lc.setAcknowledgment(Acknowledgment.FINISHED);
-		} else if (finished) {
-			lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-			lc.setAcknowledgment(Acknowledgment.CANCELED);
-		} else {
-			lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-			Acknowledgment acknowledgment = resolveAcknowledgmentFromStep(detectLcStep(processId));
-			if (acknowledgment != Acknowledgment.UNKNOWN) {
-				lc.setAcknowledgment(acknowledgment);
-			}
-		}
-	}
-
-	@Override
-	public void rejectLc(String processInstanceId) {
-		if (!TextUtility.isValidUUID(processInstanceId)) return;
-		try {
-			List<LcModel> lcList = lcRepository.findByProcessId(processInstanceId);
-			for (LcModel lc : lcList) {
-				lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-				lc.setAcknowledgment(Acknowledgment.CANCELED);
-			}
-			lcRepository.saveAll(lcList);
-		} catch (Exception ex) {
-			log.error("Error while rejecting LC for process {}: {}", processInstanceId, ex.getMessage(), ex);
-		}
-	}
-
-
-	@Override
-	public boolean canStartProcess() {
-		return hasAccessForVariable(LcProcessVariable.CreditBridge);
-	}
-
-	@Override
-	public boolean canFinishProcess() {
-		return hasAccessForVariable(LcProcessVariable.FinalCheck);
-	}
-
-	private boolean hasAccessForVariable(LcProcessVariable variable) {
-		return processUserAccessRepository.findAllByProcessTitle(PROCESS_TITLE_LC)
-				.stream()
-				.anyMatch(access ->
-						Objects.equals(access.getUserId(), SecurityUtil.getUserId()) &&
-								variable.name().equalsIgnoreCase(access.getProcessVariable()));
-	}
-
-
-	@Override
-	public LcProcessVariable detectLcStep(String processInstanceId) {
-		if (!TextUtility.isValidUUID(processInstanceId)) {
-			return null;
-		}
-		try {
-			List<TaskInfo> tasks = bpmsClientService.getProcessInstanceTasks(processInstanceId);
-			if (tasks == null || tasks.isEmpty()) {
-				return null;
-			}
-			String taskName = tasks.get(0).getName();
-			return Arrays.stream(LcProcessVariable.values())
-					.filter(v -> v.getValue().equals(taskName) || v.name().equalsIgnoreCase(taskName))
-					.findFirst()
-					.orElse(null);
-		} catch (Exception ex) {
-			log.debug("Failed to detect LC step for process {}", processInstanceId, ex);
-			return null;
-		}
-	}
-
-	@Override
-	public LcProcessVariable detectLcStep(long lcId) {
-		return lcRepository.findById(lcId)
-				.map(lc -> detectLcStep(lc.getProcessId()))
-				.orElse(null);
-	}
-
-	private Acknowledgment resolveAcknowledgmentFromStep(LcProcessVariable step) {
-		if (step == null) {
-			return Acknowledgment.UNKNOWN;
-		}
-		return switch (step) {
-			case RemitSure -> Acknowledgment.REMITTANCE;
-			case FinalCheck -> Acknowledgment.FINISHED;
-			default -> Acknowledgment.UNKNOWN;
-		};
-	}
-
 
 	private ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel masterModel) {
 		ProformaDetailModel detail = masterModel.getProformaDetailModelLists().get(0);
@@ -308,7 +146,175 @@ public class LcProcessServiceImpl implements LcProcessService {
 		return lc;
 	}
 
-	private InternalSaleCustomException.BpmsClientException bpmsException(Exception ex) {
+	private ProformaMasterModel getProformaMasterOrThrow(Long masterId) {
+		return proformaMasterRepository.findById(masterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
+	}
+
+
+	@Override
+	@Transactional
+	public void approveTask(TaskActionDto taskActionDto) {
+		handleTaskAction(taskActionDto, true);
+	}
+
+	@Override
+	@Transactional
+	public void rejectTask(TaskActionDto taskActionDto) {
+		handleTaskAction(taskActionDto, false);
+	}
+
+	private void handleTaskAction(TaskActionDto dto, boolean approve) {
+		dto.setApprove(approve);
+		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
+
+		try {
+			bpmsClientService.reviewTask(reviewTaskRequest);
+
+			if (approve) {
+				// applyCurrentStatus already derives ACCEPTED/FINISHED when the process
+				// is finally accepted, so a single status sync covers both outcomes.
+				applyToLcsByProcessId(reviewTaskRequest.getProcessInstanceId(), this::applyCurrentStatus);
+			} else {
+				rejectLc(reviewTaskRequest.getProcessInstanceId());
+			}
+
+		} catch (Exception ex) {
+			log.error(ERROR_HANDLING_TASK_ACTION, dto.getTaskId(), ex);
+			throw wrapBpmsException(ex);
+		}
+	}
+
+
+	@Override
+	@Transactional
+	public void refreshLcStatus() {
+		try {
+			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(
+					List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
+
+			lcList.forEach(this::applyCurrentStatus);
+			lcRepository.saveAll(lcList);
+
+		} catch (Exception ex) {
+			log.error(ERROR_REFRESHING_STATUS, ex);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void rejectLc(String processInstanceId) {
+		if (!TextUtility.isValidUUID(processInstanceId)) {
+			return;
+		}
+		try {
+			applyToLcsByProcessId(processInstanceId, lc -> {
+				lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+				lc.setAcknowledgment(Acknowledgment.CANCELED);
+			});
+		} catch (Exception ex) {
+			log.error(ERROR_REJECTING_LC, processInstanceId, ex);
+		}
+	}
+
+	// Fetches all LCs for a process instance, applies the mutation to each, and saves them all.
+	private void applyToLcsByProcessId(String processInstanceId, Consumer<LcModel> mutator) {
+		List<LcModel> lcList = lcRepository.findByProcessId(processInstanceId);
+		lcList.forEach(mutator);
+		lcRepository.saveAll(lcList);
+	}
+
+	private void applyCurrentStatus(LcModel lc) {
+		String processId = lc.getProcessId();
+		if (processId == null) {
+			return;
+		}
+
+		boolean finished = processVariableProvider.isProcessFinished(processId);
+		boolean accepted = processVariableProvider.isProcessAcceptedFinally(processId);
+
+		if (accepted) {
+			lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			lc.setAcknowledgment(Acknowledgment.FINISHED);
+		} else if (finished) {
+			lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+			lc.setAcknowledgment(Acknowledgment.CANCELED);
+		} else {
+			lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+			Acknowledgment acknowledgment = resolveAcknowledgmentFromStep(detectLcStep(processId));
+			if (acknowledgment != Acknowledgment.UNKNOWN) {
+				lc.setAcknowledgment(acknowledgment);
+			}
+		}
+	}
+
+	private Acknowledgment resolveAcknowledgmentFromStep(LcProcessVariable step) {
+		if (step == null) {
+			return Acknowledgment.UNKNOWN;
+		}
+		return switch (step) {
+			case RemitSure -> Acknowledgment.REMITTANCE;
+			case FinalCheck -> Acknowledgment.FINISHED;
+			default -> Acknowledgment.UNKNOWN;
+		};
+	}
+
+
+	@Override
+	public LcProcessVariable detectLcStep(String processInstanceId) {
+		if (!TextUtility.isValidUUID(processInstanceId)) {
+			return null;
+		}
+		try {
+			List<TaskInfo> tasks = bpmsClientService.getProcessInstanceTasks(processInstanceId);
+			if (tasks == null || tasks.isEmpty()) {
+				return null;
+			}
+			String taskName = tasks.get(0).getName();
+			return Arrays.stream(LcProcessVariable.values())
+					.filter(v -> v.getValue().equals(taskName) || v.name().equalsIgnoreCase(taskName))
+					.findFirst()
+					.orElse(null);
+		} catch (Exception ex) {
+			log.debug(ERROR_DETECTING_STEP, processInstanceId, ex);
+			return null;
+		}
+	}
+
+	@Override
+	public LcProcessVariable detectLcStep(long lcId) {
+		return lcRepository.findById(lcId)
+				.map(lc -> detectLcStep(lc.getProcessId()))
+				.orElse(null);
+	}
+
+
+	@Override
+	public boolean canStartProcess() {
+		return hasAccessForVariable(LcProcessVariable.CreditBridge);
+	}
+
+	@Override
+	public boolean canFinishProcess() {
+		return hasAccessForVariable(LcProcessVariable.FinalCheck);
+	}
+
+	private void validateAccess() {
+		if (!canStartProcess()) {
+			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
+		}
+	}
+
+	private boolean hasAccessForVariable(LcProcessVariable variable) {
+		return processUserAccessRepository.findAllByProcessTitle(PROCESS_TITLE_LC)
+				.stream()
+				.anyMatch(access ->
+						Objects.equals(access.getUserId(), SecurityUtil.getUserId()) &&
+								variable.name().equalsIgnoreCase(access.getProcessVariable()));
+	}
+
+
+	private InternalSaleCustomException.BpmsClientException wrapBpmsException(Exception ex) {
 		return new InternalSaleCustomException.BpmsClientException(BPMS_ERROR, List.of(ex.getMessage()));
 	}
 }

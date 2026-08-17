@@ -1,8 +1,6 @@
 package com.nicico.internal.sales.lc.service;
 
-import com.nicico.internal.sales.broker.service.BrokerService;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
@@ -61,7 +59,6 @@ public class LcValidationServiceImpl implements LcValidationService {
 			throw new InternalSaleCustomException.ValidationException(MSG_INVALID_DATA, errors);
 		}
 	}
-
 
 
 	private void validateProformaIssueType(ProformaMasterModel proforma, List<String> errors) {

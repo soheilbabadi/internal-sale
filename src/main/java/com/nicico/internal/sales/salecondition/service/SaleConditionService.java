@@ -24,7 +24,7 @@ public interface SaleConditionService {
 
 	SaleConditionDto.Info getOnSpecificDate(long goodId, Date targetDate);
 
-	SaleConditionModel findByCommodityId(Long commodityId);
+//	SaleConditionModel findByCommodityId(Long commodityId);
 
 	SaleConditionDto.Info findByPaymentCode(String paymentCode);
 

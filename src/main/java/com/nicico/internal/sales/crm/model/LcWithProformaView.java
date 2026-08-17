@@ -160,7 +160,7 @@ public class LcWithProformaView {
 	private String lcAttachmentId;
 
 	@Schema(description = "شناسه فایل اصلاحیه")
-	@Column(name = "C_DISPATCH_FILE_ID",length = 100)
+	@Column(name = "C_DISPATCH_FILE_ID", length = 100)
 	private String dispatchAttachmentId;
 
 	@Column(name = "C_PROFORMA_FILE_ID")

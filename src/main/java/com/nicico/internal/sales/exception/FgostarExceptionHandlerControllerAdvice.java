@@ -49,14 +49,11 @@ public class FgostarExceptionHandlerControllerAdvice {
 //	}
 
 
-
 	@ExceptionHandler(InternalSaleCustomException.DuplicateEntityException.class)
 	public ResponseEntity<ErrorResponse> duplicateEntityException(
 			InternalSaleCustomException.ValidationException ex, HttpServletRequest request) {
 		return build(HttpStatus.NOT_ACCEPTABLE, ex.getMessage(), request);
 	}
-
-
 
 
 	@ExceptionHandler(InternalSaleCustomException.ResourceNotFoundException.class)

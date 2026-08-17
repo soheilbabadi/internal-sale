@@ -15,12 +15,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProformaBankBillFileUpdateDto {
 
-    @Schema(description = "شناسه برات")
-    private long id;
+	@Schema(description = "شناسه برات")
+	private long id;
 
-    @Schema(description = "شناسه فایل پیوست برات")
-    private String extraBillFileId;
 
-    @Schema(description = "شناسه فایل اصلاحیه")
-    private String dispatchAttachmentId;
+	@Schema(description = "شناسه فایل اصلاحیه")
+	private String dispatchAttachmentId;
 }

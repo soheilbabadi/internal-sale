@@ -30,7 +30,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.URI;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -222,17 +221,11 @@ public class ExportDocServiceImpl implements ExportDocService {
 			String contractNo = String.valueOf(masterModel.getContractNo());
 			String proformaDate = DateUtility.getJalaliDate(detailModel.getPerformaDate());
 			String storageCost = floatFormatter.format(detailModel.getStorageCost());
-			BigDecimal extraAmonut = BigDecimal.ZERO;
-			BigDecimal printableAmount = BigDecimal.ZERO;
+			BigDecimal extraAmonut = detailModel.getExtraBillOfExchangeAmount();
+			if (extraAmonut != null &&  !extraAmonut.equals(BigDecimal.ZERO)) {
+				finalAmount = finalAmount.add(extraAmonut);
+			}
 
-			if (detailModel.getExtraBillOfPercent().longValue() > 0) {
-				BigDecimal percent = BigDecimal.valueOf(detailModel.getExtraBillOfPercent().longValue());
-				extraAmonut = finalAmount.multiply(BigDecimal.ONE.add(percent.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)));
-				printableAmount=extraAmonut;
-			}
-			else {
-				printableAmount = finalAmount;
-			}
 
 			replacements.addAll(List.of(
 					new DocumentReplacement("BUYER_NAME", masterModel.getCustomerName())
@@ -247,7 +240,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 					, new DocumentReplacement("VALIDITY_DAYS", detailModel.getDeadlineDays().toString())
 					, new DocumentReplacement("N_STORAGE_DEAD", detailModel.getStorageDeadline().toString())
 					, new DocumentReplacement("STORAGE_COST", storageCost)
-					, new DocumentReplacement("TOTAL_CHARACTER_PRICE", numberToString(printableAmount))
+					, new DocumentReplacement("TOTAL_CHARACTER_PRICE", numberToString(finalAmount))
 					, new DocumentReplacement("N_PAYMENT_DEFERRAL", detailModel.getPaymentDeferral().toString())
 					, new DocumentReplacement("N_CREDIT_EXPIRE_PERIOD", detailModel.getCreditExpirePeriod().toString())
 					, new DocumentReplacement("TOTAL_PRICE", formatter.format(totalAmount))
@@ -260,7 +253,6 @@ public class ExportDocServiceImpl implements ExportDocService {
 					, new DocumentReplacement("N_EXTRA_BILL_OF_AMOUNT", formatter.format(extraAmonut))
 					, new DocumentReplacement("N_GAM_CERTIFICATE_COUNT", formatter.format(detailModel.getGamCertificateCount()))
 					, new DocumentReplacement("N_SHIPPING_DEAD", detailModel.getShippingDeadline().toString())));
-
 
 		} catch (Exception exception) {
 			throw new InternalSaleCustomException.FileContentException(exception.getMessage());

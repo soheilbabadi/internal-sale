@@ -2,6 +2,7 @@ package com.nicico.internal.sales.util.date;
 
 import java.time.*;
 import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 
@@ -12,6 +13,13 @@ public class DateUtility {
 	private static final ZoneOffset UTC = ZoneOffset.UTC;
 
 	private DateUtility() {
+	}
+
+	public static Date subtractDay(Date date,int days) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.DAY_OF_MONTH, -1*days);
+		return calendar.getTime();
 	}
 
 	public static Date getMidnightAfterNow() {

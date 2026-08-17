@@ -42,7 +42,7 @@ import static com.nicico.internal.sales.proforma.service.ProformaModelHelper.*;
 @RequiredArgsConstructor
 public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssueService {
 	private static final String ERR_PROFORMA_ACCESS_DENIED = "شما اجازه شروع فرایند صدور پیش فاکتور را ندارید";
-	private static final BigDecimal PERCENT_DIVISOR = BigDecimal.valueOf(100);
+	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 	private static final String DEFAULT_PLACEHOLDER = "-";
 
 	private final ProformaMasterRepository proformaMasterRepository;
@@ -208,7 +208,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 				.build();
 	}
 
-	// ==================== DETAIL GENERATION ====================
+// ==================== DETAIL GENERATION ====================
 
 	private List<ProformaDetailModel> generatePerformaDetailList(
 			PerformaDetailGenerator params,
@@ -221,24 +221,13 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		List<ProformaDetailModel> detailDtoList = new ArrayList<>();
 
 		for (int i = 0; i < requestDto.getParts().size(); i++) {
+			// 1. تولید آیتم‌های کالا
 			List<ProformaGoodItemModel> goodItem = generatePerformaGoodItemList(params, i);
 
-			// استفاده از Helper برای محاسبه مجموع‌های Detail
+			// 2. محاسبه مجموع‌های Detail
 			DetailTotals detailTotals = calculateDetailTotals(goodItem);
-			BigDecimal extraBillOfPercent = params.saleConditionModel().getExtraBillOfExchangePercent();
-			BigDecimal extraAmonut = BigDecimal.ZERO;
 
-			if (params.requestDto().getProformaIssueType()== ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
-				BigDecimal percent = BigDecimal.valueOf(extraBillOfPercent.longValue());
-				extraAmonut = detailTotals.finalAmount().multiply(
-						BigDecimal.ONE.add(percent.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP))
-				);
-			}
-
-
-
-
-			// استفاده از Helper برای ساخت DetailModel
+			// 3. ساخت DetailModel
 			ProformaDetailModel detailModel = buildProformaDetailModel(
 					goodItem,
 					jalaliYear,
@@ -252,30 +241,24 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 					requestDto.getOrderDate(),
 					params.tradeModel().getContractDate(),
 					ProformaReversalStatus.NORMAL,
-					extraBillOfPercent,
-					extraAmonut
+					saleConditionModel.getExtraBillOfExchangePercent(),
+					BigDecimal.ZERO // مقدار موقت، بعداً محاسبه می‌شود
 			);
 
-			// محاسبه مبلغ اضافی
-			calculateAndSetExtraAmount(detailModel, requestDto.getProformaIssueType(),
-					detailTotals.totalAmount(), saleConditionModel);
+			// 4. محاسبه مبلغ اضافی و مبلغ نهایی
+			calculateAndSetExtraAmount(
+					detailModel,
+					requestDto.getProformaIssueType(),
+					detailTotals.totalAmount(),
+					saleConditionModel
+			);
 
-
-
-			// تنظیم GamCertificateCount
-
-			if (params.requestDto().getProformaIssueType()== ProformaIssueType.GAM_BONDS) {
-
-				calculateGamCertificateCount(extraBillOfPercent);
-			}
-
-
-			// تنظیم رابطه
+			// 5. تنظیم رابطه بین GoodItem و Detail
 			goodItem.forEach(item -> item.setProformaDetailModel(detailModel));
 			detailDtoList.add(detailModel);
 		}
 
-		return new ArrayList<>(detailDtoList).stream().toList();
+		return detailDtoList.stream().toList();
 	}
 
 	// ==================== GOOD ITEM GENERATION ====================
@@ -345,48 +328,33 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 			BigDecimal totalPrice,
 			SaleConditionModel saleConditionModel) {
 
-		BigDecimal extraPercent = resolveExtraPercent(issueType, saleConditionModel);
-		BigDecimal extraAmount = calculateExtraAmount(totalPrice, extraPercent);
+		// دریافت درصد اضافی
+		BigDecimal extraPercent = BigDecimal.ZERO;
+		if (issueType == ProformaIssueType.GAM_BONDS) {
+			extraPercent = saleConditionModel.getExtraGamCertificatePercent() != null ?
+					saleConditionModel.getExtraGamCertificatePercent() : BigDecimal.ZERO;
+		} else if (issueType == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
+			extraPercent = saleConditionModel.getExtraBillOfExchangePercent() != null ?
+					saleConditionModel.getExtraBillOfExchangePercent() : BigDecimal.ZERO;
+		}
+
+		// محاسبه مبلغ اضافی و نهایی
+		BigDecimal extraAmount = totalPrice.multiply(extraPercent)
+				.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 		BigDecimal finalPrice = totalPrice.add(extraAmount);
 
+		// تنظیم مقادیر
 		detailModel.setExtraBillOfExchangeAmount(extraAmount);
 		detailModel.setExtraBillOfPercent(extraPercent);
 		detailModel.setFinalPrice(finalPrice);
 
+		// محاسبه تعداد اوراق گام (فقط برای نوع GAM_BONDS)
 		if (issueType == ProformaIssueType.GAM_BONDS) {
-			detailModel.setGamCertificateCount(calculateGamCertificateCount(finalPrice));
+			int gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
+			detailModel.setGamCertificateCount(gamCount);
 		}
 	}
 
-	/**
-	 * تعیین درصد اضافی بر اساس نوع صدور
-	 */
-	private BigDecimal resolveExtraPercent(ProformaIssueType issueType, SaleConditionModel saleConditionModel) {
-		return switch (issueType) {
-			case GAM_BONDS -> nullSafe(saleConditionModel.getExtraGamCertificatePercent());
-			case EXTRA_BILL_OF_EXCHANGE -> nullSafe(saleConditionModel.getExtraBillOfExchangePercent());
-			default -> BigDecimal.ZERO;
-		};
-	}
-
-	/**
-	 * محاسبه مبلغ اضافی از روی درصد
-	 */
-	private BigDecimal calculateExtraAmount(BigDecimal totalPrice, BigDecimal extraPercent) {
-		if (extraPercent.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
-		return totalPrice.multiply(extraPercent).divide(PERCENT_DIVISOR, 0, RoundingMode.UP);
-	}
-
-	/**
-	 * محاسبه تعداد اوراق گام (با گرد کردن به بالا)
-	 */
-	private Integer calculateGamCertificateCount(BigDecimal finalAmount) {
-		return finalAmount.divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
-	}
-
-	private BigDecimal nullSafe(BigDecimal value) {
-		return value != null ? value : BigDecimal.ZERO;
-	}
 
 	// ==================== WORKFLOW ====================
 

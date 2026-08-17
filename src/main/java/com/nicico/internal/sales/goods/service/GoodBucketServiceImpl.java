@@ -102,7 +102,7 @@ public class GoodBucketServiceImpl implements GoodBucketService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_GOOD_NOT_FOUND));
 
 		// Convert the trade's contract date (already a Date) to midnight and pass it
-		Date contractDate = DateUtility.toGregorianDate(trade.getContractDate());
+		Date contractDate =DateUtility.truncateToMidnight(DateUtility.toGregorianDate(trade.getContractDate()));
 		return getOnSpecificDateModel(good.getId(), contractDate);
 	}
 
@@ -119,7 +119,7 @@ public class GoodBucketServiceImpl implements GoodBucketService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_GOOD_NOT_FOUND));
 
 		// Expire any currently active (non‑expired) buckets for this good
-		Date expireDate = DateUtility.getMidnightOfPreviousDay(request.getStartDate());
+		Date expireDate = DateUtility.subtractDay(request.getStartDate(),1);
 		List<GoodsBucketModel> activeRecords = goodBucketRepository.findAllByGoodId(good.getId()).stream()
 				.filter(item -> item.getExpireDate() == null)
 				.collect(Collectors.toList());

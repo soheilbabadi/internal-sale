@@ -5,12 +5,11 @@ import com.nicico.internal.sales.extrabill.dto.ProformaBankBillDto;
 import com.nicico.internal.sales.extrabill.dto.ProformaBankBillFileUpdateDto;
 import com.nicico.internal.sales.extrabill.dto.ProformaBankBillReportDto;
 import com.nicico.internal.sales.extrabill.dto.ProformaBankBillRequest;
-import com.nicico.internal.sales.proforma.dto.PerfomaCreateRequest;
 
 import java.util.List;
 
 public interface ExtraBillService {
-	String createProforma(PerfomaCreateRequest requestDto);
+
 
 	SearchDTO.SearchRs<ProformaBankBillDto.Info> search(SearchDTO.SearchRq request);
 

@@ -22,6 +22,8 @@ public interface ExtraBillProcessService {
 
 	void rejectExtraBill(String processId);
 
+	boolean canFinishProcess();
+
 	ExtraBillProcessVariable detectExtraBillStep(String processInstanceId);
 
 	ExtraBillProcessVariable detectExtraBillStep(long extraBillId);

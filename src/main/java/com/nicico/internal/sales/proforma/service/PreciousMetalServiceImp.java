@@ -49,7 +49,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 	private static final String MSG_GOOD_NOT_FOUND = "کالا با کد کالا یافت نشد: ";
 	private static final String SETTLEMENT_TYPE_DEFAULT = SettlementType.UNKNOWN.name();
 	private static final String DEFAULT_PLACEHOLDER = "-";
-	private static final BigDecimal PERCENT_DIVISOR = BigDecimal.valueOf(100);
+	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final ProformaContractService proformaContractService;
@@ -255,7 +255,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 				.cashPercentage(goodsBucketModel.getCashPercentage())
 				.commissionPercentage(goodsBucketModel.getCommission())
 				.deadlineDays(requestDto.getDeadlineDays())
-				.creditPercentage(PERCENT_DIVISOR.subtract(goodsBucketModel.getCashPercentage()))
+				.creditPercentage(HUNDRED.subtract(goodsBucketModel.getCashPercentage()))
 				.customerId(customerModel.getId())
 				.customerName(customerModel.getName())
 				.nationalCode(customerModel.getNationalCode())
@@ -299,10 +299,10 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		BigDecimal extraBillOfPercent = params.saleConditionModel().getExtraBillOfExchangePercent();
 		BigDecimal extraAmonut = BigDecimal.ZERO;
 
-		if (params.requestDto().getProformaIssueType() ==ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
+		if (params.requestDto().getProformaIssueType() == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
 			BigDecimal percent = BigDecimal.valueOf(extraBillOfPercent.longValue());
 			extraAmonut = detailTotals.finalAmount().multiply(
-					BigDecimal.ONE.add(percent.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP))
+					BigDecimal.ONE.add(percent.divide(HUNDRED, 2, RoundingMode.HALF_UP))
 			);
 		}
 

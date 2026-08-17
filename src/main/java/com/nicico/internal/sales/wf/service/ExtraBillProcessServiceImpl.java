@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -47,18 +47,20 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final ProcessVariableProvider processVariableProvider;
 	private final ExtraBillRepository extraBillRepository;
 
+	// =========================================================================
+	// Process lifecycle
+	// =========================================================================
+
 	@Override
 	@Transactional
 	public ProcessInstance startExtraBillProcess(Long masterId) {
 		validateAccess();
-		
+
 		ProformaMasterModel proformaMaster = getProformaMasterOrThrow(masterId);
-		
 		StartProcessWithDataDTO startProcessDto = buildStartProcessDto(proformaMaster);
 		ProcessInstance processInstance = startProcessWithData(startProcessDto);
-		
+
 		refreshExtraBillStatus();
-		
 		return processInstance;
 	}
 
@@ -73,6 +75,32 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			throw wrapBpmsException(ex);
 		}
 	}
+
+	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel proformaMaster) {
+		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
+		dto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
+		dto.setVariables(processVariableProvider.createExtraBillRequestVariables(
+				buildExtraBillVariablesInput(proformaMaster)));
+		return dto;
+	}
+
+	private ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMasterModel) {
+		ProformaVariablesInput input = new ProformaVariablesInput();
+		input.setProformaMasterId(proformaMasterModel.getId());
+		input.setContractDate(proformaMasterModel.getContractDate());
+		input.setGoodId(proformaMasterModel.getGoodId());
+		input.setGoodName(proformaMasterModel.getGoodName());
+		input.setCustomerName(proformaMasterModel.getCustomerName());
+		input.setContractNo(String.valueOf(proformaMasterModel.getContractNo()));
+		input.setCommission(proformaMasterModel.getCommissionPercentage());
+		return input;
+	}
+
+	private ProformaMasterModel getProformaMasterOrThrow(Long masterId) {
+		return proformaMasterRepository.findById(masterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
+	}
+
 
 	@Override
 	@Transactional
@@ -89,20 +117,17 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private void handleTaskAction(TaskActionDto dto, boolean approve) {
 		dto.setApprove(approve);
 		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
-		
+
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
 
-			if (!approve) {
+			if (approve) {
+				// applyCurrentStatus already derives ACCEPTED/FINISHED when the process
+				// is finally accepted, so a single status sync covers both outcomes.
+				updateBillStatusByProcessId(reviewTaskRequest.getProcessInstanceId());
+			} else {
 				rejectExtraBill(reviewTaskRequest.getProcessInstanceId());
-				return;
 			}
-
-			if (processVariableProvider.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId())) {
-				acceptByProcessId(reviewTaskRequest.getProcessInstanceId());
-			}
-
-			updateBillStatusByProcessId(reviewTaskRequest.getProcessInstanceId());
 
 		} catch (Exception ex) {
 			log.error(ERROR_HANDLING_TASK_ACTION, dto.getTaskId(), ex);
@@ -110,26 +135,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		}
 	}
 
-	private void updateBillStatusByProcessId(String processInstanceId) {
-		Optional<ProformaBankBillModel> billOpt = Optional.ofNullable(
-				extraBillRepository.findByProcessId(processInstanceId));
-		
-		billOpt.ifPresent(bill -> {
-			applyCurrentStatus(bill);
-			extraBillRepository.save(bill);
-		});
-	}
-
-	private void acceptByProcessId(String processInstanceId) {
-		Optional<ProformaBankBillModel> billOpt = Optional.ofNullable(
-				extraBillRepository.findByProcessId(processInstanceId));
-		
-		billOpt.ifPresent(bill -> {
-			bill.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-			bill.setAcknowledgment(Acknowledgment.FINISHED);
-			extraBillRepository.save(bill);
-		});
-	}
 
 	@Override
 	@Transactional
@@ -144,6 +149,36 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		} catch (Exception ex) {
 			log.error(ERROR_REFRESHING_STATUS, ex);
 		}
+	}
+
+	@Override
+	public void rejectExtraBill(String processInstanceId) {
+		if (!TextUtility.isValidUUID(processInstanceId)) {
+			return;
+		}
+		try {
+			applyToBillByProcessId(processInstanceId, bill -> {
+				bill.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+				bill.setAcknowledgment(Acknowledgment.CANCELED);
+			});
+		} catch (Exception ex) {
+			log.error(ERROR_REJECTING_EXTRA_BILL, processInstanceId, ex);
+		}
+	}
+
+	private void updateBillStatusByProcessId(String processInstanceId) {
+		applyToBillByProcessId(processInstanceId, this::applyCurrentStatus);
+	}
+
+	/**
+	 * Fetches the bill for a process instance, applies the mutation, and saves — no-op if not found.
+	 */
+	private void applyToBillByProcessId(String processInstanceId, Consumer<ProformaBankBillModel> mutator) {
+		Optional.ofNullable(extraBillRepository.findByProcessId(processInstanceId))
+				.ifPresent(bill -> {
+					mutator.accept(bill);
+					extraBillRepository.save(bill);
+				});
 	}
 
 	private void applyCurrentStatus(ProformaBankBillModel bankBillModel) {
@@ -170,45 +205,18 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		}
 	}
 
-	@Override
-	@Transactional
-	public void rejectExtraBill(String processInstanceId) {
-		if (!TextUtility.isValidUUID(processInstanceId)) {
-			return;
+	private Acknowledgment resolveAcknowledgmentFromStep(ExtraBillProcessVariable step) {
+		if (step == null) {
+			return Acknowledgment.UNKNOWN;
 		}
-		
-		try {
-			Optional<ProformaBankBillModel> billOpt = Optional.ofNullable(
-					extraBillRepository.findByProcessId(processInstanceId));
-			
-			billOpt.ifPresent(bill -> {
-				bill.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-				bill.setAcknowledgment(Acknowledgment.CANCELED);
-				extraBillRepository.save(bill);
-			});
-		} catch (Exception ex) {
-			log.error(ERROR_REJECTING_EXTRA_BILL, processInstanceId, ex);
-		}
+		return switch (step) {
+			case BillDraftRegistration -> Acknowledgment.RECKONING;
+			case BillSettleSure -> Acknowledgment.REMITTANCE;
+			case BillFinalCheck -> Acknowledgment.FINISHED;
+			default -> Acknowledgment.UNKNOWN;
+		};
 	}
 
-	@Override
-	public boolean canStartProcess() {
-		return hasAccessForVariable(ExtraBillProcessVariable.BillDraftRegistration);
-	}
-
-	private void validateAccess() {
-		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
-		}
-	}
-
-	private boolean hasAccessForVariable(ExtraBillProcessVariable variable) {
-		return processUserAccessRepository.findAllByProcessTitle(PROCESS_TITLE_EXTRA_BILL)
-				.stream()
-				.anyMatch(access ->
-						Objects.equals(access.getUserId(), SecurityUtil.getUserId()) &&
-								variable.name().equalsIgnoreCase(access.getProcessVariable()));
-	}
 
 	@Override
 	public ExtraBillProcessVariable detectExtraBillStep(String processInstanceId) {
@@ -228,50 +236,40 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		}
 	}
 
+
 	@Override
 	public ExtraBillProcessVariable detectExtraBillStep(long extraBillId) {
-		return Optional.ofNullable(extraBillRepository.findById(extraBillId).orElse(null))
+		return extraBillRepository.findById(extraBillId)
 				.map(ProformaBankBillModel::getProcessId)
 				.map(this::detectExtraBillStep)
 				.orElse(null);
 	}
 
-	private Acknowledgment resolveAcknowledgmentFromStep(ExtraBillProcessVariable step) {
-		if (step == null) {
-			return Acknowledgment.UNKNOWN;
+
+	@Override
+	public boolean canStartProcess() {
+		return hasAccessForVariable(ExtraBillProcessVariable.BillDraftRegistration);
+	}
+
+	@Override
+	public boolean canFinishProcess() {
+		return hasAccessForVariable(ExtraBillProcessVariable.BillFinalCheck);
+	}
+
+	private void validateAccess() {
+		if (!canStartProcess()) {
+			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
 		}
-		return switch (step) {
-			case BillDraftRegistration -> Acknowledgment.RECKONING;
-			case BillSettleSure -> Acknowledgment.REMITTANCE;
-			case BillFinalCheck -> Acknowledgment.FINISHED;
-			default -> Acknowledgment.UNKNOWN;
-		};
 	}
 
-	private ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMasterModel) {
-		ProformaVariablesInput input = new ProformaVariablesInput();
-		input.setProformaMasterId(proformaMasterModel.getId());
-		input.setContractDate(proformaMasterModel.getContractDate());
-		input.setGoodId(proformaMasterModel.getGoodId());
-		input.setGoodName(proformaMasterModel.getGoodName());
-		input.setCustomerName(proformaMasterModel.getCustomerName());
-		input.setContractNo(String.valueOf(proformaMasterModel.getContractNo()));
-		input.setCommission(proformaMasterModel.getCommissionPercentage());
-		return input;
+	private boolean hasAccessForVariable(ExtraBillProcessVariable variable) {
+		return processUserAccessRepository.findAllByProcessTitle(PROCESS_TITLE_EXTRA_BILL)
+				.stream()
+				.anyMatch(access ->
+						Objects.equals(access.getUserId(), SecurityUtil.getUserId()) &&
+								variable.name().equalsIgnoreCase(access.getProcessVariable()));
 	}
 
-	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel proformaMaster) {
-		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
-		dto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
-		dto.setVariables(processVariableProvider.createExtraBillRequestVariables(
-				buildExtraBillVariablesInput(proformaMaster)));
-		return dto;
-	}
-
-	private ProformaMasterModel getProformaMasterOrThrow(Long masterId) {
-		return proformaMasterRepository.findById(masterId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
-	}
 
 	private InternalSaleCustomException.BpmsClientException wrapBpmsException(Exception ex) {
 		return new InternalSaleCustomException.BpmsClientException(BPMS_ERROR, List.of(ex.getMessage()));

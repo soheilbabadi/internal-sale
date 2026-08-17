@@ -43,5 +43,8 @@ public class ProformaBankBillRequest implements Serializable {
 	@Schema(description = "شناسه جزئیات پیش فاکتور", name = "proformaDetailId", example = "52")
 	private Long proformaDetailId;
 
+	@Schema(description = "شناسه فایل پیوست برات")
+	private String extraBillFileId;
+
 
 }

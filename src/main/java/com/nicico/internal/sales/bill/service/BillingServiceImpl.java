@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +32,7 @@ public class BillingServiceImpl {
 	private static final String DEFAULT_PLACEHOLDER = "-";
 	private static final String MSG_BILLING_NOT_FOUND = "صورتحساب وجود ندارد";
 	private static final String MSG_PROFORMA_LC_ISSUE_NOT_FOUND = "Proforma LC Issue not found for the given ID";
+	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 	private final RemittanceMasterRepository remittanceMasterRepository;
 	private final VatRepository vatRepository;
 	private final BillingMasterRepository billingMasterRepository;
@@ -55,8 +57,7 @@ public class BillingServiceImpl {
 		billingMaster.setDelayPenaltyApplied(false);
 		billingMaster.setEmissionTaxPercentage(tatax.getEmissionTax());
 		billingMaster.setEmissionTaxAmonut(remittanceMaster.getTotalFinalAmount()
-				.multiply(tatax.getEmissionTax())
-				.divide(BigDecimal.valueOf(100)));
+				.multiply(tatax.getEmissionTax()).divide(HUNDRED, RoundingMode.UP));
 		billingMaster.setTaxAmount(remittanceMaster.getTaxAmount());
 		billingMaster.setPenaltyAmount(BigDecimal.ZERO);
 		billingMaster.setProcessId(DEFAULT_PLACEHOLDER);

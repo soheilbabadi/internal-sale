@@ -11,15 +11,14 @@ import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 import com.nicico.internal.sales.salecondition.repository.SaleConditionRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
 
-import static com.nicico.internal.sales.util.date.DateUtility.truncateToMidnight;
-
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SaleConditionServiceImpl implements SaleConditionService {
@@ -40,10 +39,10 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 	public SaleConditionDto.Info save(SaleConditionDto.Create request) {
 		validateSaleCondition(request);
 		Date now = new Date();
-		Date expireDate = truncateToMidnight(request.getStartDate());
 		if (request.getStartDate() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_START_DATE_EMPTY);
 		}
+		Date expireDate = DateUtility.subtractDay(request.getStartDate(),1);
 		List<SaleConditionModel> rulesToExpire = saleConditionRepository.findAllByGoodId(request.getGoodId()).stream()
 				.filter(rule -> rule.getExpireDate() == null || rule.getExpireDate().after(now))
 				.toList();
@@ -57,9 +56,11 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 		request.setGoodName(good.getName());
 		request.setImeCommodityId(good.getImeCommodityId());
 		request.setImeCommoditySymbol(good.getImeCommoditySymbol());
+		request.setExpireDate(null);
 		SaleConditionModel savedRule = saleConditionRepository.save(mapper.fromDTO(request));
 		return mapper.toDTO(savedRule);
 	}
+
 
 	@Override
 	public SaleConditionDto.Info getCurrentRule(long goodId) {
@@ -100,6 +101,12 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 				|| request.getGoodId() == null || request.getGoodId() == 0) {
 			throw new InternalSaleCustomException.ValidationException(MSG_INPUT_EMPTY_OR_ZERO);
 		}
+		if (request.getExtraBillOfExchangePercent() == null) {
+			request.setExtraBillOfExchangePercent(BigDecimal.ZERO);
+		}
+		if (request.getExtraGamCertificatePercent() == null) {
+			request.setExtraGamCertificatePercent(BigDecimal.ZERO);
+		}
 	}
 
 	@Override
@@ -110,6 +117,9 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 		var good = goodsRepository.findByImeCommodityId(Long.valueOf(trade.getCommodityCode()))
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						MSG_GOOD_NOT_FOUND));
+
+		log.info("get sales condition for good: "+ good.getName()+ " on date ->" + DateUtility.toGregorianDate(trade.getContractDate()));
+
 		return this.getOnSpecificDateModel(good.getId(), DateUtility.toGregorianDate(trade.getContractDate()));
 	}
 
@@ -117,16 +127,19 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 	public SaleConditionModel getOnSpecificDateModel(long goodId, Date targetDate) {
 		List<SaleConditionModel> candidates = saleConditionRepository.findActiveByGoodIdAndDate(goodId, targetDate);
 
+		// اولویت اول: آیتم‌های بدون expireDate (expireDate == null)
 		Optional<SaleConditionModel> model = candidates.stream()
-				.filter(item -> item.getExpireDate() != null)
+				.filter(item -> item.getExpireDate() == null)
 				.max(Comparator.comparing(SaleConditionModel::getId));
 
+		// اولویت دوم: آیتم‌های دارای expireDate (expireDate != null)
 		if (model.isEmpty()) {
 			model = candidates.stream()
-					.filter(item -> item.getExpireDate() == null)
+					.filter(item -> item.getExpireDate() != null)
 					.max(Comparator.comparing(SaleConditionModel::getId));
 		}
 
+		// اولویت سوم: Fallback - همه رکوردهای بدون expireDate
 		if (model.isEmpty()) {
 			model = saleConditionRepository.findAllByGoodId(goodId).stream()
 					.filter(item -> item.getExpireDate() == null)
@@ -142,13 +155,13 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 		return mapper.toDTO(this.getOnSpecificDateModel(goodId, targetDate));
 	}
 
-	@Override
-	public SaleConditionModel findByCommodityId(Long commodityId) {
-		var good = goodsRepository.findByImeCommodityId(commodityId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						MSG_GOOD_NOT_FOUND));
-		return this.getOnSpecificDateModel(good.getId(), new Date());
-	}
+//	@Override
+//	public SaleConditionModel findByCommodityId(Long commodityId) {
+//		var good = goodsRepository.findByImeCommodityId(commodityId)
+//				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
+//						MSG_GOOD_NOT_FOUND));
+//		return this.getOnSpecificDateModel(good.getId(), new Date());
+//	}
 
 	@Override
 	public SaleConditionDto.Info findByPaymentCode(String paymentCode) {

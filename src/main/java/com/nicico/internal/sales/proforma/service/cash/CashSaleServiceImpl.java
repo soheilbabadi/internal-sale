@@ -55,7 +55,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 	private static final String MSG_BROKER_NOT_FOUND = "اطلاعات کارگزار وجود ندارد";
 	private static final String MSG_ISSUING_PROFORMA_NOT_VALID = "اطلاعات پیش فاکتور معتبر نیست";
 	private static final String DEFAULT_PLACEHOLDER = "-";
-	private static final BigDecimal PERCENT_DIVISOR = BigDecimal.valueOf(100);
+	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
 	private final CustomerRepository customerRepository;
 	private final GoodBucketService goodBucketService;
@@ -431,7 +431,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 				.cashPercentage(goodsBucketModel.getCashPercentage())
 				.commissionPercentage(0.0)
 				.deadlineDays(params.requestDto().getDeadlineDays())
-				.creditPercentage(PERCENT_DIVISOR.subtract(goodsBucketModel.getCashPercentage()))
+				.creditPercentage(HUNDRED.subtract(goodsBucketModel.getCashPercentage()))
 				.customerId(customerModel.getId())
 				.customerName(customerModel.getName())
 				.nationalCode(customerModel.getNationalCode())

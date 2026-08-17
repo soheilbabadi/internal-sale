@@ -41,22 +41,22 @@ public class GoodBucketController {
 					content = @Content(mediaType = "application/json",
 							schema = @Schema(implementation = GoodBucketDto.class),
 							examples = @ExampleObject(value = """
-                     {
-                       "id": 1,
-                       "goodId": 101,
-                       "imeCommodityId": 2001,
-                       "goodName": "روغن موتور",
-                       "startDate": "2026-01-01T00:00:00.000+00:00",
-                       "expireDate": "2026-12-31T23:59:59.999+00:00",
-                       "packagingSize": 500.00,
-                       "packingId": 156,
-                       "packingName": "بشکه",
-                       "cashPercentage": 53.00,
-                       "commission": 6.0,
-                       "divisibilityCheck": 1.00,
-                       "imeCommoditySymbol": "OIL"
-                     }
-                     """))),
+									{
+									  "id": 1,
+									  "goodId": 101,
+									  "imeCommodityId": 2001,
+									  "goodName": "روغن موتور",
+									  "startDate": "2026-01-01T00:00:00.000+00:00",
+									  "expireDate": "2026-12-31T23:59:59.999+00:00",
+									  "packagingSize": 500.00,
+									  "packingId": 156,
+									  "packingName": "بشکه",
+									  "cashPercentage": 53.00,
+									  "commission": 6.0,
+									  "divisibilityCheck": 1.00,
+									  "imeCommoditySymbol": "OIL"
+									}
+									"""))),
 			@ApiResponse(responseCode = "400", description = "درخواست نامعتبر"),
 			@ApiResponse(responseCode = "403", description = "دسترسی غیرمجاز"),
 			@ApiResponse(responseCode = "409", description = "تداخل با رکورد موجود")
@@ -71,19 +71,19 @@ public class GoodBucketController {
 							mediaType = "application/json",
 							schema = @Schema(implementation = GoodBucketRequest.class),
 							examples = @ExampleObject(value = """
-                    {
-                      "goodId": 101,
-                      "imeCommodityId": 2001,
-                      "startDate": "2026-01-01T00:00:00.000Z",
-                      "expireDate": "2026-12-31T23:59:59.999Z",
-                      "packagingSize": 500.00,
-                      "packingId": 156,
-                      "cashPercentage": 53.00,
-                      "commission": 6.0,
-                      "divisibilityCheck": 1.00,
-                      "comment": "ضریب فروش اولیه برای روغن موتور"
-                    }
-                    """)
+									{
+									  "goodId": 101,
+									  "imeCommodityId": 2001,
+									  "startDate": "2026-01-01T00:00:00.000Z",
+									  "expireDate": "2026-12-31T23:59:59.999Z",
+									  "packagingSize": 500.00,
+									  "packingId": 156,
+									  "cashPercentage": 53.00,
+									  "commission": 6.0,
+									  "divisibilityCheck": 1.00,
+									  "comment": "ضریب فروش اولیه برای روغن موتور"
+									}
+									""")
 					)
 			)
 			@RequestBody GoodBucketRequest request) {
@@ -97,30 +97,30 @@ public class GoodBucketController {
 					content = @Content(mediaType = "application/json",
 							schema = @Schema(implementation = GoodBucketDto.Info.class),
 							examples = @ExampleObject(value = """
-                     {
-                       "content": [
-                         {
-                           "id": 1,
-                           "goodId": 101,
-                           "imeCommodityId": 2001,
-                           "goodName": "روغن موتور",
-                           "startDate": "2026-01-01T00:00:00.000+00:00",
-                           "expireDate": "2026-12-31T23:59:59.999+00:00",
-                           "cashPercentage": 53.00,
-                           "commission": 6.0,
-                           "createdDate": "2026-01-01T10:30:00.000+00:00",
-                           "lastModifiedDate": "2026-01-02T15:20:00.000+00:00",
-                           "createdBy": "admin",
-                           "lastModifiedBy": "admin"
-                         }
-                       ],
-                       "pageable": {
-                         "pageNumber": 0,
-                         "pageSize": 20
-                       },
-                       "totalElements": 1
-                     }
-                     """)))
+									{
+									  "content": [
+									    {
+									      "id": 1,
+									      "goodId": 101,
+									      "imeCommodityId": 2001,
+									      "goodName": "روغن موتور",
+									      "startDate": "2026-01-01T00:00:00.000+00:00",
+									      "expireDate": "2026-12-31T23:59:59.999+00:00",
+									      "cashPercentage": 53.00,
+									      "commission": 6.0,
+									      "createdDate": "2026-01-01T10:30:00.000+00:00",
+									      "lastModifiedDate": "2026-01-02T15:20:00.000+00:00",
+									      "createdBy": "admin",
+									      "lastModifiedBy": "admin"
+									    }
+									  ],
+									  "pageable": {
+									    "pageNumber": 0,
+									    "pageSize": 20
+									  },
+									  "totalElements": 1
+									}
+									""")))
 	})
 	@PostMapping("/search")
 	public ResponseEntity<?> search(
@@ -130,19 +130,19 @@ public class GoodBucketController {
 					content = @Content(
 							mediaType = "application/json",
 							examples = @ExampleObject(value = """
-                    {
-                      "page": 0,
-                      "size": 20,
-                      "sort": ["startDate", "DESC"],
-                      "criteria": [
-                        {
-                          "key": "goodName",
-                          "operation": "CONTAINS",
-                          "value": "روغن"
-                        }
-                      ]
-                    }
-                    """)
+									{
+									  "page": 0,
+									  "size": 20,
+									  "sort": ["startDate", "DESC"],
+									  "criteria": [
+									    {
+									      "key": "goodName",
+									      "operation": "CONTAINS",
+									      "value": "روغن"
+									    }
+									  ]
+									}
+									""")
 					)
 			)
 			SearchDTO.SearchRq searchRq,
@@ -176,17 +176,17 @@ public class GoodBucketController {
 					content = @Content(mediaType = "application/json",
 							schema = @Schema(implementation = GoodBucketDto.class),
 							examples = @ExampleObject(value = """
-                     {
-                       "id": 1,
-                       "goodId": 101,
-                       "imeCommodityId": 2001,
-                       "goodName": "روغن موتور",
-                       "startDate": "2026-01-01T00:00:00.000+00:00",
-                       "expireDate": "2026-12-31T23:59:59.999+00:00",
-                       "cashPercentage": 53.00,
-                       "commission": 6.0
-                     }
-                     """))),
+									{
+									  "id": 1,
+									  "goodId": 101,
+									  "imeCommodityId": 2001,
+									  "goodName": "روغن موتور",
+									  "startDate": "2026-01-01T00:00:00.000+00:00",
+									  "expireDate": "2026-12-31T23:59:59.999+00:00",
+									  "cashPercentage": 53.00,
+									  "commission": 6.0
+									}
+									"""))),
 			@ApiResponse(responseCode = "404", description = "رکوردی برای تاریخ مورد نظر یافت نشد")
 	})
 	@Parameter(name = "goodId", description = "شناسه کالا", required = true, example = "101")
@@ -206,19 +206,19 @@ public class GoodBucketController {
 					content = @Content(mediaType = "application/json",
 							schema = @Schema(implementation = GoodBucketDto.class),
 							examples = @ExampleObject(value = """
-                     {
-                       "id": 1,
-                       "goodId": 101,
-                       "imeCommodityId": 2001,
-                       "goodName": "روغن موتور",
-                       "startDate": "2026-01-01T00:00:00.000+00:00",
-                       "expireDate": "2026-12-31T23:59:59.999+00:00",
-                       "cashPercentage": 53.00,
-                       "commission": 6.0,
-                       "divisibilityCheck": 1.00,
-                       "imeCommoditySymbol": "OIL"
-                     }
-                     """))),
+									{
+									  "id": 1,
+									  "goodId": 101,
+									  "imeCommodityId": 2001,
+									  "goodName": "روغن موتور",
+									  "startDate": "2026-01-01T00:00:00.000+00:00",
+									  "expireDate": "2026-12-31T23:59:59.999+00:00",
+									  "cashPercentage": 53.00,
+									  "commission": 6.0,
+									  "divisibilityCheck": 1.00,
+									  "imeCommoditySymbol": "OIL"
+									}
+									"""))),
 			@ApiResponse(responseCode = "404", description = "کالا یافت نشد")
 	})
 	@Parameter(name = "goodId", description = "شناسه کالا", required = true, example = "101")
@@ -234,33 +234,33 @@ public class GoodBucketController {
 					content = @Content(mediaType = "application/json",
 							schema = @Schema(implementation = GoodBucketDto.Info.class),
 							examples = @ExampleObject(value = """
-                     [
-                       {
-                         "id": 1,
-                         "goodId": 101,
-                         "imeCommodityId": 2001,
-                         "goodName": "روغن موتور",
-                         "startDate": "2026-01-01T00:00:00.000+00:00",
-                         "expireDate": "2026-06-30T23:59:59.999+00:00",
-                         "cashPercentage": 53.00,
-                         "commission": 6.0,
-                         "createdDate": "2026-01-01T10:30:00.000+00:00",
-                         "createdBy": "admin"
-                       },
-                       {
-                         "id": 2,
-                         "goodId": 101,
-                         "imeCommodityId": 2001,
-                         "goodName": "روغن موتور",
-                         "startDate": "2026-07-01T00:00:00.000+00:00",
-                         "expireDate": "2026-12-31T23:59:59.999+00:00",
-                         "cashPercentage": 55.00,
-                         "commission": 6.5,
-                         "createdDate": "2026-06-30T14:20:00.000+00:00",
-                         "createdBy": "admin"
-                       }
-                     ]
-                     """))),
+									[
+									  {
+									    "id": 1,
+									    "goodId": 101,
+									    "imeCommodityId": 2001,
+									    "goodName": "روغن موتور",
+									    "startDate": "2026-01-01T00:00:00.000+00:00",
+									    "expireDate": "2026-06-30T23:59:59.999+00:00",
+									    "cashPercentage": 53.00,
+									    "commission": 6.0,
+									    "createdDate": "2026-01-01T10:30:00.000+00:00",
+									    "createdBy": "admin"
+									  },
+									  {
+									    "id": 2,
+									    "goodId": 101,
+									    "imeCommodityId": 2001,
+									    "goodName": "روغن موتور",
+									    "startDate": "2026-07-01T00:00:00.000+00:00",
+									    "expireDate": "2026-12-31T23:59:59.999+00:00",
+									    "cashPercentage": 55.00,
+									    "commission": 6.5,
+									    "createdDate": "2026-06-30T14:20:00.000+00:00",
+									    "createdBy": "admin"
+									  }
+									]
+									"""))),
 			@ApiResponse(responseCode = "404", description = "کالا یافت نشد")
 	})
 	@Parameter(name = "goodId", description = "شناسه کالا", required = true, example = "101")
@@ -276,17 +276,17 @@ public class GoodBucketController {
 					content = @Content(mediaType = "application/json",
 							schema = @Schema(implementation = GoodBucketDto.class),
 							examples = @ExampleObject(value = """
-                     {
-                       "id": 1,
-                       "goodId": 101,
-                       "imeCommodityId": 2001,
-                       "goodName": "روغن موتور",
-                       "startDate": "2026-01-01T00:00:00.000+00:00",
-                       "expireDate": "2026-12-31T23:59:59.999+00:00",
-                       "cashPercentage": 53.00,
-                       "imeCommoditySymbol": "OIL"
-                     }
-                     """))),
+									{
+									  "id": 1,
+									  "goodId": 101,
+									  "imeCommodityId": 2001,
+									  "goodName": "روغن موتور",
+									  "startDate": "2026-01-01T00:00:00.000+00:00",
+									  "expireDate": "2026-12-31T23:59:59.999+00:00",
+									  "cashPercentage": 53.00,
+									  "imeCommoditySymbol": "OIL"
+									}
+									"""))),
 			@ApiResponse(responseCode = "404", description = "کالا در بورس یافت نشد")
 	})
 	@Parameter(name = "commodityId", description = "شناسه کالا در بورس کالا",
