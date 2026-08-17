@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -40,7 +41,8 @@ public class ProformaBankBillDto implements Serializable {
 	private Long contractNo;
 
 	// ==================== فیلدهای بانکی ====================
-
+	@Column(name = "N_ISSUER_BANK_ID")
+	private Long issuerBankId;
 	@Schema(description = "نام بانک صادر کننده برات", example = "بانک ملی ایران")
 	private String issuerBankName;
 

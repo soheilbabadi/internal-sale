@@ -64,9 +64,12 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		log.debug("Saving extra bill for detailId: {}", request.getProformaDetailId());
 
 		// اعتبارسنجی و یافتن موجودیت‌ها
-		ProformaDetailModel detailModel = findProformaDetail(request.getProformaDetailId());
-		var issuerBank = findIssuingBank(request.getIssuerBankId());
-		var agentBank = findBaseBank(request.getAgentBankId());
+		ProformaDetailModel detailModel = proformaDetailRepository.findById(request.getProformaDetailId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+		var agentBank = baseBankRepository.findById(request.getAgentBankId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		// ساخت و ذخیره مدل
 		ProformaBankBillModel model = buildBankBillModel(request, detailModel, issuerBank, agentBank);
@@ -88,30 +91,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	// ==================== PRIVATE HELPER METHODS ====================
 
 	/**
-	 * یافتن جزئیات پیش فاکتور
-	 */
-	private ProformaDetailModel findProformaDetail(Long detailId) {
-		return proformaDetailRepository.findById(detailId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-	}
-
-	/**
-	 * یافتن بانک صادرکننده
-	 */
-	private IssuingBankModel findIssuingBank(Long bankId) {
-		return issuingBankRepository.findById(bankId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
-	}
-
-	/**
-	 * یافتن بانک عامل
-	 */
-	private BaseBankModel findBaseBank(Long bankId) {
-		return baseBankRepository.findById(bankId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
-	}
-
-	/**
 	 * ساخت مدل بانک‌بیل
 	 */
 	private ProformaBankBillModel buildBankBillModel(
@@ -123,35 +102,35 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		ProformaMasterModel masterModel = detailModel.getProformaMasterModel();
 
 		return ProformaBankBillModel.builder()
-				// اطلاعات تاریخ
 				.issueDate(request.getIssueDate())
 				.dueDate(request.getDueDate())
-				// کدها
 				.nosaCode(request.getNosaCode())
 				.sepamCode(request.getSepamCode())
 				.treasuryId(request.getTreasuryId())
-				// بانک عامل
 				.agentBankId(request.getAgentBankId())
 				.agentBankName(agentBank.getBankTitle())
-				// بانک صادرکننده
 				.issuerBankName(issuerBank.getBankName())
 				.branchCode(issuerBank.getBranchCode())
 				.branchName(issuerBank.getBranchName())
 				.paymentCity(issuerBank.getCity())
-				// ارتباط با پیش فاکتور
 				.proformaDetailId(detailModel.getId())
 				.proformaMasterId(detailModel.getProformaMasterId())
 				.contractNo(masterModel.getContractNo())
 				.tradeId(masterModel.getTradeId())
-				// وضعیت
 				.processId(DEFAULT_PLACEHOLDER)
 				.reversalProcessId(DEFAULT_PLACEHOLDER)
 				.workflowApproveStatus(WorkflowApproveStatus.DRAFT)
 				.acknowledgment(Acknowledgment.UNKNOWN)
 				.extraBillFileId(request.getExtraBillFileId())
+				.issuerBankId(request.getIssuerBankId())
+				.dispatchAttachmentId(null)
+				.isReckoningSend(false)
+				.reckoningSendDate(null)
+				.pmsBillId(null)
+				.cancelDate(null)
+				.cancellationReason(null)
 				.build();
 	}
-
 
 	/**
 	 * بروزرسانی فایل‌های پیوست برات

@@ -30,6 +30,10 @@ public class ProformaBankBillModel extends BaseClassModel {
 	@SequenceGenerator(name = "SEQ_INS_PROFORMA_BANK_BILL", sequenceName = "SEQ_INS_PROFORMA_BANK_BILL", allocationSize = 1)
 	private Long id;
 
+	@Column(name = "N_ISSUER_BANK_ID")
+	@Schema(name = "شناسه بانک گشایش اعتبار اسنادی")
+	private Long issuerBankId;
+
 	@Schema(description = "نام بانک صادر کننده برات")
 	@Column(name = "C_ISSUER_BANK_NAME", length = 200, nullable = false)
 	private String issuerBankName;
