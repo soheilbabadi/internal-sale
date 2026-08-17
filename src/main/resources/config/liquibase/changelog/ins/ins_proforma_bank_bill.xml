@@ -39,6 +39,9 @@
             <column name="n_version" type="INT">
                 <constraints nullable="false"/>
             </column>
+            <column name="N_ISSUER_BANK_ID" type="BIGINT">
+            <constraints nullable="false"/>
+            </column>
             <column name="c_issuer_bank_name" type="VARCHAR2(200)">
                 <constraints nullable="false"/>
             </column>
@@ -110,6 +113,7 @@
             <column name="id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill_aud"/>
             </column>
+            <column name="N_ISSUER_BANK_ID" type="BIGINT"/>
             <column name="c_issuer_bank_name" type="VARCHAR2(200)"/>
 
             <column name="c_branch_code" type="VARCHAR2(50)"/>
