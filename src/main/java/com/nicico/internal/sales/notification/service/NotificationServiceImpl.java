@@ -8,7 +8,6 @@ import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
 import com.nicico.internal.sales.notification.dto.EmailRequest;
-import com.nicico.internal.sales.notification.dto.MultipartInputStreamFileResource;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
@@ -20,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
@@ -29,9 +29,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
@@ -357,16 +356,37 @@ public class NotificationServiceImpl implements NotificationService {
 
 	// ==================== PDF CONVERTER ====================
 
+	/**
+	 * Serializes each document fully into memory (byte[]) before building the
+	 * multipart request, rather than streaming via PipedInputStream/PipedOutputStream.
+	 *
+	 * Why: a PipedOutputStream -> PipedInputStream pair has a tiny internal buffer
+	 * (default 1024 bytes). doc.write(out) runs on this same thread and blocks the
+	 * moment that buffer fills, because nothing drains the read side until
+	 * restTemplate sends the multipart body — which can't happen until this loop
+	 * finishes building bodyMap. So any document bigger than the buffer deadlocks:
+	 * the writer waits for a reader that itself is waiting for the writer to finish.
+	 * Reading fully into memory up front avoids the cycle.
+	 */
 	private byte[] convertToPdf(List<XWPFDocument> documents) {
+		log.info("convertToPdf start, {} document(s)", documents.size());
+
 		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
 
 		int fileCounter = 0;
 		for (XWPFDocument doc : documents) {
 			fileCounter++;
-			PipedInputStream in = createPipedInputStream(doc);
-			bodyMap.add(FILES_PARAM, new MultipartInputStreamFileResource(in, fileCounter + DOC_EXTENSION));
+			String fileName = fileCounter + DOC_EXTENSION;
+			byte[] docBytes = toByteArray(doc);
+			bodyMap.add(FILES_PARAM, new ByteArrayResource(docBytes) {
+				@Override
+				public String getFilename() {
+					return fileName;
+				}
+			});
 		}
 
+		log.info("convertToPdf all documents written to memory, sending to pdf convertor");
 		bodyMap.add(MERGE_PARAM, TRUE);
 
 		RequestEntity<MultiValueMap<String, Object>> request = RequestEntity
@@ -375,7 +395,9 @@ public class NotificationServiceImpl implements NotificationService {
 				.body(bodyMap);
 
 		try {
+			log.info("convertToPdf calling pdf convertor at {}", pdfConvertorUrl);
 			byte[] response = restTemplate.exchange(request, byte[].class).getBody();
+			log.info("convertToPdf received response, {} bytes", response == null ? 0 : response.length);
 			if (response == null || response.length == 0) {
 				throw new InternalSaleCustomException.FileContentException(MSG_PDF_EMPTY_RESPONSE);
 			}
@@ -386,14 +408,13 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
-	private PipedInputStream createPipedInputStream(XWPFDocument doc) {
-		PipedInputStream in = new PipedInputStream();
-		try (PipedOutputStream out = new PipedOutputStream(in)) {
+	private byte[] toByteArray(XWPFDocument doc) {
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 			doc.write(out);
+			return out.toByteArray();
 		} catch (IOException ex) {
-			log.error("خطا در نوشتن فایل به جریان داده: {}", ex.getMessage(), ex);
+			log.error("خطا در سریال کردن سند به بایت: {}", ex.getMessage(), ex);
 			throw new InternalSaleCustomException.FileContentException(MSG_FILE_WRITE_ERROR);
 		}
-		return in;
 	}
 }

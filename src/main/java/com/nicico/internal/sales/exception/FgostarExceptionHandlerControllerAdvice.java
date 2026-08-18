@@ -42,11 +42,11 @@ public class FgostarExceptionHandlerControllerAdvice {
 		return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
 	}
 
-//	@ExceptionHandler(InternalSaleCustomException.ValidationException.class)
-//	public ResponseEntity<ErrorResponse> validationException(
-//			InternalSaleCustomException.ValidationException ex, HttpServletRequest request) {
-//		return build(HttpStatus.NOT_ACCEPTABLE, ex.getMessage(), request);
-//	}
+	@ExceptionHandler(InternalSaleCustomException.ValidationException.class)
+	public ResponseEntity<ErrorResponse> validationException(
+			InternalSaleCustomException.ValidationException ex, HttpServletRequest request) {
+		return build(HttpStatus.NOT_ACCEPTABLE, ex.getMessage(), request);
+	}
 
 
 	@ExceptionHandler(InternalSaleCustomException.DuplicateEntityException.class)

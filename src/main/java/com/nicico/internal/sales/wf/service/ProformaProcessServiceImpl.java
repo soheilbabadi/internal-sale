@@ -17,9 +17,7 @@ import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.notification.dto.EmailRequest;
-import com.nicico.internal.sales.notification.dto.MultipartInputStreamFileResource;
 import com.nicico.internal.sales.notification.service.MailService;
-import com.nicico.internal.sales.notification.service.SmsNotificationService;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
@@ -35,15 +33,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
-import java.net.URI;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -86,9 +80,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	private final ExportNotificationConfigRepository exportNotificationConfigRepository;
 	private final CustomerRepository customerRepository;
 	private final MailService mailService;
-	private final SmsNotificationService smsNotificationService;
 	private final ExportDocService exportDocService;
-	private final RestTemplate restTemplate;
 	private final LcRepository lcRepository;
 	private final RemittanceMasterRepository remittanceMasterRepository;
 
@@ -179,7 +171,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		proformaMasterRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId())
 				.ifPresent(masterModel -> {
 					if (!reviewTaskRequest.getApprove()) {
-						applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true, false);
+						applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true);
 						proformaMasterRepository.save(masterModel);
 						return;
 					}
@@ -190,12 +182,12 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 
 					switch (status.getStatus()) {
 						case ACTIVE:
-							applyStatus(masterModel, WorkflowApproveStatus.IN_PROGRESS, false, false);
+							applyStatus(masterModel, WorkflowApproveStatus.IN_PROGRESS, false);
 							proformaMasterRepository.saveAndFlush(masterModel);
 							break;
 
 						case CANCELED:
-							applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true, false);
+							applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true);
 							proformaMasterRepository.saveAndFlush(masterModel);
 							break;
 
@@ -204,7 +196,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 									.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId());
 							applyStatus(masterModel,
 									accepted ? WorkflowApproveStatus.ACCEPTED : WorkflowApproveStatus.CANCELED,
-									true, false);
+									true);
 							proformaMasterRepository.saveAndFlush(masterModel);
 
 							if (accepted) {
@@ -244,27 +236,23 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 
 				switch (status.getStatus()) {
 					case ACTIVE:
-						applyStatus(masterModel, WorkflowApproveStatus.IN_PROGRESS, false, false);
+						applyStatus(masterModel, WorkflowApproveStatus.IN_PROGRESS, false);
 						break;
 
 					case CANCELED:
-						applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true, false);
+						applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true);
 						break;
 
 					case FINISHED:
 						boolean accepted = processVariableProvider.isProcessAcceptedFinally(masterModel.getProcessId());
 						applyStatus(masterModel,
 								accepted ? WorkflowApproveStatus.ACCEPTED : WorkflowApproveStatus.CANCELED,
-								true, false);
+								true);
 						break;
 				}
 
 				proformaMasterRepository.save(masterModel);
 
-				if (status.getStatus() == ProcessInstanceStatus.FINISHED
-						&& masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED) {
-//                    sendEmailWithProformaAttachment(masterModel.getId());
-				}
 
 			} catch (Exception ex) {
 				log.error("خطا در به روزرسانی وضعیت پیش فاکتور {}: {}", masterModel.getId(), ex.getMessage());
@@ -324,11 +312,10 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 
 	private void applyStatus(ProformaMasterModel model,
 	                         WorkflowApproveStatus status,
-	                         boolean isProcessFinal,
-	                         boolean isReversalProcessFinal) {
+	                         boolean isProcessFinal) {
 		model.setWorkflowApproveStatus(status);
 		model.setIsProcessFinal(isProcessFinal);
-		model.setIsReversalProcessFinal(isReversalProcessFinal);
+		model.setIsReversalProcessFinal(false);
 	}
 
 	private void cancelIfOrphan(String processInstanceId, Object model) {
@@ -372,8 +359,8 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 					.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_CUSTOMER_NOT_FOUND));
 
 			List<Long> activeDetailIds = getActiveProformaDetailIds(masterModel);
-			byte[] pdfContent = convertDocumentsToPdf(activeDetailIds, true);
-			Path filePath = createTempFile(FILE_NAME_PREFIX_PROFORMA, String.valueOf(masterModel.getContractNo()), pdfContent);
+			byte[] pdfContent = buildSignedProformaPdf(activeDetailIds);
+			Path filePath = createTempFile(String.valueOf(masterModel.getContractNo()), pdfContent);
 			EmailRequest emailRequest = prepareProformaEmailRequest(masterModel, customer);
 
 			HttpResponse<String> emailResponse = mailService.sendMail(emailRequest, filePath.toString());
@@ -395,21 +382,36 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 				.toList();
 	}
 
-	private byte[] convertDocumentsToPdf(List<Long> ids, boolean isProforma) {
+	/**
+	 * Exports each active proforma detail as its own signed .docx (via
+	 * {@link ExportDocService#exportProformaDocOnlySigned(Long)}), then merges
+	 * them all into a single PDF via {@link ExportDocService#convertDocListToPdf(List)}.
+	 */
+	private byte[] buildSignedProformaPdf(List<Long> detailIds) {
+		List<XWPFDocument> documents = detailIds.stream()
+				.map(exportDocService::exportProformaDocOnlySigned)
+				.filter(bytes -> bytes != null && bytes.length > 0)
+				.map(this::toXwpfDocument)
+				.toList();
+
+		if (documents.isEmpty()) {
+			throw new InternalSaleCustomException.FileContentException(MSG_FILE_EMPTY_LIST);
+		}
+
+		return exportDocService.convertDocListToPdf(documents);
+	}
+
+	private XWPFDocument toXwpfDocument(byte[] docBytes) {
 		try {
-			List<XWPFDocument> documents = isProforma ? loadProformaDocuments(ids) : loadRemittanceDocuments(ids);
-			if (documents.isEmpty()) {
-				throw new InternalSaleCustomException.FileContentException(MSG_FILE_EMPTY_LIST);
-			}
-			return convertToPdf(documents);
-		} catch (Exception ex) {
-			log.error("خطا در تبدیل فایلها به PDF: {}", ex.getMessage(), ex);
+			return new XWPFDocument(new ByteArrayInputStream(docBytes));
+		} catch (IOException ex) {
+			log.error("خطا در بارگذاری فایل پیش فاکتور: {}", ex.getMessage(), ex);
 			throw new InternalSaleCustomException.FileContentException(MSG_FILE_WRITE_ERROR);
 		}
 	}
 
-	private Path createTempFile(String prefix, String contractNo, byte[] content) throws IOException {
-		Path filePath = Paths.get(prefix + contractNo + PDF_EXTENSION);
+	private Path createTempFile(String contractNo, byte[] content) throws IOException {
+		Path filePath = Paths.get(ProformaProcessServiceImpl.FILE_NAME_PREFIX_PROFORMA + contractNo + PDF_EXTENSION);
 		try (OutputStream outputStream = Files.newOutputStream(filePath)) {
 			outputStream.write(content);
 		}
@@ -426,79 +428,6 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 				masterModel.getContractNo(),
 				masterModel.getContractDate()));
 		return emailRequest;
-	}
-
-	private List<XWPFDocument> loadProformaDocuments(List<Long> ids) {
-		return ids.stream().map(this::loadProformaDocument).filter(Objects::nonNull).toList();
-	}
-
-	private XWPFDocument loadProformaDocument(Long detailId) {
-		try {
-			byte[] docBytes = exportDocService.exportProformaDocOnlySigned(detailId);
-			if (docBytes == null || docBytes.length == 0) {
-				log.warn("فایل خالی یا نامعتبر برای پیش فاکتور با شناسه: {}", detailId);
-				return null;
-			}
-			return new XWPFDocument(new ByteArrayInputStream(docBytes));
-		} catch (IOException ex) {
-			log.error("خطا در بارگذاری فایل پیش فاکتور با شناسه {}: {}", detailId, ex.getMessage(), ex);
-			return null;
-		}
-	}
-
-	private List<XWPFDocument> loadRemittanceDocuments(List<Long> ids) {
-		return ids.stream().map(this::loadRemittanceDocument).filter(Objects::nonNull).toList();
-	}
-
-	private XWPFDocument loadRemittanceDocument(Long remittanceId) {
-		try {
-			byte[] docBytes = exportDocService.exportRemittanceDoc(remittanceId);
-			if (docBytes == null || docBytes.length == 0) {
-				log.warn("فایل خالی یا نامعتبر برای حواله با شناسه: {}", remittanceId);
-				return null;
-			}
-			return new XWPFDocument(new ByteArrayInputStream(docBytes));
-		} catch (IOException ex) {
-			log.error("خطا در بارگذاری فایل حواله با شناسه {}: {}", remittanceId, ex.getMessage(), ex);
-			return null;
-		}
-	}
-
-	private byte[] convertToPdf(List<XWPFDocument> documents) {
-		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
-		int fileCounter = 0;
-
-		for (XWPFDocument doc : documents) {
-			final int counter = ++fileCounter;
-			PipedInputStream in = new PipedInputStream();
-			new Thread(() -> {
-				try (PipedOutputStream out = new PipedOutputStream(in)) {
-					doc.write(out);
-				} catch (IOException ex) {
-					log.error("خطا در نوشتن فایل به جریان داده: {}", ex.getMessage(), ex);
-					throw new InternalSaleCustomException.FileContentException(MSG_FILE_WRITE_ERROR);
-				}
-			}).start();
-			bodyMap.add(FILES_PARAM, new MultipartInputStreamFileResource(in, counter + DOC_EXTENSION));
-		}
-
-		bodyMap.add(MERGE_PARAM, MERGE_TRUE);
-
-		RequestEntity<MultiValueMap<String, Object>> request = RequestEntity
-				.post(URI.create(pdfConvertorUrl))
-				.contentType(MediaType.MULTIPART_FORM_DATA)
-				.body(bodyMap);
-
-		try {
-			byte[] response = restTemplate.exchange(request, byte[].class).getBody();
-			if (response == null) {
-				throw new InternalSaleCustomException.FileContentException(MSG_PDF_EMPTY_RESPONSE);
-			}
-			return response;
-		} catch (Exception ex) {
-			log.error("خطا در فراخوانی سرویس تبدیل PDF: {}", ex.getMessage(), ex);
-			throw new InternalSaleCustomException.FileContentException(MSG_FILE_WRITE_ERROR);
-		}
 	}
 
 	private String formatMessage(String template, Object... args) {
