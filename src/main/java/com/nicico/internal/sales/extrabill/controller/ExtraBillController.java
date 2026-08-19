@@ -97,4 +97,42 @@ public class ExtraBillController {
 
 		return ResponseEntity.ok(service.updateBillFiles(updateDto));
 	}
+
+	@Operation(
+			summary = "ارسال ایمیل تایید تسویه",
+			description = "برات مشخص، ایمیل تایید تسویه حساب به کارگزار ارسال می شود. این عملیات پس از اتمام فرآیند تسویه و تایید نهایی انجام می گردد."
+	)
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_SEND_NOTIFICATION')")
+	@PostMapping("/send-reckoning-extra-bill/{extraBillId}")
+	public ResponseEntity<Void> sendReckoningEmail(@PathVariable Long extraBillId) {
+		service.sendReckoningEmail(extraBillId);
+		return ResponseEntity.ok().build();
+	}
+
+	@Operation(
+			summary = "بروزرسانی اطلاعات برات",
+			description = "اطلاعات بانکی و الکترونیکی برات را بروزرسانی می‌کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
+	)
+	@PreAuthorize("@secUtil.hasAuthority('C_UPD_EXTRA_BILL')")
+	@PutMapping("/update")
+	@ApiResponse(responseCode = "200", description = "بروزرسانی با موفقیت انجام شد",
+			content = @Content(schema = @Schema(implementation = ProformaBankBillDto.Info.class)))
+	public ResponseEntity<ProformaBankBillDto.Info> updateExtraBill(
+			@RequestBody UpdateExtraBillRequest updateExtraBillRequest) {
+		return ResponseEntity.ok(service.updateExtraBill(updateExtraBillRequest));
+	}
+
+	@Operation(
+			summary = "دریافت تاریخچه تغییرات برات",
+			description = "لیست کامل تغییرات و نسخه‌های مختلف یک برات را بر اساس شناسه آن برمی‌گرداند. شامل اطلاعات ایجاد، ویرایش و وضعیت‌های مختلف برات در طول زمان."
+	)
+	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
+	@GetMapping("/audit-history/{extraBillId}")
+	@ApiResponse(responseCode = "200", description = "تاریخچه با موفقیت دریافت شد",
+			content = @Content(schema = @Schema(implementation = ProformaBankBillAuditDto.class)))
+	public ResponseEntity<List<ProformaBankBillAuditDto>> getAuditHistory(
+			@Parameter(description = "شناسه برات", required = true, example = "1")
+			@PathVariable Long extraBillId) {
+		return ResponseEntity.ok(service.getAuditHistory(extraBillId));
+	}
 }

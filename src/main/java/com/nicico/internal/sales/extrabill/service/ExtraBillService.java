@@ -1,10 +1,7 @@
 package com.nicico.internal.sales.extrabill.service;
 
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.internal.sales.extrabill.dto.ProformaBankBillDto;
-import com.nicico.internal.sales.extrabill.dto.ProformaBankBillFileUpdateDto;
-import com.nicico.internal.sales.extrabill.dto.ProformaBankBillReportDto;
-import com.nicico.internal.sales.extrabill.dto.ProformaBankBillRequest;
+import com.nicico.internal.sales.extrabill.dto.*;
 
 import java.util.List;
 
@@ -21,4 +18,10 @@ public interface ExtraBillService {
 	List<ProformaBankBillDto.Info> getByMasterId(Long proformaMasterId);
 
 	ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto);
+
+	void sendReckoningEmail(Long extraBillId);
+
+	ProformaBankBillDto.Info updateExtraBill(UpdateExtraBillRequest updateExtraBillRequest);
+
+	List<ProformaBankBillAuditDto> getAuditHistory(Long extraBillId);
 }

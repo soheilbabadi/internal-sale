@@ -39,9 +39,7 @@
             <column name="n_version" type="INT">
                 <constraints nullable="false"/>
             </column>
-            <column name="N_ISSUER_BANK_ID" type="BIGINT">
-            <constraints nullable="false"/>
-            </column>
+            <column name="N_ISSUER_BANK_ID" type="BIGINT"/>
             <column name="c_issuer_bank_name" type="VARCHAR2(200)">
                 <constraints nullable="false"/>
             </column>
@@ -50,6 +48,9 @@
             <column name="c_branch_name" type="VARCHAR2(200)"/>
             <column name="c_payment_city" type="VARCHAR2(100)"/>
             <column name="c_agent_bank_name" type="VARCHAR2(200)"/>
+            <column name="N_AGENT_BANK_ID" type="BIGINT"/>
+            <column name="C_EXTRA_BILL_FILE_ID" type="VARCHAR2(100)"/>
+            <column name="C_DISPATCH_FILE_ID" type="VARCHAR2(100)"/>
             <column name="C_NOSA_CODE" type="VARCHAR2(100)"/>
             <column name="c_sepam_code" type="VARCHAR2(100)"/>
             <column name="c_treasury_id" type="VARCHAR2(100)"/>
@@ -121,6 +122,8 @@
             <column name="c_payment_city" type="VARCHAR2(100)"/>
             <column name="c_agent_bank_name" type="VARCHAR2(200)"/>
             <column name="N_AGENT_BANK_ID" type="BIGINT"/>
+            <column name="C_EXTRA_BILL_FILE_ID" type="VARCHAR2(100)"/>
+            <column name="C_DISPATCH_FILE_ID" type="VARCHAR2(100)"/>
             <column name="C_NOSA_CODE" type="VARCHAR2(100)"/>
             <column name="c_sepam_code" type="VARCHAR2(100)"/>
             <column name="c_treasury_id" type="VARCHAR2(100)"/>
