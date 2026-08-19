@@ -102,7 +102,7 @@ public class ExtraBillController {
 			summary = "ارسال ایمیل تایید تسویه",
 			description = "برات مشخص، ایمیل تایید تسویه حساب به کارگزار ارسال می شود. این عملیات پس از اتمام فرآیند تسویه و تایید نهایی انجام می گردد."
 	)
-//	@PreAuthorize("@secUtil.hasAuthority('C_INS_SEND_NOTIFICATION')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_SEND_NOTIFICATION')")
 	@PostMapping("/send-reckoning-extra-bill/{extraBillId}")
 	public ResponseEntity<Void> sendReckoningEmail(@PathVariable Long extraBillId) {
 		service.sendReckoningEmail(extraBillId);
@@ -113,7 +113,7 @@ public class ExtraBillController {
 			summary = "بروزرسانی اطلاعات برات",
 			description = "اطلاعات بانکی و الکترونیکی برات را بروزرسانی می‌کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
 	)
-	@PreAuthorize("@secUtil.hasAuthority('C_UPD_EXTRA_BILL')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
 	@PutMapping("/update")
 	@ApiResponse(responseCode = "200", description = "بروزرسانی با موفقیت انجام شد",
 			content = @Content(schema = @Schema(implementation = ProformaBankBillDto.Info.class)))
@@ -126,7 +126,7 @@ public class ExtraBillController {
 			summary = "دریافت تاریخچه تغییرات برات",
 			description = "لیست کامل تغییرات و نسخه‌های مختلف یک برات را بر اساس شناسه آن برمی‌گرداند. شامل اطلاعات ایجاد، ویرایش و وضعیت‌های مختلف برات در طول زمان."
 	)
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
+
 	@GetMapping("/audit-history/{extraBillId}")
 	@ApiResponse(responseCode = "200", description = "تاریخچه با موفقیت دریافت شد",
 			content = @Content(schema = @Schema(implementation = ProformaBankBillAuditDto.class)))
