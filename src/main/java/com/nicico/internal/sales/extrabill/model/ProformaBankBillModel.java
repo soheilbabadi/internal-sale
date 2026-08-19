@@ -7,12 +7,13 @@ import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import java.io.Serial;
 import java.util.Date;
 
-//@Audited
+@Audited
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
