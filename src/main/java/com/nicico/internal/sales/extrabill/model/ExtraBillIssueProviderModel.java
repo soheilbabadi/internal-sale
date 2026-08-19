@@ -25,56 +25,61 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Audited(targetAuditMode = NOT_AUDITED)
 @Subselect("""
 		WITH filtered_master AS (
-		    SELECT
-		        ROW_NUMBER() OVER (ORDER BY tipm.ID) AS ID,
-		        tipm.ID                              AS N_MASTER_ID,
-		        tipd.C_PERFORMA_NO,
-		        tipd.N_FINAL_PRICE,
-		        tipd.D_PERFORMA_DATE,
-		        tipm.C_CONTRACT_DATE,
-		        tipm.N_CONTRACT_NO,
-		        tipm.C_NATIONAL_CODE,
-		        tipm.C_PAYMENT_CODE,
-		        tipm.N_CUSTOMER_ID,
-		        tipm.C_CUSTOMER_NAME,
-		        tipm.C_ECONOMIC_CODE,
-		        tipm.N_GOOD_ID,
-		        tipm.C_GOOD_NAME,
-		        tipm.N_CREDIT_PERCENTAGE,
-		        tipm.N_CASH_PERCENTAGE,
-		        tipm.N_TOTAL_CASH_AMOUNT,
-		        tipm.N_TOTAL_CREDIT_AMOUNT,
-		        tipm.N_TOTAL_VAT_AMOUNT,
-		        tipm.N_TOTAL_QUANTITY,
-		        tipm.N_TOTAL_FINAL_AMOUNT,
-		        tipm.F_TRADE_ID,
-		        tipm.C_PROFORMA_ISSUE_TYPE,
-		        tipm.N_BROKER_ID,
-		        tipm.C_BROKER_NAME,
-		        tipm.C_BROKER_NATIONAL_CODE,
-		        tipm.C_OFFER_DESCRIPTION,
-		        tipm.C_IME_COMMODITY_SYMBOL,
-		        NVL(tipm.C_WORKFLOW_APPROVE_STATUS, 'NOT_STARTED') AS C_WORKFLOW_APPROVE_STATUS
-		    FROM T_INS_PERFORMA_MASTER tipm
-		    INNER JOIN T_INS_PERFORMA_DETAIL tipd ON tipm.ID = tipd.F_PERFORMA_MASTER_ID
-		    WHERE tipm.C_CONTRACT_DATE > '1405/03/01'
-		      AND tipm.C_PROFORMA_ISSUE_TYPE = 'EXTRA_BILL_OF_EXCHANGE'
-		      AND tipm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
-		      AND NOT EXISTS (
-		          SELECT 1 FROM TBL_IME_SETTLEMENT
-		          WHERE PAYMENT_CODE = tipm.C_PAYMENT_CODE
-		            AND SETTLEMENT_TYPE IN ('انفساخ', 'نقدی')
-		      )
-		)
-		SELECT fm.*
-		FROM filtered_master fm
-		WHERE NOT EXISTS (
-		    SELECT 1 
-		    FROM T_INS_PROFORMA_BANK_BILL tpbb
-		    WHERE tpbb.F_PERFORMA_MASTER_ID = fm.N_MASTER_ID
-		      AND tpbb.C_WORKFLOW_APPROVE_STATUS != 'CANCELED'
-		)
-		
+    SELECT
+        ROW_NUMBER() OVER (ORDER BY tipm.ID) AS ID,
+        tipm.ID                              AS N_MASTER_ID,
+        tipd.C_PERFORMA_NO,
+        tipd.N_FINAL_PRICE,
+        tipd.D_PERFORMA_DATE,
+        tipm.C_CONTRACT_DATE,
+        tipm.N_CONTRACT_NO,
+        tipm.C_NATIONAL_CODE,
+        tipm.C_PAYMENT_CODE,
+        tipm.N_CUSTOMER_ID,
+        tipm.C_CUSTOMER_NAME,
+        tipm.C_ECONOMIC_CODE,
+        tipm.N_GOOD_ID,
+        tipm.C_GOOD_NAME,
+        tipm.N_CREDIT_PERCENTAGE,
+        tipm.N_CASH_PERCENTAGE,
+        tipm.N_TOTAL_CASH_AMOUNT,
+        tipm.N_TOTAL_CREDIT_AMOUNT,
+        tipm.N_TOTAL_VAT_AMOUNT,
+        tipm.N_TOTAL_QUANTITY,
+        tipm.N_TOTAL_FINAL_AMOUNT,
+        tipm.F_TRADE_ID,
+        tipm.C_PROFORMA_ISSUE_TYPE,
+        tipm.N_BROKER_ID,
+        tipm.C_BROKER_NAME,
+        tipm.C_BROKER_NATIONAL_CODE,
+        tipm.C_OFFER_DESCRIPTION,
+        tipm.C_IME_COMMODITY_SYMBOL,
+        NVL(tipm.C_WORKFLOW_APPROVE_STATUS, 'NOT_STARTED') AS C_WORKFLOW_APPROVE_STATUS
+    FROM T_INS_PERFORMA_MASTER tipm
+             INNER JOIN T_INS_PERFORMA_DETAIL tipd ON tipm.ID = tipd.F_PERFORMA_MASTER_ID
+    WHERE tipm.C_CONTRACT_DATE > '1405/03/01'
+      AND tipm.C_PROFORMA_ISSUE_TYPE = 'EXTRA_BILL_OF_EXCHANGE'
+      AND tipm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
+      AND NOT EXISTS (
+        SELECT 1 FROM TBL_IME_SETTLEMENT
+        WHERE PAYMENT_CODE = tipm.C_PAYMENT_CODE
+          AND SETTLEMENT_TYPE IN ('انفساخ', 'نقدی')
+    )
+
+      AND NOT EXISTS (
+        SELECT 1 FROM T_INS_PROFORMA_BANK_BILL tipbb WHERE tipbb.F_PERFORMA_MASTER_ID = tipm.ID AND tipbb.C_WORKFLOW_APPROVE_STATUS IN ('ACCEPTED','IN_PROGRESS')
+
+    )
+)
+SELECT fm.*
+FROM filtered_master fm
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM T_INS_PROFORMA_BANK_BILL tpbb
+    WHERE tpbb.F_PERFORMA_MASTER_ID = fm.N_MASTER_ID
+      AND tpbb.C_WORKFLOW_APPROVE_STATUS != 'CANCELED'
+)
+
 		""")
 public class ExtraBillIssueProviderModel implements Serializable {
 	@Serial

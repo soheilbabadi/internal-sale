@@ -54,7 +54,6 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	private static final String MSG_CUSTOMER_NOT_FOUND = "اطلاعات مشتری پیدا نشد";
 	private static final String MSG_FILE_WRITE_ERROR = "خطایی در هنگام نوشتن فایل اتفاق افتاد";
 	private static final String MSG_FILE_EMPTY_LIST = "لیست فایلها خالی است و امکان ایجاد فایل پی دی اف وجود ندارد";
-	private static final String MSG_PDF_EMPTY_RESPONSE = "فایل خالی از طرف سرویس تبدیل PDF دریافت شد";
 	private static final String MSG_EMAIL_PROFORMA_ERROR = "خطا در ارسال ایمیل پیش فاکتور";
 	private static final String MSG_EMAIL_PROFORMA_SUBJECT = "پیش فاکتور قرارداد شماره";
 	private static final String MSG_EMAIL_PROFORMA_CONTENT = "با سلام پیش فاکتور شرکت {0} شماره قرارداد {1} مورخ {2} به پیوست ارسال میگردد.با تشکر";
@@ -65,12 +64,8 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	private static final String CONFIG_NOT_FOUND_MESSAGE = "تنظیمات پیکربندی وجود ندارد";
 
 	// --- File/param constants ---
-	private static final String DOC_EXTENSION = ".doc";
 	private static final String PDF_EXTENSION = ".pdf";
 	private static final String FILE_NAME_PREFIX_PROFORMA = "proforma_";
-	private static final String MERGE_PARAM = "merge";
-	private static final String FILES_PARAM = "files";
-	private static final String MERGE_TRUE = "true";
 	private static final String PROCESS_ID_PLACEHOLDER = "-";
 
 	private final ProformaMasterRepository proformaMasterRepository;
@@ -84,8 +79,6 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	private final LcRepository lcRepository;
 	private final RemittanceMasterRepository remittanceMasterRepository;
 
-	@Value("${nicico.pdf-api}")
-	private String pdfConvertorUrl;
 	@Value("${nicico.bcc-address}")
 	private String bccAddress;
 

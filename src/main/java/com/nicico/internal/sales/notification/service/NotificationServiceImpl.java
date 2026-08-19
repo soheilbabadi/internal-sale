@@ -82,7 +82,6 @@ public class NotificationServiceImpl implements NotificationService {
 
 	// ==================== DEPENDENCIES ====================
 	private final ProformaMasterRepository proformaMasterRepository;
-	private final ProformaDetailRepository proformaDetailRepository;
 	private final ExportDocService exportDocService;
 	private final MailService mailService;
 	private final CustomerRepository customerRepository;
@@ -174,15 +173,18 @@ public class NotificationServiceImpl implements NotificationService {
 			String entityName) {
 
 		if (!isEmailSendingEnabled(entityType)) {
+            log.info("isEmailSendingEnabled(entityType) is false for {} {} {}",entityName,entityType,id);
 			return;
 		}
 
 		try {
+            log.info("getting model  for {} {} {}",entityName,entityType,id);
 			T model = modelFetcher.apply(id);
-			validateModel(model);
-
+            log.info("validating model  for {} {} {}",entityName,entityType,id);
+            validateModel(model);
+            log.info("getting details model  for {} {} {}",entityName,entityType,id);
 			List<Long> detailIds = idExtractor.apply(model);
-
+            log.info("starting pdfContent  model  for {} {} {}",entityName,entityType,id);
 			byte[] pdfContent = convertDocumentsToPdf(detailIds, entityType);
 			Path filePath = createTempFile(fileNamePrefix, getContractNo(model), pdfContent);
 
@@ -317,10 +319,12 @@ public class NotificationServiceImpl implements NotificationService {
 	// ==================== PDF CONVERSION ====================
 
 	private byte[] convertDocumentsToPdf(List<Long> ids, EntityTypeEnum entityType) {
+        log.info("convertDocumentsToPdf start List<XWPFDocument> documents");
 		List<XWPFDocument> documents = loadDocuments(ids, entityType);
 
 		if (documents.isEmpty()) {
-			throw new InternalSaleCustomException.FileContentException(MSG_FILE_EMPTY_LIST);
+            log.error("convertDocumentsToPdf  documents list is empty");
+            throw new InternalSaleCustomException.FileContentException(MSG_FILE_EMPTY_LIST);
 		}
 
 		return convertToPdf(documents);
@@ -372,7 +376,7 @@ public class NotificationServiceImpl implements NotificationService {
 		log.info("convertToPdf start, {} document(s)", documents.size());
 
 		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
-
+		log.info("convertToPdf start, {} document(s)", documents.size());
 		int fileCounter = 0;
 		for (XWPFDocument doc : documents) {
 			fileCounter++;

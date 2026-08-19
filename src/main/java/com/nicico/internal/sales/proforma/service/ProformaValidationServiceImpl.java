@@ -92,6 +92,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 		if (isContractExists(Long.valueOf(tradeExtract.getContractNo()))) {
 			errors.add(MSG_CONTRACT_EXISTS);
 		}
+
 		throwIfErrors(errors);
 		return errors;
 	}

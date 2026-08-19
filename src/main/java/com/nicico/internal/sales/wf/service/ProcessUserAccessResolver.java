@@ -15,11 +15,22 @@ public class ProcessUserAccessResolver {
 
 	public static Map<String, String> resolveUserAccess(List<ProcessUserAccessModel> accessList, List<String> requiredVariables) {
 		return requiredVariables.stream()
-				.collect(Collectors.toMap(variable -> variable, variable -> accessList.stream()
-						.filter(a -> a.getProcessVariable().equals(variable))
-						.min(Comparator.comparing(a -> !a.getUsername().equals(SecurityUtil.getUsername())))
-						.orElseThrow(() -> new InternalSaleCustomException.ValidationException("متغیر " + variable + " در سیستم تعریف نشده است")).getUserId().toString()));
-	}
+				.collect(Collectors.toMap(variable -> variable, variable -> {
+					List<ProcessUserAccessModel> matches = accessList.stream()
+							.filter(a -> a.getProcessVariable().equals(variable))
+							.toList();
 
+					String title = matches.stream()
+							.findFirst()
+							.map(ProcessUserAccessModel::getProcessVariableTitle)
+							.orElse(variable);
+
+					return matches.stream()
+							.min(Comparator.comparing(a -> !a.getUsername().equals(SecurityUtil.getUsername())))
+							.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+									"متغیر " + title + " به هیچ کاربری تخصیص نیافته است"))
+							.getUserId().toString();
+				}));
+	}
 
 }

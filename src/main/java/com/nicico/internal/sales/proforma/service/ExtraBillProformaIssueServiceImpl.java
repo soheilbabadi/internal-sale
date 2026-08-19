@@ -82,7 +82,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 	public ProformaMasterModel createProformaMaster(PerfomaCreateRequest requestDto) {
 		log.debug("Creating extra bill proforma master for tradeId: {}", requestDto.getTradeId());
 
-		requestDto.setProformaIssueType(requestDto.getProformaIssueType());
+
 		ProformaModelResponse contractDetail = getContractDetail(requestDto);
 		ProformaMasterModel masterModel = contractDetail.getMasterModel();
 		masterModel.setContractNo(requestDto.getContractNo());
@@ -338,13 +338,18 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 					saleConditionModel.getExtraBillOfExchangePercent() : BigDecimal.ZERO;
 		}
 
-		// محاسبه مبلغ اضافی و نهایی
-		BigDecimal extraAmount = totalPrice.multiply(extraPercent)
-				.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-		BigDecimal finalPrice = totalPrice.add(extraAmount);
+		// محاسبه مبلغ نهایی با همان فرمول ExportDocService: totalPrice * (1 + percent/100)
+		BigDecimal factor = BigDecimal.ONE.add(
+				extraPercent.divide(HUNDRED, 10, RoundingMode.HALF_UP)
+		);
+		BigDecimal finalPrice = totalPrice.multiply(factor).setScale(2, RoundingMode.HALF_UP);
+		BigDecimal extraAmount = finalPrice.subtract(totalPrice).setScale(2, RoundingMode.HALF_UP);
 
 		// تنظیم مقادیر
-		detailModel.setExtraBillOfExchangeAmount(extraAmount);
+		// برای EXTRA_BILL مقدار فیلد amount باید «مبلغ نهایی با اضافه درصد» باشد.
+		detailModel.setExtraBillOfExchangeAmount(
+				issueType == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE ? finalPrice : extraAmount
+		);
 		detailModel.setExtraBillOfPercent(extraPercent);
 		detailModel.setFinalPrice(finalPrice);
 

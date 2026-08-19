@@ -138,9 +138,11 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 			if (!reviewTaskRequest.getApprove()) {
 				proformaMasterRepository.findByReversalProcessId(reviewTaskRequest.getProcessInstanceId()).ifPresent(masterModel -> {
 					masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+					masterModel.setReversalProcessId("-");
+					masterModel.setIsReversalProcessFinal(false);
 					proformaMasterRepository.save(masterModel);
 					for (ProformaDetailModel detailModel : masterModel.getProformaDetailModelLists()) {
-						detailModel.setProformaReversalStatus(ProformaReversalStatus.NORMAL);
+						detailModel.setProformaReversalStatus(ProformaReversalStatus.CANCELED);
 						proformaDetailRepository.save(detailModel);
 					}
 					proformaMasterRepository.save(masterModel);
