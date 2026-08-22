@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -19,27 +21,31 @@ public class ProformaBankBillRequest implements Serializable {
 	private static final long serialVersionUID = 9158835413259590123L;
 
 
+	@NotNull(message = "شناسه بانک صادرکننده نمی‌تواند خالی باشد")
 	@Schema(description = "نام بانک صادر کننده برات")
 	private Long issuerBankId;
 
-	@Schema(description = "شناسه بانک عامل")
-	private Long agentBankId;
-
+	@NotBlank(message = "کد تفصیلی نمی‌تواند خالی باشد")
 	@Schema(description = "کد تفصیلی")
 	private String nosaCode;
 
+	@NotBlank(message = "کد سپام نمی‌تواند خالی باشد")
 	@Schema(description = "کد سپام")
 	private String sepamCode;
 
+	@NotBlank(message = "شناسه خزانه‌داری نمی‌تواند خالی باشد")
 	@Schema(description = "شناسه خزانه داری")
 	private String treasuryId;
 
+	@NotNull(message = "تاریخ صدور برات نمی‌تواند خالی باشد")
 	@Schema(description = "تاریخ صدور برات")
 	private Date issueDate;
 
+	@NotNull(message = "تاریخ سررسید نمی‌تواند خالی باشد")
 	@Schema(description = "تاریخ سررسید")
 	private Date dueDate;
 
+	@NotNull(message = "شناسه جزئیات پیش‌فاکتور نمی‌تواند خالی باشد")
 	@Schema(description = "شناسه جزئیات پیش فاکتور", name = "proformaDetailId", example = "52")
 	private Long proformaDetailId;
 

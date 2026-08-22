@@ -24,4 +24,6 @@ public interface ExtraBillService {
 	ProformaBankBillDto.Info updateExtraBill(UpdateExtraBillRequest updateExtraBillRequest);
 
 	List<ProformaBankBillAuditDto> getAuditHistory(Long extraBillId);
+
+	SearchDTO.SearchRs<ProformaBankBillDto.Info> findReadyReckoning(SearchDTO.SearchRq request);
 }
