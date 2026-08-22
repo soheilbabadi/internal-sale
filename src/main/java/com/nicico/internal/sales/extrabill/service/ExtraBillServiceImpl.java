@@ -63,6 +63,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private static final String MSG_DUE_DATE_REQUIRED = "تاریخ سررسید نمی‌تواند خالی باشد";
 	private static final String MSG_PROFORMA_DETAIL_ID_REQUIRED = "شناسه جزئیات پیش‌فاکتور نمی‌تواند خالی باشد";
 	private static final String MSG_SALES_CONTRACT_NOT_FOUND = "قرارداد فروش وجود ندارد";
+	private static final String MSG_DUPLICATE_PROFORMA_BILL = "برات برای این جزئیات پیش‌فاکتور قبلاً ثبت شده است";
 	// ==================== DEPENDENCIES ====================
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final ProformaBankBillMapper mapper;
@@ -101,6 +102,13 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 		// Validate mandatory fields
 		validateProformaBankBillRequest(request);
+
+		// Check if a non-canceled bill already exists for this proformaDetailId
+		boolean exists = extraBillRepository.existsByProformaDetailIdAndWorkflowApproveStatusNot(
+				request.getProformaDetailId(), WorkflowApproveStatus.CANCELED);
+		if (exists) {
+			throw new InternalSaleCustomException.DuplicateEntityException(MSG_DUPLICATE_PROFORMA_BILL);
+		}
 
 		// اعتبارسنجی و یافتن موجودیت‌ها
 		ProformaDetailModel detailModel = proformaDetailRepository.findById(request.getProformaDetailId())
