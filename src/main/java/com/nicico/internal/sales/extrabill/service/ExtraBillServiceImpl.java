@@ -289,6 +289,33 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				" جهت تسویه مورد تایید می باشد";
 	}
 
+	@Override
+	public String generateExtraBillBrokerEmailContent(long extraBillId) {
+		ProformaBankBillModel billModel = repository.findById(extraBillId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+
+		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						MSG_SALES_CONTRACT_NOT_FOUND));
+
+		ProformaDetailModel detail = repository.getDetailByBillId(extraBillId).orElseThrow(
+				() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
+		var broker = extraBillServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
+		LcBrokerEmailRequest emailRequest = extraBillServiceHelper.buildLcBrokerEmailRequest(detail, broker);
+		return generateExtraBillBrokerEmailContent(emailRequest);
+	}
+
+	@Override
+	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId) {
+		updateExtraBillAcknowledgment(extraBillId);
+		return processStatusDeterminerService.getExtraBillSummaryReport(extraBillId);
+	}
+
+	@Override
+	public ProcessInstanceHistory getExtraBillHistoryDetail(Long extraBillId) {
+		return processStatusDeterminerService.getExtraBillHistoryDetail(extraBillId);
+	}
+
 	/**
 	 * ارسال ایمیل تسویه به کارگزار
 	 */
