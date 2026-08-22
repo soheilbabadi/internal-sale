@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.proforma.service;
 
+import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
@@ -11,6 +12,7 @@ import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
+import com.nicico.internal.sales.proforma.model.ProformaGoodItemModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
@@ -52,6 +54,7 @@ public class ProformaServiceImpl implements ProformaService {
 	private final ProformaValidationService proformaValidationService;
 	private final OfferTextProcess offerTextProcess;
 	private final ExtraBillProformaIssueService extraBillProformaIssueService;
+	private final BpmsClientService bpmsClientService;
 
 	// ==================== CREATE ====================
 
@@ -179,7 +182,22 @@ public class ProformaServiceImpl implements ProformaService {
 		ProformaMasterModel masterModel = findProformaMaster(performaId);
 		List<ProformaDetailModel> detailList = masterModel.getProformaDetailModelLists();
 
-		proformaDetailRepository.deleteAll(detailList);
+		List<ProformaGoodItemModel> goodItemList = detailList.stream()
+				.flatMap(detail -> proformaGoodItemRepository.findAllByProformaDetailModel(detail).stream())
+				.toList();
+
+		if (!goodItemList.isEmpty()) {
+			proformaGoodItemRepository.deleteAll(goodItemList);
+		}
+		if (!detailList.isEmpty()) {
+			proformaDetailRepository.deleteAll(detailList);
+		}
+		try {
+			bpmsClientService.cancelProcessInstance(masterModel.getProcessId());
+			bpmsClientService.cancelProcessInstance(masterModel.getReversalProcessId());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
 		proformaMasterRepository.delete(masterModel);
 
 		log.info("Proforma with id {} deleted successfully", performaId);

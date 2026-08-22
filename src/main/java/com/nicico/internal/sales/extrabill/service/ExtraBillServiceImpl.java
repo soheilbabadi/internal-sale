@@ -1,5 +1,7 @@
 package com.nicico.internal.sales.extrabill.service;
 
+import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
+import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.EOperator;
 import com.nicico.copper.common.dto.search.SearchDTO;
@@ -10,18 +12,21 @@ import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.dto.*;
 import com.nicico.internal.sales.extrabill.model.ProformaBankBillModel;
+import com.nicico.internal.sales.extrabill.repository.ExtraBillIssueRepository;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillAuditRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillReportRepository;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
+import com.nicico.internal.sales.lc.service.LcServiceHelper;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
+import com.nicico.internal.sales.wf.service.ProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +36,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -44,10 +50,10 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private static final String MSG_PROFORMA_MASTER_NOT_FOUND = "قرارداد فروش وجود ندارد";
 	private static final String MSG_BROKER_EMAIL_MISSING = "اطلاعات تماس ایمیل کارگزار  موجود نمی باشد.";
 	private static final String DEFAULT_PLACEHOLDER = "-";
-	
+
 	// Ready Reckoning constant
 	private static final String READY_RECKONING_ISSUE_DATE_FROM = "1405/03/01";
-	
+
 	// Validation error messages
 	private static final String MSG_ISSUER_BANK_ID_REQUIRED = "شناسه بانک صادرکننده نمی‌تواند خالی باشد";
 	private static final String MSG_NOSA_CODE_REQUIRED = "کد تفصیلی نمی‌تواند خالی باشد";
@@ -56,11 +62,11 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private static final String MSG_ISSUE_DATE_REQUIRED = "تاریخ صدور برات نمی‌تواند خالی باشد";
 	private static final String MSG_DUE_DATE_REQUIRED = "تاریخ سررسید نمی‌تواند خالی باشد";
 	private static final String MSG_PROFORMA_DETAIL_ID_REQUIRED = "شناسه جزئیات پیش‌فاکتور نمی‌تواند خالی باشد";
-
+	private static final String MSG_SALES_CONTRACT_NOT_FOUND = "قرارداد فروش وجود ندارد";
 	// ==================== DEPENDENCIES ====================
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final ProformaBankBillMapper mapper;
-	private final ExtraBillRepository repository;
+	private final ExtraBillRepository extraBillRepository;
 	private final IssuingBankRepository issuingBankRepository;
 	private final ProformaBankBillReportRepository proformaBankBillReportRepository;
 	private final ProformaBankBillReportMapper proformaBankBillReportMapper;
@@ -69,6 +75,9 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private final IMETradeRepository imeTradeRepository;
 	private final NotificationService notificationService;
 	private final ProformaBankBillAuditRepository auditRepository;
+	private final ProcessService processService;
+	private final ExtraBillIssueRepository extraBillIssueRepository;
+	private final LcServiceHelper lcServiceHelper;
 
 	// ==================== PROFORMA CREATION ====================
 
@@ -76,7 +85,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	@Override
 	public SearchDTO.SearchRs<ProformaBankBillDto.Info> search(SearchDTO.SearchRq request) {
-		return SearchUtil.search(repository, request, mapper::toDTO);
+		return SearchUtil.search(extraBillRepository, request, mapper::toDTO);
 	}
 
 	@Override
@@ -101,7 +110,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 		// ساخت و ذخیره مدل
 		ProformaBankBillModel model = buildBankBillModel(request, detailModel, issuerBank);
-		ProformaBankBillModel savedModel = repository.save(model);
+		ProformaBankBillModel savedModel = extraBillRepository.save(model);
 
 		log.info("Extra bill saved successfully with id: {}", savedModel.getId());
 		return mapper.toDTO(savedModel);
@@ -111,11 +120,18 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	public List<ProformaBankBillDto.Info> getByMasterId(Long proformaMasterId) {
 		log.debug("Getting extra bills by masterId: {}", proformaMasterId);
 
-		return repository.findAllByProformaMasterId(proformaMasterId).stream()
+		return extraBillRepository.findAllByProformaMasterId(proformaMasterId).stream()
 				.map(mapper::toDTO)
 				.toList();
 	}
 
+	@Override
+	public String generateLcBrokerEmailContent(LcBrokerEmailRequest dto) {
+		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
+				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
+				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
+				" جهت تسویه مورد تایید می باشد";
+	}
 	// ==================== PRIVATE HELPER METHODS ====================
 
 	/**
@@ -194,14 +210,14 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Transactional
 	public ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto) {
 		// یافتن برات بر اساس شناسه
-		ProformaBankBillModel bill = repository.findById(updateDto.getId())
+		ProformaBankBillModel bill = extraBillRepository.findById(updateDto.getId())
 				.orElseThrow(() -> new RuntimeException("برات با شناسه " + updateDto.getId() + " یافت نشد"));
 
 		// بروزرسانی فیلدهای مورد نظر
 
 		if (updateDto.getDispatchAttachmentId() != null) {
 			bill.setDispatchAttachmentId(updateDto.getDispatchAttachmentId());
-			repository.save(bill);
+			extraBillRepository.save(bill);
 		}
 
 		// ذخیره تغییرات
@@ -213,7 +229,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	@Transactional
 	public void sendReckoningEmail(Long extraBillId) {
-		ProformaBankBillModel billModel = repository.findById(extraBillId)
+		ProformaBankBillModel billModel = extraBillRepository.findById(extraBillId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
@@ -232,7 +248,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	 * علامت‌گذاری تمام برات‌های مرتبط با یک قرارداد به عنوان تسویه شده
 	 */
 	private void markAllBillsAsReckoning(Long proformaMasterId) {
-		List<ProformaBankBillModel> billItems = repository.findAllByProformaMasterId(proformaMasterId);
+		List<ProformaBankBillModel> billItems = extraBillRepository.findAllByProformaMasterId(proformaMasterId);
 
 		if (billItems == null || billItems.isEmpty()) {
 			log.warn("No extra bill items found for proformaMasterId: {}", proformaMasterId);
@@ -245,7 +261,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				billItem.setReckoningSend(true);
 				billItem.setReckoningSendDate(newReckoningSendDate);
 				billItem.setAcknowledgment(Acknowledgment.RECKONING);
-				repository.save(billItem);
+				extraBillRepository.save(billItem);
 			}
 		}
 	}
@@ -291,29 +307,36 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	@Override
 	public String generateExtraBillBrokerEmailContent(long extraBillId) {
-		ProformaBankBillModel billModel = repository.findById(extraBillId)
+		ProformaBankBillModel billModel = extraBillRepository.findById(extraBillId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_SALES_CONTRACT_NOT_FOUND));
 
-		ProformaDetailModel detail = repository.getDetailByBillId(extraBillId).orElseThrow(
+		ProformaDetailModel detail = extraBillRepository.getDetailByBillId(extraBillId).orElseThrow(
 				() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-		var broker = extraBillServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = extraBillServiceHelper.buildLcBrokerEmailRequest(detail, broker);
+		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
+		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(detail, broker);
 		return generateExtraBillBrokerEmailContent(emailRequest);
 	}
 
 	@Override
 	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId) {
-		updateExtraBillAcknowledgment(extraBillId);
-		return processStatusDeterminerService.getExtraBillSummaryReport(extraBillId);
+
+		ProformaBankBillModel billModel = extraBillRepository.findById(extraBillId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+
+		return processService.getUserTasksReport(billModel.getProcessId());
+
 	}
 
 	@Override
 	public ProcessInstanceHistory getExtraBillHistoryDetail(Long extraBillId) {
-		return processStatusDeterminerService.getExtraBillHistoryDetail(extraBillId);
+		ProformaBankBillModel billModel = extraBillRepository.findById(extraBillId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+
+		return processService.getProcessInstanceHistoryById(billModel.getProcessId());
 	}
 
 	/**
@@ -328,43 +351,18 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	@Transactional
 	public ProformaBankBillDto.Info updateExtraBill(UpdateExtraBillRequest updateExtraBillRequest) {
-		ProformaBankBillModel bill = repository.findById(updateExtraBillRequest.getId())
+		ProformaBankBillModel bill = extraBillRepository.findById(updateExtraBillRequest.getId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
-		// بروزرسانی فیلدهای بانکی در صورت وجود مقدار
-		if (updateExtraBillRequest.getIssuerBankId() != null) {
-			bill.setIssuerBankId(updateExtraBillRequest.getIssuerBankId());
-		}
+		bill.setIssuerBankId(updateExtraBillRequest.getIssuerBankId());
+		bill.setAgentBankId(updateExtraBillRequest.getAgentBankId());
+		bill.setNosaCode(updateExtraBillRequest.getNosaCode());
+		bill.setSepamCode(updateExtraBillRequest.getSepamCode());
+		bill.setTreasuryId(updateExtraBillRequest.getTreasuryId());
+		bill.setIssueDate(updateExtraBillRequest.getIssueDate());
+		bill.setDueDate(updateExtraBillRequest.getDueDate());
 
-		if (updateExtraBillRequest.getAgentBankId() != null) {
-			bill.setAgentBankId(updateExtraBillRequest.getAgentBankId());
-			// بروزرسانی نام بانک عامل
-			baseBankRepository.findById(updateExtraBillRequest.getAgentBankId())
-					.ifPresent(agentBank -> bill.setAgentBankName(agentBank.getBankTitle()));
-		}
-
-		// بروزرسانی فیلدهای برات الکترونیک در صورت وجود مقدار
-		if (updateExtraBillRequest.getNosaCode() != null) {
-			bill.setNosaCode(updateExtraBillRequest.getNosaCode());
-		}
-
-		if (updateExtraBillRequest.getSepamCode() != null) {
-			bill.setSepamCode(updateExtraBillRequest.getSepamCode());
-		}
-
-		if (updateExtraBillRequest.getTreasuryId() != null) {
-			bill.setTreasuryId(updateExtraBillRequest.getTreasuryId());
-		}
-
-		if (updateExtraBillRequest.getIssueDate() != null) {
-			bill.setIssueDate(updateExtraBillRequest.getIssueDate());
-		}
-
-		if (updateExtraBillRequest.getDueDate() != null) {
-			bill.setDueDate(updateExtraBillRequest.getDueDate());
-		}
-
-		ProformaBankBillModel savedBill = repository.save(bill);
+		ProformaBankBillModel savedBill = extraBillRepository.save(bill);
 		log.info("Extra bill updated successfully with id: {}", savedBill.getId());
 		return mapper.toDTO(savedBill);
 	}
@@ -372,7 +370,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<ProformaBankBillAuditDto> getAuditHistory(Long extraBillId) {
-		boolean existBill = repository.existsById(extraBillId);
+		boolean existBill = extraBillRepository.existsById(extraBillId);
 		if (!existBill) {
 			throw new InternalSaleCustomException.ValidationException(
 					"برات با شناسه " + extraBillId + " یافت نشد");
@@ -419,7 +417,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.setOperator(EOperator.greaterThan)
 				.setValue(READY_RECKONING_ISSUE_DATE_FROM));
 
-		return SearchUtil.search(repository, searchRq, mapper::toDTO);
+		return SearchUtil.search(extraBillRepository, searchRq, mapper::toDTO);
 	}
 
 }

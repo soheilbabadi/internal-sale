@@ -1,9 +1,10 @@
 package com.nicico.internal.sales.extrabill.service;
 
+import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
+import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.extrabill.dto.*;
-import com.nicico.workflow.dto.history.ProcessInstanceHistory;
-import com.nicico.workflow.dto.report.UserTaskReportDTO;
+import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,8 @@ public interface ExtraBillService {
 	ProformaBankBillDto.Info save(ProformaBankBillRequest extraBillIssue);
 
 	List<ProformaBankBillDto.Info> getByMasterId(Long proformaMasterId);
+
+	String generateLcBrokerEmailContent(LcBrokerEmailRequest dto);
 
 	ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto);
 

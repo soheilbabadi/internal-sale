@@ -1,18 +1,14 @@
 package com.nicico.internal.sales.extrabill.controller;
 
+import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.copper.wf.dto.ProcessInstanceHistory;
-import com.nicico.copper.wf.dto.UserTaskReportDTO;
 import com.nicico.internal.sales.extrabill.dto.*;
 import com.nicico.internal.sales.extrabill.service.ExtraBillIssueService;
 import com.nicico.internal.sales.extrabill.service.ExtraBillService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +17,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 
 @PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
@@ -82,19 +77,13 @@ public class ExtraBillController {
 		return ResponseEntity.ok(service.save(proformaBankBillRequest));
 	}
 
-	/**
-	 * بروزرسانی فایل‌های پیوست برات
-	 * این متد فقط فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می‌کند
-	 * نیاز به مجوز C_UPD_EXTRA_BILL دارد
-	 */
+
 	@Operation(
 			summary = "بروزرسانی فایل‌های پیوست برات",
 			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می‌کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
 	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
 	@PutMapping("/update-files")
-	@ApiResponse(responseCode = "200", description = "بروزرسانی با موفقیت انجام شد",
-			content = @Content(schema = @Schema(implementation = ProformaBankBillDto.Info.class)))
 	public ResponseEntity<ProformaBankBillDto.Info> updateBillFiles(
 			@RequestBody ProformaBankBillFileUpdateDto updateDto) {
 
@@ -118,8 +107,6 @@ public class ExtraBillController {
 	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
 	@PutMapping("/update")
-	@ApiResponse(responseCode = "200", description = "بروزرسانی با موفقیت انجام شد",
-			content = @Content(schema = @Schema(implementation = ProformaBankBillDto.Info.class)))
 	public ResponseEntity<ProformaBankBillDto.Info> updateExtraBill(
 			@RequestBody UpdateExtraBillRequest updateExtraBillRequest) {
 		return ResponseEntity.ok(service.updateExtraBill(updateExtraBillRequest));
@@ -131,11 +118,8 @@ public class ExtraBillController {
 	)
 
 	@GetMapping("/audit-history/{extraBillId}")
-	@ApiResponse(responseCode = "200", description = "تاریخچه با موفقیت دریافت شد",
-			content = @Content(schema = @Schema(implementation = ProformaBankBillAuditDto.class)))
-	public ResponseEntity<List<ProformaBankBillAuditDto>> getAuditHistory(
-			@Parameter(description = "شناسه برات", required = true, example = "1")
-			@PathVariable Long extraBillId) {
+
+	public ResponseEntity<List<ProformaBankBillAuditDto>> getAuditHistory(@PathVariable Long extraBillId) {
 		return ResponseEntity.ok(service.getAuditHistory(extraBillId));
 	}
 
@@ -156,11 +140,7 @@ public class ExtraBillController {
 	)
 	@GetMapping("/history/{extraBillId}")
 	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
-	@ApiResponse(responseCode = "200", description = "تاریخچه گردش کار با موفقیت دریافت شد",
-			content = @Content(schema = @Schema(implementation = ProcessInstanceHistory.class)))
-	public ResponseEntity<ProcessInstanceHistory> getExtraBillHistoryDetail(
-			@Parameter(description = "شناسه برات", required = true, example = "1")
-			@PathVariable Long extraBillId) {
+	public ResponseEntity<ProcessInstanceHistory> getExtraBillHistoryDetail(@PathVariable Long extraBillId) {
 		return ResponseEntity.ok(service.getExtraBillHistoryDetail(extraBillId));
 	}
 
@@ -170,9 +150,7 @@ public class ExtraBillController {
 	)
 	@GetMapping("/broker-email/{extraBillId}")
 	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
-	public ResponseEntity<String> generateExtraBillBrokerEmailContent(
-			@Parameter(description = "شناسه برات", required = true, example = "1")
-			@PathVariable long extraBillId) {
+	public ResponseEntity<String> generateExtraBillBrokerEmailContent(@PathVariable long extraBillId) {
 		return ResponseEntity.ok(service.generateExtraBillBrokerEmailContent(extraBillId));
 	}
 
@@ -182,11 +160,8 @@ public class ExtraBillController {
 	)
 	@GetMapping("/user-tasks-report/{extraBillId}")
 	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
-	@ApiResponse(responseCode = "200", description = "گزارش وظایف با موفقیت دریافت شد",
-			content = @Content(schema = @Schema(implementation = Map.class)))
-	public ResponseEntity<Map<String, List<UserTaskReportDTO>>> getUserTasksReport(
-			@Parameter(description = "شناسه برات", required = true, example = "1")
-			@PathVariable Long extraBillId) {
+
+	public ResponseEntity<?> getUserTasksReport(@PathVariable Long extraBillId) {
 		return ResponseEntity.ok(service.getUserTasksReport(extraBillId));
 	}
 }
