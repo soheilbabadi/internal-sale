@@ -21,6 +21,9 @@ public interface LcRepository extends JpaRepository<LcModel, Long>, JpaSpecifica
 	List<LcModel> findAllByWorkflowApproveStatusIn(List<WorkflowApproveStatus> statuses);
 
 
+	@Query(value = "SELECT C_NOSA_CODE FROM T_INS_LC WHERE N_ISSUER_BANK_ID = :bankId AND C_NOSA_CODE LIKE :prefix% ORDER BY C_NOSA_CODE DESC FETCH FIRST 1 ROWS ONLY", nativeQuery = true)
+	String findLastNosaCodeByBankIdAndPrefix(Long bankId, String prefix);
+
 	@Query(value = "SELECT C_NOSA_CODE FROM T_INS_LC WHERE N_ISSUER_BANK_ID = :bankId ORDER BY C_NOSA_CODE FETCH FIRST 1 ROWS ONLY", nativeQuery = true)
 	String findLastNosaCodeByBankId(Long bankId);
 
