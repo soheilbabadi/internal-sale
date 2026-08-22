@@ -3,6 +3,8 @@ package com.nicico.internal.sales.extrabill.controller;
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
+import com.nicico.copper.wf.dto.ProcessInstanceHistory;
+import com.nicico.copper.wf.dto.UserTaskReportDTO;
 import com.nicico.internal.sales.extrabill.dto.*;
 import com.nicico.internal.sales.extrabill.service.ExtraBillIssueService;
 import com.nicico.internal.sales.extrabill.service.ExtraBillService;
@@ -19,6 +21,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 
 @PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
@@ -134,5 +137,56 @@ public class ExtraBillController {
 			@Parameter(description = "شناسه برات", required = true, example = "1")
 			@PathVariable Long extraBillId) {
 		return ResponseEntity.ok(service.getAuditHistory(extraBillId));
+	}
+
+	@Operation(
+			summary = "جستجوی برات‌های آماده تسویه",
+			description = "لیست برات‌هایی که آماده فرآیند تسویه هستند را بر اساس فیلترهای دریافتی برمی‌گرداند."
+	)
+	@PostMapping("/search/ready-reckoning")
+	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
+	public ResponseEntity<SearchDTO.SearchRs<ProformaBankBillDto.Info>> findReadyReckoning(
+			@RequestBody(required = false) SearchDTO.SearchRq request) {
+		return ResponseEntity.ok(service.findReadyReckoning(request));
+	}
+
+	@Operation(
+			summary = "دریافت جزئیات تاریخچه گردش کار برات",
+			description = "تاریخچه کامل گردش کار (Workflow) یک برات شامل تاییدیه‌ها، ردیه‌ها و توضیحات را برمی‌گرداند."
+	)
+	@GetMapping("/history/{extraBillId}")
+	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
+	@ApiResponse(responseCode = "200", description = "تاریخچه گردش کار با موفقیت دریافت شد",
+			content = @Content(schema = @Schema(implementation = ProcessInstanceHistory.class)))
+	public ResponseEntity<ProcessInstanceHistory> getExtraBillHistoryDetail(
+			@Parameter(description = "شناسه برات", required = true, example = "1")
+			@PathVariable Long extraBillId) {
+		return ResponseEntity.ok(service.getExtraBillHistoryDetail(extraBillId));
+	}
+
+	@Operation(
+			summary = "تولید محتوای ایمیل کارگزار",
+			description = "محتوای HTML ایمیل فارسی برای اطلاع‌رسانی به کارگزار درباره جزئیات برات را تولید می‌کند."
+	)
+	@GetMapping("/broker-email/{extraBillId}")
+	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
+	public ResponseEntity<String> generateExtraBillBrokerEmailContent(
+			@Parameter(description = "شناسه برات", required = true, example = "1")
+			@PathVariable long extraBillId) {
+		return ResponseEntity.ok(service.generateExtraBillBrokerEmailContent(extraBillId));
+	}
+
+	@Operation(
+			summary = "دریافت گزارش وظایف کاربران",
+			description = "گزارش وظایف کاربران مرتبط با گردش کار برات را برمی‌گرداند."
+	)
+	@GetMapping("/user-tasks-report/{extraBillId}")
+	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
+	@ApiResponse(responseCode = "200", description = "گزارش وظایف با موفقیت دریافت شد",
+			content = @Content(schema = @Schema(implementation = Map.class)))
+	public ResponseEntity<Map<String, List<UserTaskReportDTO>>> getUserTasksReport(
+			@Parameter(description = "شناسه برات", required = true, example = "1")
+			@PathVariable Long extraBillId) {
+		return ResponseEntity.ok(service.getUserTasksReport(extraBillId));
 	}
 }
