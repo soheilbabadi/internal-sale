@@ -6,6 +6,7 @@ import com.nicico.internal.sales.ime.trade.IMETradeModel;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.proforma.dto.PerfomaCreateRequest;
 import com.nicico.internal.sales.proforma.dto.PerformerCreateRevealRequest;
+import com.nicico.internal.sales.proforma.dto.ProformaCreationContext;
 import com.nicico.internal.sales.proforma.dto.ProformaModelResponse;
 import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 
@@ -15,6 +16,12 @@ public interface ProformaContractService {
 	ProformaModelResponse getContractDetail(PerfomaCreateRequest requestDto);
 
 	ProformaModelResponse getContractDetailReversal(PerformerCreateRevealRequest requestDto);
+
+	/**
+	 * Fetches and assembles all data required for proforma creation.
+	 * This centralizes data fetching logic to avoid duplication across services.
+	 */
+	ProformaCreationContext getProformaCreationData(Long tradeId, String paymentCode, Integer jalaliYear);
 
 	IMETradeModel getTradeModel(String paymentCode);
 

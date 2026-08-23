@@ -8,34 +8,37 @@ build/
 target/
 
 # Dependencies
-.gradle/
 lib/
+vendor/
+node_modules/
+.mypy_cache/
+.pytest_cache/
+.gradle/
+**/bin/
+**/obj/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
 
-# Editors
-.vscode/
-.idea/
-
 # Environment
 .env
 .env.local
 *.env.*
 
-# Coverage reports
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage
 coverage/
 htmlcov/
-*.coverage
+.coverage
 
-# Package manager caches
-node_modules/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.mypy_cache/
-.pytest_cache/
+# System files
+.DS_Store
+Thumbs.db
 ```

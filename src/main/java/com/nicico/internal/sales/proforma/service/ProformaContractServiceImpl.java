@@ -73,31 +73,56 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 
 	@Override
 	@Transactional
+	public ProformaCreationContext getProformaCreationData(Long tradeId, String paymentCode, Integer jalaliYear) {
+		log.debug("Fetching proforma creation data for tradeId: {}, paymentCode: {}", tradeId, paymentCode);
+		
+		TradeExtractModel tradeExtract = findTradeExtract(tradeId);
+		String actualPaymentCode = paymentCode != null ? paymentCode : tradeExtract.getPaymentCode();
+		
+		IMETradeModel tradeModel = getTradeModel(actualPaymentCode);
+		GoodsModel goodsModel = getGoodsModel(actualPaymentCode);
+		SaleConditionModel saleConditionModel = getSaleConditionModel(actualPaymentCode);
+		GoodsBucketModel goodsBucketModel = getGoodBucketModel(actualPaymentCode);
+		CustomerModel customerModel = getCustomerModel(tradeExtract.getBuyerNationalCode());
+		
+		return ProformaCreationContext.builder()
+				.tradeExtract(tradeExtract)
+				.tradeModel(tradeModel)
+				.goodsModel(goodsModel)
+				.saleConditionModel(saleConditionModel)
+				.goodsBucketModel(goodsBucketModel)
+				.customerModel(customerModel)
+				.jalaliYear(jalaliYear)
+				.build();
+	}
+
+	@Override
+	@Transactional
 	public ProformaModelResponse getContractDetail(PerfomaCreateRequest requestDto) {
 		log.debug("Creating proforma contract detail for tradeId: {}", requestDto.getTradeId());
 
-		TradeExtractModel tradeExtract = findTradeExtract(requestDto.getTradeId());
 		int jalaliYear = DateUtility.getJalaliYear(requestDto.getOrderDate());
-
-		IMETradeModel tradeModel = getTradeModel(tradeExtract.getPaymentCode());
-		GoodsModel goodsModel = getGoodsModel(tradeExtract.getPaymentCode());
-		SaleConditionModel saleConditionModel = getSaleConditionModel(tradeExtract.getPaymentCode());
-		GoodsBucketModel goodsBucketModel = getGoodBucketModel(tradeExtract.getPaymentCode());
-		CustomerModel customerModel = getCustomerModel(tradeExtract.getBuyerNationalCode());
+		ProformaCreationContext context = getProformaCreationData(
+				requestDto.getTradeId(), 
+				null, // Payment code will be fetched from TradeExtract
+				jalaliYear
+		);
 
 		PerformaDetailGenerator params = createPerformaDetailGenerator(
-				requestDto, tradeModel, goodsModel, jalaliYear, goodsBucketModel, saleConditionModel
+				requestDto, context.getTradeModel(), context.getGoodsModel(), 
+				jalaliYear, context.getGoodsBucketModel(), context.getSaleConditionModel()
 		);
 
 		List<ProformaDetailModel> detailDtoList = generatePerformaDetailList(params);
 
 		// محاسبه مجموع‌ها و درصدها با استفاده از Helper
 		Totals totals = calculateTotals(detailDtoList);
-		CashCreditPercentages percentages = calculateCashCreditPercentages(goodsBucketModel, false);
+		CashCreditPercentages percentages = calculateCashCreditPercentages(context.getGoodsBucketModel(), false);
 
 		ProformaMasterModel masterModel = buildMasterModel(
-				tradeExtract, tradeModel, goodsModel, customerModel,
-				goodsBucketModel, requestDto, totals, percentages
+				context.getTradeExtract(), context.getTradeModel(), context.getGoodsModel(), 
+				context.getCustomerModel(), context.getGoodsBucketModel(), 
+				requestDto, totals, percentages
 		);
 
 		// تنظیم روابط با استفاده از Helper
