@@ -5,6 +5,7 @@ import com.nicico.internal.sales.config.BaseClassModel;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import org.hibernate.envers.Audited;
@@ -33,7 +34,7 @@ public class ProformaBankBillModel extends BaseClassModel {
 
 
 	@Schema(description = "نام بانک صادر کننده برات")
-	@Column(name = "C_ISSUER_BANK_NAME", length = 200, nullable = false)
+	@Column(name = "C_ISSUER_BANK_NAME", length = 200)
 	private String issuerBankName;
 
 
@@ -98,6 +99,11 @@ public class ProformaBankBillModel extends BaseClassModel {
 
 	@Column(name = "F_PERFORMA_MASTER_ID")
 	private Long proformaMasterId;
+
+	@ManyToOne(fetch = FetchType.LAZY, targetEntity = ProformaMasterModel.class)
+	@JoinColumn(name = "F_PERFORMA_MASTER_ID", insertable = false, updatable = false)
+	private ProformaMasterModel tradeExtractModel;
+
 
 
 	@Schema(description = "وضعیت در فرایند", name = "workflowApproveStatus", example = "PENDING")

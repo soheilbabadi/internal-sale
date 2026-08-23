@@ -12,11 +12,8 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static com.nicico.internal.sales.util.date.DateUtility.getJalaliYear;
 
 @RequiredArgsConstructor
 @Service
@@ -27,7 +24,6 @@ public class IssuingServiceImpl implements IssuingBankService {
 	private final BaseBankRepository baseBankRepository;
 
 	public IssuingBankDto save(IssuingBankDto.Create dto) {
-		baseBankRepository.updateBaseNosaCodeWithYearSuffix(String.format("%02d", getJalaliYear(new Date()) % 100));
 		Optional<IssuingBankModel> existingBank = Optional.empty();
 		if (dto.getId() != null) {
 			existingBank = repository.findById(dto.getId());

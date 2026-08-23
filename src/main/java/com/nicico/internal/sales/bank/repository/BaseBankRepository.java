@@ -12,9 +12,5 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface BaseBankRepository extends JpaRepository<BaseBankModel, Long>, JpaSpecificationExecutor<BaseBankModel> {
 
-	@Modifying
-	@Transactional
-	@Query(value = "UPDATE T_INS_BANK_BASE SET C_BASE_NOSA_CODE = CONCAT('107/18', :yearSuffix) WHERE C_BASE_NOSA_CODE LIKE '107/18%'", nativeQuery = true)
-	int updateBaseNosaCodeWithYearSuffix(@Param("yearSuffix") String yearSuffix);
 
 }

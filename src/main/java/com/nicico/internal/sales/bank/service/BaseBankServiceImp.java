@@ -24,7 +24,6 @@ public class BaseBankServiceImp implements BaseBankService {
 
 	@Override
 	public BaseBankDto save(BaseBankDto.Create dto) {
-		repository.updateBaseNosaCodeWithYearSuffix(String.format("%02d", getJalaliYear(new Date()) % 100));
 		var bankBranch = mapper.fromDTO(dto);
 		repository.save(bankBranch);
 		return mapper.toDTO(bankBranch);
@@ -47,7 +46,7 @@ public class BaseBankServiceImp implements BaseBankService {
 	@Override
 	public int updateAllBaseNosaCodes() {
 		String yearSuffix = getCurrentJalaliYear();
-		return repository.updateBaseNosaCodeWithYearSuffix(yearSuffix);
+		return 0;
 	}
 
 

@@ -9,8 +9,8 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.model.ProformaBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
-import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
+import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.util.TextUtility;
@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -37,11 +38,12 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
 	private static final String ACCESS_DENIED_MESSAGE = "شما اجازه شروع فرایند برات الکترونیک را ندارید";
 	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور پیدا نشد";
-	private static final String PROFORMA_DUPLICATE_START = "این پیش فاکتور امکان صدور برات ندارد";
+	private static final String PROFORMA_DUPLICATE_START = "برای این پیش فاکتور قبلا برات صادر شده است";
 	private static final String ERROR_REFRESHING_STATUS = "خطا در بروز رسانی وضعیت براتها";
 	private static final String ERROR_REJECTING_EXTRA_BILL = "خطا در رد کردن فرایند {}";
 	private static final String ERROR_DETECTING_STEP = "خطا در تشخیص مرحله فرایند {}";
 	private static final String ERROR_HANDLING_TASK_ACTION = "خطا در انجام عملیات تسک {}";
+	private static final String PROCESS_ID_PLACEHOLDER = "-";
 
 
 	private final ProformaMasterRepository proformaMasterRepository;
@@ -50,26 +52,46 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final ProcessVariableProvider processVariableProvider;
 	private final ExtraBillRepository extraBillRepository;
 
+
 	// Process lifecycle
 	@Override
 	@Transactional
 	public ProcessInstance startExtraBillProcess(Long masterId) {
+		refreshExtraBillStatus();
 		validateAccess();
+		ProformaMasterModel proformaMaster = getProformaMasterOrThrow(masterId);
 
-		List<ProformaBankBillModel> all=extraBillRepository.findAllByProformaMasterId(masterId);
-		for (ProformaBankBillModel proformaBankBillModel:all) {
-			if (proformaBankBillModel.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED) {
-				throw new InternalSaleCustomException.AccessDeniedException(PROFORMA_DUPLICATE_START);
+		List<ProformaBankBillModel> all = extraBillRepository.findAllByProformaMasterId(masterId);
+		for (ProformaBankBillModel proformaBankBillModel : all) {
+			if (proformaBankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED
+					|| proformaBankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
+				throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
+			}
+			if (!proformaBankBillModel.getProcessId().equalsIgnoreCase(PROCESS_ID_PLACEHOLDER) && !processVariableProvider.isProcessFinished(proformaBankBillModel.getProcessId())) {
+				throw new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE);
 			}
 		}
 
 
-		ProformaMasterModel proformaMaster = getProformaMasterOrThrow(masterId);
-
 		StartProcessWithDataDTO startProcessDto = buildStartProcessDto(proformaMaster);
 		ProcessInstance processInstance = startProcessWithData(startProcessDto);
 
-		refreshExtraBillStatus();
+		List<ProformaBankBillModel> billModels = new ArrayList<>();
+		for (ProformaDetailModel detailModel : proformaMaster.getProformaDetailModelLists()) {
+			ProformaBankBillModel bankBillModel = new ProformaBankBillModel();
+			bankBillModel.setProcessId(processInstance.getId());
+			bankBillModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+			bankBillModel.setReversalProcessId(PROCESS_ID_PLACEHOLDER);
+			bankBillModel.setReckoningSend(false);
+			bankBillModel.setProformaMasterId(proformaMaster.getId());
+			bankBillModel.setProformaDetailId(detailModel.getId());
+			bankBillModel.setAcknowledgment(Acknowledgment.RECKONING);
+			bankBillModel.setTradeId(proformaMaster.getId());
+			bankBillModel.setContractNo(proformaMaster.getId());
+
+			billModels.add(bankBillModel);
+		}
+		extraBillRepository.saveAll(billModels);
 		return processInstance;
 	}
 
@@ -179,7 +201,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		applyToBillByProcessId(processInstanceId, this::applyCurrentStatus);
 	}
 
-//	 Fetches the bill for a process instance, applies the mutation, and saves — no-op if not found.
+	//	 Fetches the bill for a process instance, applies the mutation, and saves — no-op if not found.
 	private void applyToBillByProcessId(String processInstanceId, Consumer<ProformaBankBillModel> mutator) {
 		Optional.ofNullable(extraBillRepository.findByProcessId(processInstanceId))
 				.ifPresent(bill -> {

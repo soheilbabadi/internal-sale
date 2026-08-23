@@ -128,6 +128,12 @@ public class ProformaMasterModel extends BaseClassModel {
 	@JoinColumn(name = "F_TRADE_ID", insertable = false, updatable = false)
 	private TradeExtractModel tradeExtractModel;
 
+
+	@OneToMany(mappedBy = "ProformaMasterModel", fetch = FetchType.LAZY)
+	@EqualsAndHashCode.Exclude
+	private List<ProformaBankBillModel> proformaBankBillModels;
+
+
 	@Column(name = "F_TRADE_ID", nullable = false)
 	private Long tradeId;
 

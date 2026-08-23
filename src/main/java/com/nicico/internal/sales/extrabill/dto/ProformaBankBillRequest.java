@@ -20,6 +20,10 @@ public class ProformaBankBillRequest implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 9158835413259590123L;
 
+	@NotNull(message = "شناسه  نمی‌تواند خالی باشد")
+	@Schema(description = "شناسه برات ثبت شده")
+	private Long id;
+
 
 	@NotNull(message = "شناسه بانک صادرکننده نمی‌تواند خالی باشد")
 	@Schema(description = "نام بانک صادر کننده برات")

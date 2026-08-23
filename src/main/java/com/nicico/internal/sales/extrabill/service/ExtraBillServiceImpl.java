@@ -5,7 +5,6 @@ import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.EOperator;
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.internal.sales.bank.model.IssuingBankModel;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
 import com.nicico.internal.sales.broker.repository.BrokerRepository;
@@ -23,7 +22,6 @@ import com.nicico.internal.sales.lc.service.LcServiceHelper;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
-import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.wf.service.ProcessService;
@@ -111,13 +109,29 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		}
 
 		// اعتبارسنجی و یافتن موجودیت‌ها
-		ProformaDetailModel detailModel = proformaDetailRepository.findById(request.getProformaDetailId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		// ساخت و ذخیره مدل
-		ProformaBankBillModel model = buildBankBillModel(request, detailModel, issuerBank);
+
+		ProformaBankBillModel model = extraBillRepository.findById(request.getId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
+
+		model.setIssueDate(request.getIssueDate());
+		model.setDueDate(request.getDueDate());
+		model.setNosaCode(request.getNosaCode());
+		model.setSepamCode(request.getSepamCode());
+		model.setTreasuryId(request.getTreasuryId());
+		model.setAgentBankId(issuerBank.getId());
+		model.setAgentBankName(issuerBank.getBankName());
+		model.setIssuerBankId(request.getIssuerBankId());
+		model.setIssuerBankName(issuerBank.getBankName());
+		model.setBranchCode(issuerBank.getBranchCode());
+		model.setBranchName(issuerBank.getBranchName());
+		model.setPaymentCity(issuerBank.getCity());
+		model.setAcknowledgment(Acknowledgment.RECKONING);
+		model.setExtraBillFileId(request.getExtraBillFileId());
+
 		ProformaBankBillModel savedModel = extraBillRepository.save(model);
 
 		log.info("Extra bill saved successfully with id: {}", savedModel.getId());
@@ -142,46 +156,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	}
 	// ==================== PRIVATE HELPER METHODS ====================
 
-	/**
-	 * ساخت مدل بانک‌بیل
-	 */
-	private ProformaBankBillModel buildBankBillModel(
-			ProformaBankBillRequest request,
-			ProformaDetailModel detailModel,
-			IssuingBankModel issuerBank) {
 
-		ProformaMasterModel masterModel = detailModel.getProformaMasterModel();
-
-		return ProformaBankBillModel.builder()
-				.issueDate(request.getIssueDate())
-				.dueDate(request.getDueDate())
-				.nosaCode(request.getNosaCode())
-				.sepamCode(request.getSepamCode())
-				.treasuryId(request.getTreasuryId())
-				.agentBankId(request.getIssuerBankId())
-				.agentBankName(issuerBank.getBankName())
-				.issuerBankName(issuerBank.getBankName())
-				.branchCode(issuerBank.getBranchCode())
-				.branchName(issuerBank.getBranchName())
-				.paymentCity(issuerBank.getCity())
-				.proformaDetailId(detailModel.getId())
-				.proformaMasterId(detailModel.getProformaMasterId())
-				.contractNo(masterModel.getContractNo())
-				.tradeId(masterModel.getTradeId())
-				.processId(DEFAULT_PLACEHOLDER)
-				.reversalProcessId(DEFAULT_PLACEHOLDER)
-				.workflowApproveStatus(WorkflowApproveStatus.DRAFT)
-				.acknowledgment(Acknowledgment.UNKNOWN)
-				.extraBillFileId(request.getExtraBillFileId())
-				.issuerBankId(request.getIssuerBankId())
-				.dispatchAttachmentId(null)
-				.isReckoningSend(false)
-				.reckoningSendDate(null)
-				.pmsBillId(null)
-				.cancelDate(null)
-				.cancellationReason(null)
-				.build();
-	}
 
 	/**
 	 * Validates the ProformaBankBillRequest for mandatory fields
