@@ -11,7 +11,6 @@ import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.dto.*;
 import com.nicico.internal.sales.extrabill.model.ProformaBankBillModel;
-import com.nicico.internal.sales.extrabill.repository.ExtraBillIssueRepository;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillAuditRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillReportRepository;
@@ -25,6 +24,7 @@ import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.wf.service.ProcessService;
+import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,8 +74,9 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private final IMETradeRepository imeTradeRepository;
 	private final NotificationService notificationService;
 	private final ProformaBankBillAuditRepository auditRepository;
-	private final ProcessService processService;
-	private final ExtraBillIssueRepository extraBillIssueRepository;
+
+	private final ProcessStatusDeterminerService processStatusDeterminerService;
+
 	private final LcServiceHelper lcServiceHelper;
 
 	// ==================== PROFORMA CREATION ====================
@@ -307,19 +308,13 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId) {
 
-		ProformaBankBillModel billModel = extraBillRepository.findById(extraBillId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
-
-		return processService.getUserTasksReport(billModel.getProcessId());
+		return processStatusDeterminerService.getProformaBankBillSummaryReport(extraBillId);
 
 	}
 
 	@Override
-	public ProcessInstanceHistory getExtraBillHistoryDetail(Long extraBillId) {
-		ProformaBankBillModel billModel = extraBillRepository.findById(extraBillId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
-
-		return processService.getProcessInstanceHistoryById(billModel.getProcessId());
+	public ProcessInstanceHistory getHistoryDetail(Long extraBillId) {
+		return processStatusDeterminerService.getProformaBankBillHistoryDetail(extraBillId);
 	}
 
 	/**

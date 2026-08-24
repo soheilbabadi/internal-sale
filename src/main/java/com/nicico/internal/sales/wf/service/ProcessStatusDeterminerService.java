@@ -25,5 +25,13 @@ public interface ProcessStatusDeterminerService {
 	Map<String, List<UserTaskReportDTO>> getProformaSummaryReport(Long proformaMasterId);
 
 
+	ProcessInstanceHistory getRemittanceHistoryDetail(Long remittanceId);
+
+	Map<String, List<UserTaskReportDTO>> getRemittanceSummaryReport(Long remittanceId);
+
+	ProcessInstanceHistory getProformaBankBillHistoryDetail(Long billId);
+
+	Map<String, List<UserTaskReportDTO>> getProformaBankBillSummaryReport(Long billId);
+
 	void updateAllLcAcknowledgments();
 }

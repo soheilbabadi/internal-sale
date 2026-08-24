@@ -1,5 +1,7 @@
 package com.nicico.internal.sales.remittance.service;
 
+import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
+import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
@@ -19,6 +21,7 @@ import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepositor
 import com.nicico.internal.sales.remittance.repository.RemittanceProformaDataProviderRepository;
 import com.nicico.internal.sales.remittance.repository.RemittanceTradeDataProviderRepository;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
+import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import com.nicico.internal.sales.wf.service.RemittanceProcessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +49,7 @@ public class RemittanceServiceImpl implements RemittanceService {
 	private final RemittanceProcessService remittanceProcessService;
 	private final LcRepository lcRepository;
 	private final ProformaMasterRepository proformaMasterRepository;
-
+	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
 	@Override
 	public SearchDTO.SearchRs<RemittanceMasterDto.Info> search(SearchDTO.SearchRq request) {
@@ -128,6 +132,18 @@ public class RemittanceServiceImpl implements RemittanceService {
 		remittanceMasterRepository.save(remittance);
 		return mapper.toDTO(remittance);
 	}
+
+
+	@Override
+	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long id) {
+		return processStatusDeterminerService.getRemittanceSummaryReport(id);
+	}
+
+	@Override
+	public ProcessInstanceHistory getHistoryDetail(Long id) {
+		return processStatusDeterminerService.getRemittanceHistoryDetail(id);
+	}
+
 
 	private RemittanceVariablesInput buildBaseWorkflowInput(RemittanceMasterModel remittance) {
 		RemittanceVariablesInput input = new RemittanceVariablesInput();

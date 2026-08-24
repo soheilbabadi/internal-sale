@@ -206,12 +206,14 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		}
 	}
 
+	@Transactional
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(true);
 		this.reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
 
+	@Transactional
 	@Override
 	public void rejectTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(false);

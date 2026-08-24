@@ -141,7 +141,7 @@ public class ExtraBillController {
 	@GetMapping("/history/{extraBillId}")
 	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
 	public ResponseEntity<ProcessInstanceHistory> getExtraBillHistoryDetail(@PathVariable Long extraBillId) {
-		return ResponseEntity.ok(service.getExtraBillHistoryDetail(extraBillId));
+		return ResponseEntity.ok(service.getHistoryDetail(extraBillId));
 	}
 
 	@Operation(

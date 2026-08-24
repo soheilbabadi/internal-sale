@@ -110,17 +110,19 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
-		reviewTask(taskActionDto, true);
+		taskActionDto.setApprove(true);
+		reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
 
 	@Override
 	public void rejectTask(TaskActionDto taskActionDto) {
-		reviewTask(taskActionDto, false);
+	taskActionDto.setApprove(false);
+		reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
 
-	private void reviewTask(TaskActionDto dto, boolean approve) {
-		dto.setApprove(approve);
-		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
+	@Override
+	public void reviewTask(ReviewTaskRequest reviewTaskRequest) {
+
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
 			if (!reviewTaskRequest.getApprove()) {
@@ -138,7 +140,9 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		} finally {
 			refreshReversalProformaStatus();
 		}
+
 	}
+
 
 	private void updateDetailStatuses(ProformaMasterModel masterModel, ProformaReversalStatus status) {
 		List<Long> detailIds = masterModel.getProformaDetailModelLists().stream()
