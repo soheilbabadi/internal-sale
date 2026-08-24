@@ -53,7 +53,9 @@ public class PricingCurrencyServiceImpl implements PricingCurrencyService {
 		var priceType = pricingCurrencyTypeRepository.findTopByOrderByIdDesc()
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_PRICE_TYPE_NOT_VALID));
 
-		PricingCurrencyModel model = new PricingCurrencyModel();
+		PricingCurrencyModel model = repository.findByPersianShortDate(request.getPersianShortDate())
+				.orElse(new PricingCurrencyModel());
+		
 		BeanUtils.copyProperties(request, model);
 		model.setDayOfWeek(dateRecord.getDayOfWeek());
 		model.setRateType(priceType.getRateType());

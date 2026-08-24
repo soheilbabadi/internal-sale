@@ -23,4 +23,9 @@ public interface ProformaDetailRepository extends JpaRepository<ProformaDetailMo
 
 	List<ProformaDetailModel> findAllByProformaMasterId(long masterId);
 
+	@Transactional
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query(value = "UPDATE T_INS_PERFORMA_DETAIL SET C_REVERSAL_STATUS = ?2 WHERE ID IN ?1", nativeQuery = true)
+	void bulkUpdateReversalStatus(List<Long> detailIds, String reversalStatus);
+
 }
