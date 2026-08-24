@@ -38,6 +38,9 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 	private static final String PROCESS_TITLE_LC = "LC";
 	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
+	private static final String REVERSAL_PROCESS_ID_DEFAULT = "-";
+	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور پیدا نشد";
+	private static final String MSG_ACCESS_DENIED_START_LC = "شما اجازه شروع فرایند اعتبار اسنادی را ندارید";
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
@@ -52,16 +55,14 @@ public class LcProcessServiceImpl implements LcProcessService {
 	@Override
 	public ProcessInstance startLcProcess(Long masterId) {
 		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException(
-					"شما اجازه شروع فرایند اعتبار اسنادی را ندارید");
+			throw new InternalSaleCustomException.AccessDeniedException(MSG_ACCESS_DENIED_START_LC);
 		}
 
 		refreshLcStatus();
 		lcValidationService.validateStart(masterId);
 
 		ProformaMasterModel masterModel = proformaMasterRepository.findById(masterId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						"پیش فاکتور پیدا نشد"));
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_PROFORMA_NOT_FOUND));
 
 		List<ProformaDetailModel> details = proformaDetailRepository.findAllByProformaMasterId(masterId);
 
@@ -82,8 +83,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 	@Override
 	public ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto) {
 		if (!canStartProcess()) {
-			throw new InternalSaleCustomException.AccessDeniedException(
-					"شما اجازه شروع فرایند اعتبار اسنادی را ندارید");
+			throw new InternalSaleCustomException.AccessDeniedException(MSG_ACCESS_DENIED_START_LC);
 		}
 		try {
 			startProcessDto.setProcessDefinitionKey(
@@ -97,16 +97,15 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
-		handleTaskAction(taskActionDto, true);
+		reviewTask(taskActionDto, true);
 	}
 
 	@Override
 	public void rejectTask(TaskActionDto taskActionDto) {
-		handleTaskAction(taskActionDto, false);
+		reviewTask(taskActionDto, false);
 	}
 
-	private void handleTaskAction(TaskActionDto dto, boolean approve) {
-
+	private void reviewTask(TaskActionDto dto, boolean approve) {
 		dto.setApprove(approve);
 		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
 		try {
@@ -122,9 +121,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 			}
 
 			List<LcModel> lcList = lcRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
-			for (LcModel lc : lcList) {
-				applyCurrentStatus(lc);
-			}
+			updateLcStatuses(lcList);
 			lcRepository.saveAll(lcList);
 
 
@@ -135,10 +132,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 	private void acceptLcsByProcessId(String processInstanceId) {
 		List<LcModel> lcList = lcRepository.findByProcessId(processInstanceId);
-		for (LcModel lc : lcList) {
-			lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-			lc.setAcknowledgment(Acknowledgment.FINISHED);
-		}
+		updateLcStatusesAccepted(lcList);
 		lcRepository.saveAll(lcList);
 
 	}
@@ -153,14 +147,48 @@ public class LcProcessServiceImpl implements LcProcessService {
 			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(
 					List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
 
-			for (LcModel lc : lcList) {
-				applyCurrentStatus(lc);
-			}
-
+			updateLcStatuses(lcList);
 			lcRepository.saveAll(lcList);
 
 		} catch (Exception ex) {
 			log.error("Error refreshing LC status", ex);
+		}
+	}
+
+	@Override
+	public void rejectLc(String processInstanceId) {
+		if (!TextUtility.isValidUUID(processInstanceId)) return;
+		try {
+			List<LcModel> lcList = lcRepository.findByProcessId(processInstanceId);
+			updateLcStatusesCanceled(lcList);
+			lcRepository.saveAll(lcList);
+		} catch (Exception ex) {
+			log.error("Error while rejecting LC for process {}: {}", processInstanceId, ex.getMessage(), ex);
+		}
+	}
+
+
+	// -------------------------------------------------------------------------
+	// Helper methods for batch operations
+	// -------------------------------------------------------------------------
+
+	private void updateLcStatuses(List<LcModel> lcList) {
+		for (LcModel lc : lcList) {
+			applyCurrentStatus(lc);
+		}
+	}
+
+	private void updateLcStatusesAccepted(List<LcModel> lcList) {
+		for (LcModel lc : lcList) {
+			lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			lc.setAcknowledgment(Acknowledgment.FINISHED);
+		}
+	}
+
+	private void updateLcStatusesCanceled(List<LcModel> lcList) {
+		for (LcModel lc : lcList) {
+			lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+			lc.setAcknowledgment(Acknowledgment.CANCELED);
 		}
 	}
 
@@ -185,21 +213,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 		}
 	}
 
-	@Override
-	public void rejectLc(String processInstanceId) {
-		if (!TextUtility.isValidUUID(processInstanceId)) return;
-		try {
-			List<LcModel> lcList = lcRepository.findByProcessId(processInstanceId);
-			for (LcModel lc : lcList) {
-				lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-				lc.setAcknowledgment(Acknowledgment.CANCELED);
-			}
-			lcRepository.saveAll(lcList);
-		} catch (Exception ex) {
-			log.error("Error while rejecting LC for process {}: {}", processInstanceId, ex.getMessage(), ex);
-		}
-	}
-
 
 	@Override
 	public boolean canStartProcess() {
@@ -216,7 +229,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 				.stream()
 				.anyMatch(access ->
 						Objects.equals(access.getUserId(), SecurityUtil.getUserId()) &&
-								variable.name().equalsIgnoreCase(access.getProcessVariable()));
+								variable.getValue().equalsIgnoreCase(access.getProcessVariable()));
 	}
 
 
@@ -296,7 +309,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 		lc.setContractDate(masterModel.getContractDate());
 		lc.setBrokerId(masterModel.getBrokerId());
 		lc.setBrokerName(masterModel.getBrokerName());
-		lc.setBrokerNationalCode("-");
+		lc.setBrokerNationalCode(REVERSAL_PROCESS_ID_DEFAULT);
 		lc.setTotalQuantity(masterModel.getTotalQuantity());
 		lc.setTotalFinalAmount(totalFinalAmount);
 		lc.setOfferDescription(masterModel.getOfferDescription());

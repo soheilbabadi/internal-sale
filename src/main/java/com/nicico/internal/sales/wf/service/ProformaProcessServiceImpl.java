@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -158,46 +159,51 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	}
 
 	@Override
+	@Transactional
 	public void reviewTask(ReviewTaskRequest reviewTaskRequest) {
-		bpmsClientService.reviewTask(reviewTaskRequest);
-
-		proformaMasterRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId())
-				.ifPresent(masterModel -> {
-					if (!reviewTaskRequest.getApprove()) {
-						applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true);
-						proformaMasterRepository.save(masterModel);
-						return;
-					}
-
-					ProcessInsHistoryDTO status = bpmsClientService
-							.getProcessInstanceHistory(reviewTaskRequest.getProcessInstanceId());
-					if (status == null) return;
-
-					switch (status.getStatus()) {
-						case ACTIVE:
-							applyStatus(masterModel, WorkflowApproveStatus.IN_PROGRESS, false);
-							proformaMasterRepository.saveAndFlush(masterModel);
-							break;
-
-						case CANCELED:
-							applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true);
-							proformaMasterRepository.saveAndFlush(masterModel);
-							break;
-
-						case FINISHED:
-							boolean accepted = processVariableProvider
-									.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId());
-							applyStatus(masterModel,
-									accepted ? WorkflowApproveStatus.ACCEPTED : WorkflowApproveStatus.CANCELED,
-									true);
-							proformaMasterRepository.saveAndFlush(masterModel);
-
-							if (accepted) {
-								sendEmailWithProformaAttachment(masterModel.getId());
-							}
-							break;
-					}
+		try {
+			bpmsClientService.reviewTask(reviewTaskRequest);
+			if (!reviewTaskRequest.getApprove()) {
+				proformaMasterRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId()).ifPresent(masterModel -> {
+					applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true);
+					proformaMasterRepository.saveAndFlush(masterModel);
+					bpmsClientService.cancelProcessInstance(reviewTaskRequest.getProcessInstanceId());
 				});
+				return;
+			}
+
+			proformaMasterRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId()).ifPresent(masterModel -> {
+				ProcessInsHistoryDTO status = bpmsClientService
+						.getProcessInstanceHistory(reviewTaskRequest.getProcessInstanceId());
+				if (status == null) return;
+
+				switch (status.getStatus()) {
+					case ACTIVE:
+						applyStatus(masterModel, WorkflowApproveStatus.IN_PROGRESS, false);
+						break;
+
+					case CANCELED:
+						applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true);
+						break;
+
+					case FINISHED:
+						boolean accepted = processVariableProvider
+								.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId());
+						applyStatus(masterModel,
+								accepted ? WorkflowApproveStatus.ACCEPTED : WorkflowApproveStatus.CANCELED,
+								true);
+
+						if (accepted) {
+							sendEmailWithProformaAttachment(masterModel.getId());
+						}
+						break;
+				}
+				proformaMasterRepository.saveAndFlush(masterModel);
+			});
+		} catch (Exception ex) {
+			throw new InternalSaleCustomException.BpmsClientException(MSG_BPMS_CONNECTION_ERROR,
+					new ArrayList<>(Collections.singletonList(ex.getMessage())));
+		}
 	}
 
 	@Override
@@ -213,6 +219,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	}
 
 	@Override
+	@Transactional
 	public void refreshProformaStatus() {
 		List<ProformaMasterModel> masterModelList = proformaMasterRepository
 				.findAllByWorkflowApproveStatusIn(
@@ -244,7 +251,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 						break;
 				}
 
-				proformaMasterRepository.save(masterModel);
+				proformaMasterRepository.saveAndFlush(masterModel);
 
 
 			} catch (Exception ex) {

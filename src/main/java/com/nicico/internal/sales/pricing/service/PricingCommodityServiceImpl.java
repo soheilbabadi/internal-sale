@@ -37,9 +37,6 @@ public class PricingCommodityServiceImpl implements PricingCommodityService {
 	@Override
 	@Transactional
 	public PricingCommodityDto.Info save(PricingCommodityDto.Create request) {
-		if (repository.existsByPersianShortDate(request.getPersianShortDate())) {
-			throw new InternalSaleCustomException.DuplicateEntityException(MSG_PRICE_COMMODITY_ALREADY_EXISTS);
-		}
 		PricingCommodityModel model = mapper.fromDTO(request);
 		PricingCommodityModel saved = repository.save(model);
 		return mapper.toDTO(saved);

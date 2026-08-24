@@ -12,6 +12,8 @@ import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
+import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
+import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
 import com.nicico.internal.sales.wf.enums.ExtraBillProcessVariable;
 import com.nicico.internal.sales.wf.enums.LcProcessVariable;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	private final ProcessService processService;
 	private final OAUserDAO oaUserDAO;
 	private final ExtraBillRepository extraBillRepository;
+	private final RemittanceMasterRepository remittanceMasterRepository;
 
 
 	@Override
@@ -156,6 +159,30 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 		return getUserTaskReportOrEmpty(masterModel.getProcessId());
 	}
 
+	@Override
+	public ProcessInstanceHistory getRemittanceHistoryDetail(Long remittanceId) {
+		RemittanceMasterModel remittanceModel = findRemittanceOrThrow(remittanceId);
+		return getHistoryWithResolvedAssignees(remittanceModel.getProcessId());
+	}
+
+	@Override
+	public Map<String, List<UserTaskReportDTO>> getRemittanceSummaryReport(Long remittanceId) {
+		RemittanceMasterModel remittanceModel = findRemittanceOrThrow(remittanceId);
+		return getUserTaskReportOrEmpty(remittanceModel.getProcessId());
+	}
+
+	@Override
+	public ProcessInstanceHistory getProformaBankBillHistoryDetail(Long billId) {
+		ProformaBankBillModel billModel = findExtraBillOrThrow(billId);
+		return getHistoryWithResolvedAssignees(billModel.getProcessId());
+	}
+
+	@Override
+	public Map<String, List<UserTaskReportDTO>> getProformaBankBillSummaryReport(Long billId) {
+		ProformaBankBillModel billModel = findExtraBillOrThrow(billId);
+		return getUserTaskReportOrEmpty(billModel.getProcessId());
+	}
+
 	private LcModel findLcOrThrow(Long lcId) {
 		return lcRepository.findById(lcId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
@@ -189,6 +216,11 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 
 	private ProformaMasterModel findProformaOrThrow(Long proformaMasterId) {
 		return proformaMasterRepository.findById(proformaMasterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
+	}
+
+	private RemittanceMasterModel findRemittanceOrThrow(Long remittanceId) {
+		return remittanceMasterRepository.findById(remittanceId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
 	}
 

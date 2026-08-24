@@ -8,37 +8,36 @@ build/
 target/
 
 # Dependencies
-lib/
-vendor/
-node_modules/
-.mypy_cache/
-.pytest_cache/
 .gradle/
-**/bin/
-**/obj/
+lib/
+libs/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
 
+# Editors
+.vscode/
+.idea/
+
 # Environment
 .env
 .env.local
 *.env.*
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
 
 # Coverage
 coverage/
 htmlcov/
 .coverage
 
-# System files
+# Package manager
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
 .DS_Store
 Thumbs.db
 ```
