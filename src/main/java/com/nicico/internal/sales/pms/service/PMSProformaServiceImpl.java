@@ -172,11 +172,11 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
 		var masterModel = proformaMasterRepository.findById(performaDetailModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
-			String nationalCode = masterModel.getNationalCode();
-			CustomerModel customer = cacheService.getCustomerByNationalCode(nationalCode);
-			PMSCustomerModel pmsCustomer = pmsCustomerService.findByEconomicCodeOrRegisterNumber(customer.getEconomicCode(),
-					customer.getRegisterNumber() != null && !customer.getRegisterNumber().isEmpty() ? customer.getRegisterNumber() : customer.getNationalCode());
-			return pmsCustomer.getId();
+		String nationalCode = masterModel.getNationalCode();
+		CustomerModel customer = cacheService.getCustomerByNationalCode(nationalCode);
+		PMSCustomerModel pmsCustomer = pmsCustomerService.findByEconomicCodeOrRegisterNumber(customer.getEconomicCode(),
+				customer.getRegisterNumber() != null && !customer.getRegisterNumber().isEmpty() ? customer.getRegisterNumber() : customer.getNationalCode());
+		return pmsCustomer.getId();
 
 
 	}

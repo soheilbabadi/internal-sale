@@ -10,7 +10,6 @@ import com.nicico.internal.sales.ime.trade.IMETradeModel;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.proforma.dto.PreciousMetalDetailGenerator;
 import com.nicico.internal.sales.proforma.dto.PreciousMetalProfomaCreateRequest;
-import com.nicico.internal.sales.proforma.service.PreciousMetalExtraBillService;
 import com.nicico.internal.sales.proforma.dto.ProformaModelResponse;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
@@ -113,10 +112,10 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		// ذخیره Master
 		masterModel = proformaMasterRepository.save(masterModel);
 
-		Long masterId = masterModel.getId();
+
 		
 		// ذخیره جزئیات و GoodItem‌ها
-		saveDetailAndGoodItems(detailList, masterId);
+		ProformaModelHelper.saveDetailAndGoodItems(detailList, masterModel.getId(),proformaDetailRepository,proformaGoodItemRepository);
 
 		log.info("Proforma master created successfully with id: {}", masterModel.getId());
 		return masterModel;
@@ -135,7 +134,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 
 		// دریافت اطلاعات مورد نیاز
 		int jalaliYear = DateUtility.getJalaliYear(requestDto.getOrderDate());
-		GoodsModel goodsModel = findGoodsModelByCommodityCode(Long.valueOf(tradeModel.getCommodityCode()));
+		GoodsModel goodsModel = proformaContractService.findGoodsModelByCommodityCode(Long.valueOf(tradeModel.getCommodityCode()));
 		SaleConditionModel saleConditionModel = proformaContractService.getSaleConditionModel(tradeExtract.getPaymentCode());
 		GoodsBucketModel goodsBucketModel = proformaContractService.getGoodBucketModel(tradeExtract.getPaymentCode());
 		CustomerModel customerModel = proformaContractService.getCustomerModel(tradeExtract.getBuyerNationalCode());
@@ -203,17 +202,17 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 	/**
 	 * ذخیره Detail و GoodItem‌ها
 	 */
-	private void saveDetailAndGoodItems(List<ProformaDetailModel> detailModels, Long masterId) {
-		detailModels.forEach(detail -> {
-			detail.setProformaMasterId(masterId);
-			proformaDetailRepository.save(detail);
-
-			detail.getProformaGoodItemModels().forEach(goodItem -> {
-				goodItem.setProformaDetailId(detail.getId());
-				proformaGoodItemRepository.save(goodItem);
-			});
-		});
-	}
+//	private void saveDetailAndGoodItems(List<ProformaDetailModel> detailModels, Long masterId) {
+//		detailModels.forEach(detail -> {
+//			detail.setProformaMasterId(masterId);
+//			proformaDetailRepository.save(detail);
+//
+//			detail.getProformaGoodItemModels().forEach(goodItem -> {
+//				goodItem.setProformaDetailId(detail.getId());
+//				proformaGoodItemRepository.save(goodItem);
+//			});
+//		});
+//	}
 
 	/**
 	 * ایجاد DetailGenerator
@@ -410,14 +409,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_TRADE_NOT_FOUND_DETAIL));
 	}
 
-	/**
-	 * یافتن GoodsModel با کد کالا
-	 */
-	private GoodsModel findGoodsModelByCommodityCode(Long commodityCode) {
-		return goodsRepository.findByImeCommodityId(commodityCode)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						MSG_GOOD_NOT_FOUND + commodityCode));
-	}
+
 
 	/**
 	 * محاسبه و تنظیم مبلغ اضافی بر اساس نوع پیش فاکتور

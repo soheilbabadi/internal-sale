@@ -10,10 +10,7 @@ import com.nicico.internal.sales.ime.trade.IMETradeModel;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
-import com.nicico.internal.sales.proforma.dto.PerfomaCreateRequest;
-import com.nicico.internal.sales.proforma.dto.PerformaDetailGenerator;
-import com.nicico.internal.sales.proforma.dto.PerformerCreateRevealRequest;
-import com.nicico.internal.sales.proforma.dto.ProformaModelResponse;
+import com.nicico.internal.sales.proforma.dto.*;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.SaleType;
 import com.nicico.internal.sales.proforma.enums.SettlementType;
@@ -522,6 +519,12 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 				.build();
 	}
 
+	@Override
+	public GoodsModel findGoodsModelByCommodityCode(Long commodityCode) {
+		return goodsRepository.findByImeCommodityId(commodityCode)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
+						MSG_GOOD_NOT_FOUND + commodityCode));
+	}
 	private String getCleanGoodName(GoodsModel goodsModel, String description) {
 		String cleanName = goodsModel.getDescription()
 				.replace(goodsModel.getImeCommoditySymbol(), "")

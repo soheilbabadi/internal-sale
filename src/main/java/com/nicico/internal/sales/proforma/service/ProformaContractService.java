@@ -23,6 +23,8 @@ public interface ProformaContractService {
 	 */
 	ProformaCreationContext getProformaCreationData(Long tradeId, String paymentCode, Integer jalaliYear);
 
+	GoodsModel findGoodsModelByCommodityCode(Long commodityCode);
+
 	IMETradeModel getTradeModel(String paymentCode);
 
 	IMETradeModel getTradeModel(Long tradeId);

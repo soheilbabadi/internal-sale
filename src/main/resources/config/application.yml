@@ -72,6 +72,9 @@ nicico:
   password: password
   server:
     url: https://apps.nicico.com
+  fms:
+    base-url: http://fms.internal:8080
+    group-id: internal-sales
   upload:
     dir: /var/nicico
   api:

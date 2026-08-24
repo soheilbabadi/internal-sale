@@ -290,7 +290,7 @@ public class ProformaServiceImpl implements ProformaService {
 	@Override
 	public List<ProformaDetailDto.Info> getCanceledByContractNo(Long contractNo) {
 		return proformaMasterRepository.findAllByContractNoOrderByIdDesc(contractNo).stream()
-				.filter(this::isReversalProforma)
+				.filter(ProformaMasterModel::getIsReversalProcessFinal)
 				.flatMap(proforma -> proforma.getProformaDetailModelLists().stream())
 				.map(proformaDetailMapper::toDTO)
 				.toList();
@@ -437,11 +437,5 @@ public class ProformaServiceImpl implements ProformaService {
 		return response;
 	}
 
-	/**
-	 * بررسی اینکه آیا پیش فاکتور برگشتی است
-	 */
-	private boolean isReversalProforma(ProformaMasterModel proforma) {
-		return hasReversalProcess(proforma) &&
-				proforma.getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL;
-	}
+
 }

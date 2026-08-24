@@ -62,6 +62,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 	private static final String MSG_CONTACT_ADDRESS_REQUIRED = "آدرس مشتری الزامی است";
 	private static final String MSG_CONTACT_MOBILE_REQUIRED = "شماره موبایل مشتری الزامی است";
 	private static final String MSG_CONTACT_EMAIL_REQUIRED = "ایمیل مشتری الزامی است";
+	private static final String MSG_GENERAL_NO_REVERSAL = "امکان ابطال این پیش فاکتور وجود ندارد";
 
 	private final IMETradeRepository imeTradeRepository;
 	private final GoodsRepository goodsRepository;
@@ -108,7 +109,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 		if (isContractExists(Long.valueOf(tradeExtract.getContractNo()))) {
 			errors.add(MSG_CONTRACT_EXISTS);
 		}
-		checkReversalForStart(Long.valueOf(tradeExtract.getContractNo()));
+
 		throwIfErrors(errors);
 		return errors;
 	}
@@ -188,6 +189,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 	public List<String> validateReversal(Long masterId) {
 		List<String> errors = new ArrayList<>();
 		var proforma = proformaMasterRepository.findById(masterId);
+
 		if (proforma.isEmpty()) {
 			errors.add(MSG_CONTRACT_NO_PROFORMA);
 			throw new InternalSaleCustomException.ValidationException(MSG_INVALID_DATA, errors);
@@ -195,7 +197,17 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 		if (!lcRepository.findByMasterId(masterId).isEmpty()) {
 			throw new InternalSaleCustomException.ValidationException(MSG_LC_EXISTS_NO_REVERSAL, errors);
 		}
-		checkReversalForStart(proforma.get().getContractNo());
+
+		if (proforma.get().getIsProcessFinal() != null && proforma.get().getIsProcessFinal() && !proforma.get().getIsReversalProcessFinal())
+		{
+			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
+		}
+
+		if (proforma.get().getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL
+				&& !processVariableProvider.isProcessAcceptedFinally(proforma.get().getReversalProcessId())) {
+			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
+		}
+
 		return errors;
 	}
 
@@ -233,15 +245,6 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 		}
 	}
 
-	public void checkReversalForStart(Long contractNo) {
-		proformaMasterRepository.findAllByContractNoOrderByIdDesc(contractNo).forEach(p -> {
-			if (p.getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL
-					&& !processVariableProvider.isProcessAcceptedFinally(p.getReversalProcessId())) {
-				throw new InternalSaleCustomException.ValidationException(
-						MessageFormat.format(MSG_REVERSAL_IN_PROGRESS, contractNo));
-			}
-		});
-	}
 
 	public boolean isContractExists(Long contractNo) {
 		List<WorkflowApproveStatus> statuses = List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS, WorkflowApproveStatus.ACCEPTED);

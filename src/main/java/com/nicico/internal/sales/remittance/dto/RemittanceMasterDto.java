@@ -25,38 +25,52 @@ public class RemittanceMasterDto implements Serializable {
 	@Serial
 	private static final long serialVersionUID = -5990888298560371449L;
 	private Long id;
+
 	@Schema(description = "شماره حواله", name = "remittanceNumber", example = "RM123456789")
 	private String remittanceNumber;
+
 	@Schema(description = "تاریخ حواله", name = "remittanceDate", example = "2023-10-01T00:00:00Z")
 	private Date remittanceDate;
+
 	@Schema(description = "تاریخ اعتبار", name = "validityDate", example = "2023-12-31T00:00:00Z")
 	private Date validityDate;
+
 	@Schema(description = "شناسه مشتری", name = "customerId", example = "12345")
 	private Long customerId;
+
 	@Schema(description = "نام مشتری", name = "customerName", example = "شرکت نمونه")
 	private String customerName;
+
 	@Schema(description = "کد اقتصادی", name = "economicCode", example = "1234567890")
 	private String economicCode;
+
 	@Schema(description = "شناسه ملی", name = "nationalCode", example = "0012345678")
 	private String nationalCode;
+
 	@Schema(description = "آدرس مقصد", name = "targetAddress", example = "تهران، خیابان نمونه، پلاک ۱۲۳")
 	private String targetAddress;
+
 	@Schema(description = "شناسه محل بارگیری", name = "loadingPortId", example = "67890")
 	private Long loadingPortId;
+
 	@Schema(description = "محل بارگیری", name = "loadingPort", example = "بندر عباس")
 	private String loadingPort;
+
 	@Schema(description = "شناسه کالا", name = "goodId", example = "54321")
 	private Long goodId;
+
 	@Schema(description = "نام کالا", name = "goodName", example = "مس کاتد")
 	private String goodName;
 
 	@Schema(name = "packingName", description = "نام بسته بندی", example = "بشکه")
 	private String packingName;
+
 	@Schema(name = "packingId", description = "شناسه بسته بندی", example = "2")
 	private Integer packingId;
 
 	@Schema(description = "شماره لات", name = "lotNumber", example = "7630")
 	private String lotNumber;
+
 	@Schema(description = "تاریخ قرارداد", name = "contractDate", example = "2023-09-15T00:00:00Z")
 	private Date contractDate;
 	@Schema(description = "شماره قرارداد", name = "contractNo", example = "CT20230915001")
@@ -160,12 +174,21 @@ public class RemittanceMasterDto implements Serializable {
 	private String pmsId;
 
 
+	@Schema(description = "شناسه کارگزار", name = "brokerId", example = "12")
 	private Long brokerId;
+
+	@Schema(description = "نام کارگزار", name = "brokerName", example = "والکس")
 	private String brokerName;
+
+	@Schema(description = "شناسه ملی کارگزار", name = "brokerNationalCode", example = "12345678900")
 	private String brokerNationalCode;
 
+	@Schema(description = "وزن کل", name = "totalQuantity", example = "44000")
 	private BigDecimal totalQuantity;
+
+	@Schema(description = "مبلغ نهایی", name = "totalFinalAmount", example = "44000000")
 	private BigDecimal totalFinalAmount;
+
 	@Schema(description = "متن آگهی عرضه", name = "offerDescription", example = "کیفیت عالی")
 	private String offerDescription;
 

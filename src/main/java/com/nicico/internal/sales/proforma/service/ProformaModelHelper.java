@@ -638,22 +638,6 @@ public final class ProformaModelHelper {
 
 	// ==================== MASTER VALIDATION ====================
 
-	public static boolean isMasterReversable(ProformaMasterModel master) {
-		if (master == null) {
-			return false;
-		}
-		return master.getIsProcessFinal() != null &&
-				master.getIsProcessFinal() &&
-				!master.getIsReversalProcessFinal();
-	}
-
-
-	public static boolean hasReversalProcess(ProformaMasterModel master) {
-		return master != null &&
-				master.getReversalProcessId() != null &&
-				!master.getReversalProcessId().equals(DEFAULT_PLACEHOLDER);
-	}
-
 
 	/**
 	 * جمع‌آوری مقادیر از لیست ProformaDetailModel ها و گرد کردن با RoundingMode.HALF_UP

@@ -46,14 +46,15 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		if (!canStartProcess()) {
 			throw new InternalSaleCustomException.ValidationException("شما اجازه شروع فرایند ابطال پیش فاکتور را ندارید");
 		}
+		var masterModel = proformaMasterRepository.findById(masterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("قراردادی با ای مشخصات یافت نشد"));
+
 		var workflow = workflowRepository.findByProcessTitleIgnoreCase(PROCESS_TITLE_REVERSAL)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("فرایند برگشت پیش فاکتور وجود ندارد"));
 
-
 		proformaValidationService.validateReversal(masterId);
 
-		var masterModel = proformaMasterRepository.findById(masterId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("قراردادی با ای مشخصات یافت نشد"));
+
 
 		if (masterModel.getProformaDetailModelLists().isEmpty()) {
 			throw new InternalSaleCustomException.ValidationException("برای این قرارداد هیچ پیش فاکتوری ثبت نشده است");

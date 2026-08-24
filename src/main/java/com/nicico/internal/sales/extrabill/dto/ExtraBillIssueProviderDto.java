@@ -67,9 +67,15 @@ public class ExtraBillIssueProviderDto implements Serializable {
 	private WorkflowApproveStatus workflowApproveStatus;
 
 
+	@Schema(description = "شناسه کارگزار", name = "brokerId", example = "12")
 	private Long brokerId;
+
+	@Schema(description = "نام کارگزار", name = "brokerName", example = "والکس")
 	private String brokerName;
+
+	@Schema(description = "شناسه ملی کارگزار", name = "brokerNationalCode", example = "12345678900")
 	private String brokerNationalCode;
+
 
 	@Schema(description = "متن آگهی عرضه", name = "offerDescription", example = "کیفیت عالی")
 	private String offerDescription;

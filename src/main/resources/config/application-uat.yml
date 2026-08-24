@@ -32,6 +32,9 @@ spring:
 nicico:
   swagger: http://uat.icico.net.ir/oauth/token
   pdf-api: http://pdf-convertor:8080/pdf-convertor
+  fms:
+    base-url: http://uat.icico.net.ir/fms
+    group-id: 687c87bc2c1dc36d5389747a
   mail-service-url: http://devops01.icico.net.ir/message/api/mail/nicico/v2
   bcc-address: babadishyl@gmail.com
   lc-bcc-address: babadishyl@gmail.com

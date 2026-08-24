@@ -29,6 +29,9 @@ spring:
 nicico:
   swagger: http://staging.icico.net.ir/oauth/token
   pdf-api: http://pdf-convertor:8080/pdf-convertor
+  fms:
+    base-url: http://staging.icico.net.ir/fms
+    group-id: 687c87bc2c1dc36d5389747a
   mail-service-url: http://staging.icico.net.ir/message/api/mail/nicico/v2
   bcc-address: minaramezani@nicico.com
   lc-bcc-address: hassani_hos@nicico.com

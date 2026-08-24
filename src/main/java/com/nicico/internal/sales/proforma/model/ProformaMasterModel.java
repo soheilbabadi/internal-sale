@@ -5,7 +5,6 @@ import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.SettlementType;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
-import com.nicico.internal.sales.trade.model.TradeExtractModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -124,14 +123,14 @@ public class ProformaMasterModel extends BaseClassModel {
 	@Column(name = "C_CONTRACT_DATE", length = 20)
 	private String contractDate;
 
-	@ManyToOne(fetch = FetchType.LAZY, targetEntity = TradeExtractModel.class)
-	@JoinColumn(name = "F_TRADE_ID", insertable = false, updatable = false)
-	private TradeExtractModel tradeExtractModel;
+//	@ManyToOne(fetch = FetchType.LAZY, targetEntity = TradeExtractModel.class)
+//	@JoinColumn(name = "F_TRADE_ID", insertable = false, updatable = false)
+//	private TradeExtractModel tradeExtractModel;
 
-
-	@OneToMany(mappedBy = "ProformaMasterModel", fetch = FetchType.LAZY)
-	@EqualsAndHashCode.Exclude
-	private List<ProformaBankBillModel> proformaBankBillModels;
+//
+//	@OneToMany(mappedBy = "ProformaMasterModel", fetch = FetchType.LAZY)
+//	@EqualsAndHashCode.Exclude
+//	private List<ProformaBankBillModel> proformaBankBillModels;
 
 
 	@Column(name = "F_TRADE_ID", nullable = false)
