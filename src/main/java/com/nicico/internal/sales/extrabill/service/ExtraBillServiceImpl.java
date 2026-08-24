@@ -23,7 +23,6 @@ import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
-import com.nicico.internal.sales.wf.service.ProcessService;
 import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -102,13 +101,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		// Validate mandatory fields
 		validateProformaBankBillRequest(request);
 
-		// Check if a non-canceled bill already exists for this proformaDetailId
-		boolean exists = extraBillRepository.existsByProformaDetailIdAndWorkflowApproveStatusNot(
-				request.getProformaDetailId(), WorkflowApproveStatus.CANCELED);
-		if (exists) {
-			throw new InternalSaleCustomException.DuplicateEntityException(MSG_DUPLICATE_PROFORMA_BILL);
-		}
-
 		// اعتبارسنجی و یافتن موجودیت‌ها
 		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
@@ -156,7 +148,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				" جهت تسویه مورد تایید می باشد";
 	}
 	// ==================== PRIVATE HELPER METHODS ====================
-
 
 
 	/**
