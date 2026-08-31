@@ -4,7 +4,6 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.extrabill.dto.*;
-import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,7 @@ public interface ExtraBillService {
 
 	List<ProformaBankBillDto.Info> getByMasterId(Long proformaMasterId);
 
-	String generateLcBrokerEmailContent(LcBrokerEmailRequest dto);
+	String generateLcBrokerEmailContent(Long id);
 
 	ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto);
 
@@ -39,4 +38,6 @@ public interface ExtraBillService {
 
 	ProcessInstanceHistory getHistoryDetail(Long extraBillId);
 	Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId);
+
+	void markAllLcsAsReckoning(Long proformaMasterId);
 }

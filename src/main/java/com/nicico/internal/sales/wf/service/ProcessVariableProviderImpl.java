@@ -7,6 +7,7 @@ import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.wf.dto.ExtraBillVariablesInput;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
@@ -132,6 +133,23 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		wrapped.put("INSTANCE_DETAILS", variables);
 		return wrapped;
 	}
+
+
+	private Map<String, Object> createRequestVariables(ExtraBillVariablesInput input, Map<String, String> userAccess) {
+		Map<String, Object> variables = new HashMap<>();
+		variables.put("proformaMasterId", input.getProformaMasterId());
+		variables.put("contractDate", input.getContractDate());
+		variables.put("goodId", input.getGoodId());
+		variables.put("goodName", input.getGoodName());
+		variables.put("customerName", input.getCustomerName());
+		variables.put("contractNo", input.getContractNo());
+		variables.put("commission", input.getCommission());
+		variables.putAll(userAccess);
+		Map<String, Object> wrapped = new HashMap<>(variables);
+		wrapped.put("INSTANCE_DETAILS", variables);
+		return wrapped;
+	}
+
 
 
 	@Override

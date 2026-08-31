@@ -51,6 +51,15 @@ public class ExtraBillController {
 		return ResponseEntity.ok(service.search(searchRq));
 	}
 
+	@Operation(
+			summary = "تولید محتوای ایمیل کارگزار",
+			description = "با دریافت شناسه LC، محتوای ایمیل مخصوص کارگزار شامل اطلاعات کامل اعتبار اسنادی، تاریخ ها، مبالغ و شرایط را تولید و به صورت رشته متنی بازمی گرداند."
+	)
+	@GetMapping("/get-broker-email-content/{lcId}")
+	public ResponseEntity<String> generateLcBrokerEmailContent(@PathVariable Long lcId) {
+		return ResponseEntity.ok(service.generateLcBrokerEmailContent(lcId));
+	}
+
 	@Operation(summary = "تاریخچه صدور براتها", description = "گزارش تاریخچه کامل صدور براتها شامل وضعیت‌ها، تاریخ‌ها و جزئیات را برمی‌گرداند.")
 	@PostMapping("/search-issue-history")
 	public ResponseEntity<SearchDTO.SearchRs<ProformaBankBillReportDto.Info>> searchIssueHistory(

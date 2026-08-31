@@ -29,5 +29,15 @@ public interface ExtraBillRepository extends JpaRepository<ProformaBankBillModel
 	@Query(value = "SELECT C_NOSA_CODE FROM T_INS_PROFORMA_BANK_BILL WHERE N_ISSUER_BANK_ID = :bankId AND C_NOSA_CODE LIKE :prefix% ORDER BY C_NOSA_CODE DESC FETCH FIRST 1 ROWS ONLY", nativeQuery = true)
 	String findLastNosaCodeByBankIdAndPrefix(Long bankId, String prefix);
 
-	boolean existsByProformaDetailIdAndWorkflowApproveStatusNot(Long proformaDetailId, WorkflowApproveStatus status);
+	@Query(value = """
+        SELECT *
+        FROM T_INS_PROFORMA_BANK_BILL
+        WHERE F_PROFORMA_DETAIL_ID = :detailId
+          AND C_WORKFLOW_APPROVE_STATUS = 'IN_PROGRESS'
+        ORDER BY ID DESC
+        FETCH FIRST 1 ROW ONLY
+        """, nativeQuery = true)
+	Optional<ProformaBankBillModel> findLastInProgressByProformaDetailId(
+			@Param("detailId") Long detailId
+	);
 }

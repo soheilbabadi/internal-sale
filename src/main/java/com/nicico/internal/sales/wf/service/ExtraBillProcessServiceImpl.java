@@ -61,8 +61,8 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		validateAccess();
 		ProformaMasterModel proformaMaster = getProformaMasterOrThrow(masterId);
 
-		List<ProformaBankBillModel> all = extraBillRepository.findAllByProformaMasterId(masterId);
-		for (ProformaBankBillModel proformaBankBillModel : all) {
+		List<ProformaBankBillModel> allByProformaMasterId = extraBillRepository.findAllByProformaMasterId(masterId);
+		for (ProformaBankBillModel proformaBankBillModel : allByProformaMasterId) {
 			if (proformaBankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED
 					|| proformaBankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
 				throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
@@ -86,9 +86,8 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			bankBillModel.setProformaMasterId(proformaMaster.getId());
 			bankBillModel.setProformaDetailId(detailModel.getId());
 			bankBillModel.setAcknowledgment(Acknowledgment.RECKONING);
-			bankBillModel.setTradeId(proformaMaster.getId());
-			bankBillModel.setContractNo(proformaMaster.getId());
-
+			bankBillModel.setTradeId(proformaMaster.getTradeId());
+			bankBillModel.setContractNo(proformaMaster.getContractNo());
 			billModels.add(bankBillModel);
 		}
 		extraBillRepository.saveAll(billModels);

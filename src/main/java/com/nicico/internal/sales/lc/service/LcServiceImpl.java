@@ -42,7 +42,6 @@ public class LcServiceImpl implements LcService {
 	private static final String MSG_LC_NOT_FOUND = "اعتبار اسنادی وجود ندارد";
 	private static final String MSG_INVALID_DATA = "اطلاعات اعتبار اسنادی نادرست است";
 	private static final String MSG_SALES_CONTRACT_NOT_FOUND = "قرارداد فروش وجود ندارد";
-	private static final String READY_RECKONING_CONTRACT_DATE_FROM = "1405/03/01";
 
 
 	private final LcRepository lcRepository;
@@ -237,10 +236,7 @@ public class LcServiceImpl implements LcService {
 		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
 				.setFieldName("lcNo")
 				.setOperator(EOperator.notNull));
-		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
-				.setFieldName("contractDate")
-				.setOperator(EOperator.greaterThan)
-				.setValue(READY_RECKONING_CONTRACT_DATE_FROM));
+
 
 		return SearchUtil.search(lcRepository, searchRq, lcMapper::toDTO);
 	}

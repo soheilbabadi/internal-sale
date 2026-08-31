@@ -276,22 +276,18 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 			return;
 		}
 
-		int successCount = 0;
-		int failureCount = 0;
 
 		for (LcModel lcItem : lcItems) {
 			boolean oldReckoningSend = lcItem.isReckoningSend();
-			Date oldReckoningSendDate = lcItem.getReckoningSendDate();
-			Acknowledgment oldAcknowledgment = lcItem.getAcknowledgment();
 			if (!oldReckoningSend) {
 				Date newReckoningSendDate = new Date();
 				lcItem.setReckoningSend(true);
 				lcItem.setReckoningSendDate(newReckoningSendDate);
 				lcItem.setAcknowledgment(Acknowledgment.RECKONING);
-				LcModel savedItem = lcRepository.save(lcItem);
-				successCount++;
+
 			}
 		}
+		lcRepository.saveAllAndFlush(lcItems);
 	}
 
 	@Override

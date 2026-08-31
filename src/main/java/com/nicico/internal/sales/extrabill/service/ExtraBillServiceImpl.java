@@ -48,8 +48,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private static final String MSG_BROKER_EMAIL_MISSING = "اطلاعات تماس ایمیل کارگزار  موجود نمی باشد.";
 	private static final String DEFAULT_PLACEHOLDER = "-";
 
-	// Ready Reckoning constant
-	private static final String READY_RECKONING_ISSUE_DATE_FROM = "1405/03/01";
 
 	// Validation error messages
 	private static final String MSG_ISSUER_BANK_ID_REQUIRED = "شناسه بانک صادرکننده نمی‌تواند خالی باشد";
@@ -107,7 +105,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 		// ساخت و ذخیره مدل
 
-		ProformaBankBillModel model = extraBillRepository.findById(request.getId())
+		ProformaBankBillModel model = extraBillRepository.findLastInProgressByProformaDetailId(request.getProformaDetailId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 
 		model.setIssueDate(request.getIssueDate());
@@ -141,7 +139,21 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	}
 
 	@Override
-	public String generateLcBrokerEmailContent(LcBrokerEmailRequest dto) {
+	public String generateLcBrokerEmailContent(Long id) {
+
+
+		var extraBillModel = extraBillRepository.findById(id)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_SALES_CONTRACT_NOT_FOUND));
+
+
+		var masterModel = proformaMasterRepository.findById(extraBillModel.getProformaMasterId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						MSG_SALES_CONTRACT_NOT_FOUND));
+
+		ProformaDetailModel detail = proformaDetailRepository.findById(extraBillModel.getProformaDetailId()).get();
+		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
+		LcBrokerEmailRequest dto = lcServiceHelper.buildLcBrokerEmailRequest(detail, broker);
+
 		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
 				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
 				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
@@ -259,6 +271,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						MSG_PROFORMA_MASTER_NOT_FOUND));
 
+		this.markAllLcsAsReckoning(proformaMaster.getId());
+
 		LcBrokerEmailRequest request = new LcBrokerEmailRequest();
 		request.setContractNo(proformaMaster.getContractNo());
 		request.setContractDate(detail.getContractDate());
@@ -267,6 +281,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		request.setGoodName(proformaMaster.getGoodName());
 		request.setBrokerName(broker.getName());
 		request.setBrokerEmail(broker.getEmail());
+
 		return request;
 	}
 
@@ -381,12 +396,33 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.setFieldName("workflowApproveStatus")
 				.setOperator(EOperator.equals)
 				.setValue(WorkflowApproveStatus.IN_PROGRESS));
-		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
-				.setFieldName("issueDate")
-				.setOperator(EOperator.greaterThan)
-				.setValue(READY_RECKONING_ISSUE_DATE_FROM));
 
 		return SearchUtil.search(extraBillRepository, searchRq, mapper::toDTO);
+	}
+
+	@Override
+	public void markAllLcsAsReckoning(Long proformaMasterId) {
+
+		List<ProformaBankBillModel> billModels = extraBillRepository.findAllByProformaMasterId(proformaMasterId);
+
+		if (billModels == null || billModels.isEmpty()) {
+			log.warn("No ExtraBill items found for proformaMasterId: {}", proformaMasterId);
+			return;
+		}
+
+
+		for (ProformaBankBillModel item : billModels) {
+			boolean oldReckoningSend = item.isReckoningSend();
+			if (!oldReckoningSend) {
+				Date newReckoningSendDate = new Date();
+				item.setReckoningSend(true);
+				item.setReckoningSendDate(newReckoningSendDate);
+				item.setAcknowledgment(Acknowledgment.RECKONING);
+
+			}
+
+		}
+		extraBillRepository.saveAllAndFlush(billModels);
 	}
 
 }
