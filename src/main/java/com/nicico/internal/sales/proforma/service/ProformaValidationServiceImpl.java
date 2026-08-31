@@ -198,15 +198,12 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 			throw new InternalSaleCustomException.ValidationException(MSG_LC_EXISTS_NO_REVERSAL, errors);
 		}
 
-		if (proforma.get().getIsProcessFinal() != null && proforma.get().getIsProcessFinal() && !proforma.get().getIsReversalProcessFinal())
-		{
-			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
-		}
+//		if (proforma.get().getIsProcessFinal() && ) {
+//			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
+//		}
 
-		if (proforma.get().getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL
-				&& !processVariableProvider.isProcessAcceptedFinally(proforma.get().getReversalProcessId())) {
+		if (!proforma.get().getReversalProcessId().equals("-")  && !processVariableProvider.isProcessAcceptedFinally(proforma.get().getReversalProcessId()))
 			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
-		}
 
 		return errors;
 	}

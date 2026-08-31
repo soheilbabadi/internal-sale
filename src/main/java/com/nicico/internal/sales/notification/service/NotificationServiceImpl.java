@@ -11,7 +11,6 @@ import com.nicico.internal.sales.notification.dto.EmailRequest;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
-import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
@@ -173,18 +172,18 @@ public class NotificationServiceImpl implements NotificationService {
 			String entityName) {
 
 		if (!isEmailSendingEnabled(entityType)) {
-            log.info("isEmailSendingEnabled(entityType) is false for {} {} {}",entityName,entityType,id);
+			log.info("isEmailSendingEnabled(entityType) is false for {} {} {}", entityName, entityType, id);
 			return;
 		}
 
 		try {
-            log.info("getting model  for {} {} {}",entityName,entityType,id);
+			log.info("getting model  for {} {} {}", entityName, entityType, id);
 			T model = modelFetcher.apply(id);
-            log.info("validating model  for {} {} {}",entityName,entityType,id);
-            validateModel(model);
-            log.info("getting details model  for {} {} {}",entityName,entityType,id);
+			log.info("validating model  for {} {} {}", entityName, entityType, id);
+			validateModel(model);
+			log.info("getting details model  for {} {} {}", entityName, entityType, id);
 			List<Long> detailIds = idExtractor.apply(model);
-            log.info("starting pdfContent  model  for {} {} {}",entityName,entityType,id);
+			log.info("starting pdfContent  model  for {} {} {}", entityName, entityType, id);
 			byte[] pdfContent = convertDocumentsToPdf(detailIds, entityType);
 			Path filePath = createTempFile(fileNamePrefix, getContractNo(model), pdfContent);
 
@@ -319,12 +318,12 @@ public class NotificationServiceImpl implements NotificationService {
 	// ==================== PDF CONVERSION ====================
 
 	private byte[] convertDocumentsToPdf(List<Long> ids, EntityTypeEnum entityType) {
-        log.info("convertDocumentsToPdf start List<XWPFDocument> documents");
+		log.info("convertDocumentsToPdf start List<XWPFDocument> documents");
 		List<XWPFDocument> documents = loadDocuments(ids, entityType);
 
 		if (documents.isEmpty()) {
-            log.error("convertDocumentsToPdf  documents list is empty");
-            throw new InternalSaleCustomException.FileContentException(MSG_FILE_EMPTY_LIST);
+			log.error("convertDocumentsToPdf  documents list is empty");
+			throw new InternalSaleCustomException.FileContentException(MSG_FILE_EMPTY_LIST);
 		}
 
 		return convertToPdf(documents);
@@ -363,7 +362,7 @@ public class NotificationServiceImpl implements NotificationService {
 	/**
 	 * Serializes each document fully into memory (byte[]) before building the
 	 * multipart request, rather than streaming via PipedInputStream/PipedOutputStream.
-	 *
+	 * <p>
 	 * Why: a PipedOutputStream -> PipedInputStream pair has a tiny internal buffer
 	 * (default 1024 bytes). doc.write(out) runs on this same thread and blocks the
 	 * moment that buffer fills, because nothing drains the read side until

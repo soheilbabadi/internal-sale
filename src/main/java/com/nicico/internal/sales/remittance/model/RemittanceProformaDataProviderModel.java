@@ -25,96 +25,111 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Data
 @Audited(targetAuditMode = NOT_AUDITED)
 @Subselect("""
-		SELECT DISTINCT
-		      tipd.id,
-		      tipm.C_PAYMENT_CODE,
-		      tic.ID                                                      AS N_CUSTOMER_ID,
-		      tipm.C_CUSTOMER_NAME                                        AS C_CUSTOMER_NAME,
-		      tipgi.C_LOT_NUMBER 											AS C_LOT_NUMBER,
-		      tic.C_ECONOMIC_CODE                                         AS C_ECONOMIC_CODE,
-		      tic.C_NATIONAL_CODE                                         AS C_NATIONAL_CODE,
-		      tipm.N_GOOD_ID,
-		      tipm.C_GOOD_NAME,
-		      tipm.C_CONTRACT_DATE,
-		      tipm.N_TOTAL_QUANTITY,
-		      tipm.C_OFFER_DESCRIPTION,
-		      COALESCE(tirm_latest.C_WORKFLOW_APPROVE_STATUS, 'NOT_STARTED') AS C_WORKFLOW_APPROVE_STATUS,
-		      tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO          AS C_CONTRACT_NO,
-		      tit.BUYER_BROKER_CODE                                       AS N_BUYER_BROKER_ID,
-		      buyerBroker.PERSIAN_NAME                                    AS C_BUYER_BROKER_NAME,
-		      tit.SELLER_BROKER_CODE                                      AS N_SELLER_BROKER_ID,
-		      sellerBroker.PERSIAN_NAME                                   AS C_SELLER_BROKER_NAME,
-		      tipgi.N_QUANTITY                                            AS N_UNIT_COUNT,
-		      tipgi.N_UNIT_PRICE_CASH                                     AS N_UNIT_PRICE,
-		      tipm.N_CASH_PERCENTAGE,
-		      100 - tipm.N_CASH_PERCENTAGE                               AS N_CREDIT_PERCENTAGE,
-		      tipgi.N_UNIT_PRICE_CREDIT                                   AS N_CREDIT_UNIT_PRICE,
-		      tipgi.N_CREDIT_AMOUNT,
-		      tipgi.N_CASH_AMOUNT,
-		      tipgi.N_FINAL_AMOUNT,
-		      tit.SETTLEMENT_TYPE                                         AS C_SETTLEMENT_TYPE,
-		      tis.SETTLEMENT_TYPE                                         AS C_SETTLEMENT_TYPE_DESC,
-		      tipm.ID                                                     AS N_PROFORMA_MASTER_ID,
-		      tipm.C_PROFORMA_ISSUE_TYPE,
-		      tipd.C_PERFORMA_NO                                          AS C_PROFORMA_NO,
-		      tipd.D_PERFORMA_DATE                                        AS D_PROFORMA_DATE,
-		      tit.CONTRACT_TYPE_CODE                                      AS C_CONTRACT_TYPE_CODE,
-		      tipct.DESCRIPTION                                           AS C_CONTRACT_TYPE_DESCRIPTION,
-		      tis.SETTLEMENT_DATE,
-		      tit.DELIVERY_DATE,
-		      COALESCE(til.D_LC_EXPIRY_DATE,    TIMESTAMP '1970-01-01 00:00:00') AS D_LC_EXPIRY_DATE,
-		      COALESCE(til.D_SETTLEMENT_DUE_DATE, TIMESTAMP '1970-01-01 00:00:00') AS D_SETTLEMENT_DUE_DATE,
-		      COALESCE(til.N_ISSUER_BANK_ID,    0)                        AS N_ISSUER_BANK_ID,
-		      COALESCE(til.C_ISSUER_BANK_NAME,  '-')                      AS C_ISSUER_BANK_NAME,
-		      COALESCE(til.C_ISSUER_BANK_BRANCH_NAME, '-')                AS C_ISSUER_BANK_BRANCH_NAME,
-		      COALESCE(til.C_ISSUER_BANK_CODE,  '-')                      AS C_ISSUER_BANK_CODE,
-		      COALESCE(til.N_TRADING_BANK_ID,   0)                        AS N_TRADING_BANK_ID,
-		      COALESCE(til.C_TRADING_BANK_TITLE, '-')                     AS C_TRADING_BANK_NAME,
-		      COALESCE(til.C_TRADING_BRANCH_TITLE, '-')                   AS C_TRADING_BRANCH_NAME,
-		      tipd.ID                                                     AS N_PROFORMA_DETAIL_ID,
-		      til.ID                                                      AS N_LC_ID,
-		      COALESCE(til.C_LC_NO,             '-')                      AS C_LC_NO,
-		      COALESCE(til.D_LC_DATE,           TIMESTAMP '1970-01-01 00:00:00') AS D_LC_DATE,
-		      tis.IS_DELAY_PENALTY
-		  FROM TBL_IME_SETTLEMENT tis
-		      INNER JOIN TBL_IME_TRADE tit
-		          ON  tis.PAYMENT_CODE = tit.PAYMENT_CODE
-		          AND tis.SETTLEMENT_TYPE LIKE '%اعتباری%'
-		      INNER JOIN TBL_IME_PS_CONTRACT_TYPES tipct
-		          ON  tit.CONTRACT_TYPE_CODE = tipct.ID
-		      INNER JOIN T_INS_CUSTOMER tic
-		          ON  tic.C_NATIONAL_CODE = tit.BUYER_NATIONAL_CODE
-		      INNER JOIN TBL_IME_PS_BROKERS sellerBroker
-		          ON  sellerBroker.ID = tit.SELLER_BROKER_CODE
-		      INNER JOIN TBL_IME_PS_BROKERS buyerBroker
-		          ON  buyerBroker.ID = tit.BUYER_BROKER_CODE
-		      INNER JOIN T_INS_PERFORMA_MASTER tipm
-		          ON  tit.PAYMENT_CODE = tipm.C_PAYMENT_CODE
-		          AND tipm.N_CONTRACT_NO = tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO
-		          AND tipm.C_PROFORMA_ISSUE_TYPE = 'LETTER_OF_CREDIT_OPENING'
-		      INNER JOIN T_INS_PERFORMA_DETAIL tipd
-		          ON  tipm.ID = tipd.F_PERFORMA_MASTER_ID
-		      INNER JOIN T_INS_PERFORMA_GOOD_ITEM tipgi
-		          ON  tipd.ID = tipgi.F_PERFORMA_DETAIL_ID
-		      INNER JOIN T_INS_LC til
-		          ON  til.N_PROFORMA_DETAIL_ID = tipd.ID
-		          AND til.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
-		      LEFT JOIN (
-		          SELECT N_TRADE_ID, C_WORKFLOW_APPROVE_STATUS
-		          FROM T_INS_REMITTANCE_MASTER
-		          WHERE ID IN (
-		              SELECT MAX(ID)
-		              FROM T_INS_REMITTANCE_MASTER
-		              GROUP BY N_TRADE_ID
-		          )
-		      ) tirm_latest
-		          ON  tirm_latest.N_TRADE_ID = tit.ID
-		  WHERE NOT EXISTS (
-		      SELECT 1
-		      FROM T_INS_REMITTANCE_MASTER tirm
-		      WHERE tirm.N_TRADE_ID = tit.ID
-		        AND tirm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
-		  )
+				SELECT DISTINCT
+		    tipd.id,
+		    tipm.C_PAYMENT_CODE,
+		    tic.ID                                                      AS N_CUSTOMER_ID,
+		    tipm.C_CUSTOMER_NAME                                        AS C_CUSTOMER_NAME,
+		    tipgi.C_LOT_NUMBER 											AS C_LOT_NUMBER,
+		    tic.C_ECONOMIC_CODE                                         AS C_ECONOMIC_CODE,
+		    tic.C_NATIONAL_CODE                                         AS C_NATIONAL_CODE,
+		    tipm.N_GOOD_ID,
+		    tipm.C_GOOD_NAME,
+		    tipm.C_CONTRACT_DATE,
+		    tipm.N_TOTAL_QUANTITY,
+		    tipm.C_OFFER_DESCRIPTION,
+		    COALESCE(tirm_latest.C_WORKFLOW_APPROVE_STATUS, 'NOT_STARTED') AS C_WORKFLOW_APPROVE_STATUS,
+		    tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO          AS C_CONTRACT_NO,
+		    tit.BUYER_BROKER_CODE                                       AS N_BUYER_BROKER_ID,
+		    buyerBroker.PERSIAN_NAME                                    AS C_BUYER_BROKER_NAME,
+		    tit.SELLER_BROKER_CODE                                      AS N_SELLER_BROKER_ID,
+		    sellerBroker.PERSIAN_NAME                                   AS C_SELLER_BROKER_NAME,
+		    tipgi.N_QUANTITY                                            AS N_UNIT_COUNT,
+		    tipgi.N_UNIT_PRICE_CASH                                     AS N_UNIT_PRICE,
+		    tipm.N_CASH_PERCENTAGE,
+		    100 - tipm.N_CASH_PERCENTAGE                               AS N_CREDIT_PERCENTAGE,
+		    tipgi.N_UNIT_PRICE_CREDIT                                   AS N_CREDIT_UNIT_PRICE,
+		    tipgi.N_CREDIT_AMOUNT,
+		    tipgi.N_CASH_AMOUNT,
+		    tipgi.N_FINAL_AMOUNT,
+		    tit.SETTLEMENT_TYPE                                         AS C_SETTLEMENT_TYPE,
+		    tis.SETTLEMENT_TYPE                                         AS C_SETTLEMENT_TYPE_DESC,
+		    tipm.ID                                                     AS N_PROFORMA_MASTER_ID,
+		    tipm.C_PROFORMA_ISSUE_TYPE,
+		    tipd.C_PERFORMA_NO                                          AS C_PROFORMA_NO,
+		    tipd.D_PERFORMA_DATE                                        AS D_PROFORMA_DATE,
+		    tit.CONTRACT_TYPE_CODE                                      AS C_CONTRACT_TYPE_CODE,
+		    tipct.DESCRIPTION                                           AS C_CONTRACT_TYPE_DESCRIPTION,
+		    tis.SETTLEMENT_DATE,
+		    tit.DELIVERY_DATE,
+		    COALESCE(til.D_LC_EXPIRY_DATE,    TIMESTAMP '1970-01-01 00:00:00') AS D_LC_EXPIRY_DATE,
+		    COALESCE(til.D_SETTLEMENT_DUE_DATE, TIMESTAMP '1970-01-01 00:00:00') AS D_SETTLEMENT_DUE_DATE,
+		    COALESCE(til.N_ISSUER_BANK_ID,    0)                        AS N_ISSUER_BANK_ID,
+		    COALESCE(til.C_ISSUER_BANK_NAME,  '-')                      AS C_ISSUER_BANK_NAME,
+		    COALESCE(til.C_ISSUER_BANK_BRANCH_NAME, '-')                AS C_ISSUER_BANK_BRANCH_NAME,
+		    COALESCE(til.C_ISSUER_BANK_CODE,  '-')                      AS C_ISSUER_BANK_CODE,
+		    COALESCE(til.N_TRADING_BANK_ID,   0)                        AS N_TRADING_BANK_ID,
+		    COALESCE(til.C_TRADING_BANK_TITLE, '-')                     AS C_TRADING_BANK_NAME,
+		    COALESCE(til.C_TRADING_BRANCH_TITLE, '-')                   AS C_TRADING_BRANCH_NAME,
+		    tipd.ID                                                     AS N_PROFORMA_DETAIL_ID,
+		    til.ID                                                      AS N_LC_ID,
+		    COALESCE(til.C_LC_NO,             '-')                      AS C_LC_NO,
+		    COALESCE(til.D_LC_DATE,           TIMESTAMP '1970-01-01 00:00:00') AS D_LC_DATE,
+		    tis.IS_DELAY_PENALTY
+		FROM TBL_IME_SETTLEMENT tis
+		    INNER JOIN TBL_IME_TRADE tit
+		        ON  tis.PAYMENT_CODE = tit.PAYMENT_CODE
+		        AND tis.SETTLEMENT_TYPE LIKE '%اعتباری%'
+		    INNER JOIN TBL_IME_PS_CONTRACT_TYPES tipct
+		        ON  tit.CONTRACT_TYPE_CODE = tipct.ID
+		    INNER JOIN T_INS_CUSTOMER tic
+		        ON  tic.C_NATIONAL_CODE = tit.BUYER_NATIONAL_CODE
+		    INNER JOIN TBL_IME_PS_BROKERS sellerBroker
+		        ON  sellerBroker.ID = tit.SELLER_BROKER_CODE
+		    INNER JOIN TBL_IME_PS_BROKERS buyerBroker
+		        ON  buyerBroker.ID = tit.BUYER_BROKER_CODE
+		    INNER JOIN T_INS_PERFORMA_MASTER tipm
+		        ON  tit.PAYMENT_CODE = tipm.C_PAYMENT_CODE
+		        AND tipm.N_CONTRACT_NO = tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO
+		        AND tipm.C_PROFORMA_ISSUE_TYPE = 'LETTER_OF_CREDIT_OPENING'
+		    INNER JOIN T_INS_PERFORMA_DETAIL tipd
+		        ON  tipm.ID = tipd.F_PERFORMA_MASTER_ID
+		    INNER JOIN T_INS_PERFORMA_GOOD_ITEM tipgi
+		        ON  tipd.ID = tipgi.F_PERFORMA_DETAIL_ID
+		    LEFT JOIN T_INS_LC til 
+		        ON  til.N_PROFORMA_DETAIL_ID = tipd.ID 
+		        AND til.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
+		    LEFT JOIN T_INS_EXTRA_BANK_BILL tipbb 
+		        ON  tipbb.F_PROFORMA_DETAIL_ID = tipd.ID 
+		        AND tipbb.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
+		    LEFT JOIN (
+		        SELECT N_TRADE_ID, C_WORKFLOW_APPROVE_STATUS
+		        FROM T_INS_REMITTANCE_MASTER
+		        WHERE ID IN (
+		            SELECT MAX(ID)
+		            FROM T_INS_REMITTANCE_MASTER
+		            GROUP BY N_TRADE_ID
+		        )
+		    ) tirm_latest
+		        ON  tirm_latest.N_TRADE_ID = tit.ID
+		WHERE NOT EXISTS (
+		    SELECT 1
+		    FROM T_INS_REMITTANCE_MASTER tirm
+		    WHERE tirm.N_TRADE_ID = tit.ID
+		      AND tirm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
+		)
+		AND (
+		    EXISTS (
+		        SELECT 1
+		        FROM T_INS_LC lc
+		        WHERE lc.N_PROFORMA_DETAIL_ID = tipd.ID
+		    )
+		    OR EXISTS (
+		        SELECT 1
+		        FROM T_INS_EXTRA_BANK_BILL pbb
+		        WHERE pbb.F_PROFORMA_DETAIL_ID = tipd.ID
+		    )
+		)
 		""")
 public class RemittanceProformaDataProviderModel implements Serializable {
 

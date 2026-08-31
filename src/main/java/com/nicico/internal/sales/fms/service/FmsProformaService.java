@@ -48,7 +48,7 @@ public class FmsProformaService {
 	/**
 	 * Generates the signed proforma PDF and uploads it to FMS with tags:
 	 * entityType=proforma, id={masterId}, idClass=ProformaMasterModel
-	 *
+	 * <p>
 	 * Uses the current user's OAuth token for FMS authentication.
 	 */
 	public void uploadProformaPdfToFms(Long masterId) {

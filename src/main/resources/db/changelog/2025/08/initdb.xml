@@ -1029,11 +1029,11 @@
             <column name="N_GAM_CERTIFICATE_COUNT" type="INT" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="N_EXTRA_BILL_OF_AMOUNT" type="DECIMAL(19,3)"  defaultValue="0">
+            <column name="N_EXTRA_BILL_OF_AMOUNT" type="DECIMAL(19,3)" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
             <column name="N_EXTRA_BILL_OF_PERCENT" type="DECIMAL(19,3)" defaultValue="0">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
@@ -2100,19 +2100,19 @@
 
     <!-- Include remittance table changes -->
     <include file="classpath:config/liquibase/changelog/ins/create_remittance_table.xml"/>
-    
+
     <!-- Include pricing currency table changes -->
     <include file="classpath:config/liquibase/changelog/ins/pricing_currency_table.xml"/>
-    
+
     <!-- Include broker table changes -->
     <include file="classpath:config/liquibase/changelog/ins/create_t_ins_broker.xml"/>
-    
+
     <!-- Include price commodity table changes -->
     <include file="classpath:config/liquibase/changelog/ins/T_INS_PRICE_COMMODITY_create_table.xml"/>
-    
+
     <!-- Include IMS-IME-PMS mapping changes -->
     <include file="classpath:config/liquibase/changelog/ins/ims_ime_pms_mapping.xml"/>
-    
+
     <!-- Include proforma bank bill changes -->
     <include file="classpath:config/liquibase/changelog/ins/ins_proforma_bank_bill.xml"/>
 

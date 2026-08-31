@@ -36,7 +36,7 @@ SELECT SYSDATE                                                            as D_I
        RM.N_REMITTANCE_UNIT_PRICE_CREDIT,
        RM.C_SETTLEMENT_TYPE_DESC,
 
-       til.ID AS LC_ID,
+       til.ID                                                             AS LC_ID,
        til.C_ISSUER_BANK_BRANCH_NAME,
        til.N_ISSUER_BANK_ID,
        til.C_ISSUER_BANK_NAME,
@@ -54,8 +54,6 @@ SELECT SYSDATE                                                            as D_I
        tipd.N_JALAALI_YEAR,
        tipd.N_PAYMENT_DEFERRAL,
        TIPD.D_ORDER_DATE,
-
-
 
 
        COALESCE(TO_CHAR(RM.D_LC_EXPIRY_DATE, 'YYYY-MM-DD'), '1900-01-01') AS D_LC_EXPIRY_DATE,

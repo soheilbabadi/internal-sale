@@ -111,10 +111,10 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		masterModel = proformaMasterRepository.saveAndFlush(masterModel);
 
 		// ذخیره جزئیات و GoodItem‌ها با استفاده از ID مستر
-		saveDetailAndGoodItems(masterModel.getId(), detailList, 
-			detailList.stream()
-				.flatMap(d -> d.getProformaGoodItemModels().stream())
-				.toList());
+		saveDetailAndGoodItems(masterModel.getId(), detailList,
+				detailList.stream()
+						.flatMap(d -> d.getProformaGoodItemModels().stream())
+						.toList());
 
 		log.info("Proforma master created successfully with id: {}", masterModel.getId());
 		return masterModel;
@@ -127,12 +127,12 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		// دریافت اطلاعات TradeExtract و TradeModel مشابه ExtraBillProformaIssueServiceImpl
 		TradeExtractModel tradeExtract = tradeExtractRepository.findById(requestDto.getTradeId())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_TRADE_NOT_FOUND_DETAIL));
-		
+
 		int jalaliYear = DateUtility.getJalaliYear(requestDto.getOrderDate());
 
 		// استفاده از ProformaContractService برای دریافت اطلاعات
 		IMETradeModel tradeModel = proformaContractService.getTradeModel(tradeExtract.getPaymentCode());
-		GoodsModel goodsModel =proformaContractService.findGoodsModelByCommodityCode(Long.valueOf(tradeModel.getCommodityCode()));
+		GoodsModel goodsModel = proformaContractService.findGoodsModelByCommodityCode(Long.valueOf(tradeModel.getCommodityCode()));
 		SaleConditionModel saleConditionModel = proformaContractService.getSaleConditionModel(tradeExtract.getPaymentCode());
 		GoodsBucketModel goodsBucketModel = proformaContractService.getGoodBucketModel(tradeExtract.getPaymentCode());
 		CustomerModel customerModel = proformaContractService.getCustomerModel(tradeExtract.getBuyerNationalCode());
@@ -304,13 +304,13 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	 */
 	private List<ProformaDetailModel> generatePerformaDetailList(PreciousMetalDetailGenerator params) {
 		List<String> serial = proformaSerialService.getProformaSerial(1);
-		
+
 		// تولید GoodItems terlebih dahulu
 		List<ProformaGoodItemModel> goodItems = generatePerformaGoodItemList(params);
-		
+
 		// محاسبه مجموع‌ها
 		DetailTotals detailTotals = calculateDetailTotals(goodItems);
-		
+
 		// ساخت DetailModel
 		ProformaDetailModel detailModel = buildProformaDetailModel(
 				goodItems,
@@ -328,10 +328,10 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 				BigDecimal.ZERO,
 				BigDecimal.ZERO
 		);
-		
+
 		// تنظیم رابطه GoodItem به Detail
 		goodItems.forEach(goodItem -> goodItem.setProformaDetailModel(detailModel));
-		
+
 		// محاسبه و تنظیم مبلغ اضافی (استفاده از متد مشترک)
 		calculateAndSetExtraAmount(
 				detailModel,
@@ -339,7 +339,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 				detailTotals.finalAmount(),
 				params.saleConditionModel()
 		);
-		
+
 		return List.of(detailModel);
 	}
 
@@ -357,7 +357,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	 * مشابه ExtraBillProformaIssueServiceImpl.generatePerformaGoodItemList اما مخصوص فلزات گرانبها
 	 */
 	private ProformaGoodItemModel generatePerformaGoodItem(PreciousMetalDetailGenerator params) {
-		var tradeModel = proformaContractService.getTradeModel (params.requestDto().getTradeId());
+		var tradeModel = proformaContractService.getTradeModel(params.requestDto().getTradeId());
 
 		// استخراج اطلاعات از توضیحات
 		String rawDescription = offerTextProcess.findDescriptionByPaymentCode(tradeModel.getPaymentCode());
@@ -421,7 +421,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 			detailModel.setFinalPrice(finalPrice);
 			detailModel.setExtraBillOfPercent(extraPercent);
 
-				detailModel.setExtraBillOfExchangeAmount(extraAmount);
+			detailModel.setExtraBillOfExchangeAmount(extraAmount);
 		}
 	}
 

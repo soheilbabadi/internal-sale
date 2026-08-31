@@ -10,7 +10,7 @@ import com.nicico.internal.sales.broker.model.BrokerModel;
 import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.dto.*;
-import com.nicico.internal.sales.extrabill.model.ProformaBankBillModel;
+import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillAuditRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillReportRepository;
@@ -55,6 +55,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private static final String MSG_SEPAM_CODE_REQUIRED = "کد سپام نمی‌تواند خالی باشد";
 	private static final String MSG_TREASURY_ID_REQUIRED = "شناسه خزانه‌داری نمی‌تواند خالی باشد";
 	private static final String MSG_ISSUE_DATE_REQUIRED = "تاریخ صدور برات نمی‌تواند خالی باشد";
+	private static final String MSG_ISSUE_DATE_AFTER_DUE_DATE = "تاریخ صدور برات نمی‌تواند بعد از تاریخ سررسید باشد";
 	private static final String MSG_DUE_DATE_REQUIRED = "تاریخ سررسید نمی‌تواند خالی باشد";
 	private static final String MSG_PROFORMA_DETAIL_ID_REQUIRED = "شناسه جزئیات پیش‌فاکتور نمی‌تواند خالی باشد";
 	private static final String MSG_SALES_CONTRACT_NOT_FOUND = "قرارداد فروش وجود ندارد";
@@ -105,7 +106,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 		// ساخت و ذخیره مدل
 
-		ProformaBankBillModel model = extraBillRepository.findLastInProgressByProformaDetailId(request.getProformaDetailId())
+		ExtraBankBillModel model = extraBillRepository.findLastInProgressByProformaDetailId(request.getProformaDetailId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 
 		model.setIssueDate(request.getIssueDate());
@@ -123,7 +124,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		model.setAcknowledgment(Acknowledgment.RECKONING);
 		model.setExtraBillFileId(request.getExtraBillFileId());
 
-		ProformaBankBillModel savedModel = extraBillRepository.save(model);
+		ExtraBankBillModel savedModel = extraBillRepository.save(model);
 
 		log.info("Extra bill saved successfully with id: {}", savedModel.getId());
 		return mapper.toDTO(savedModel);
@@ -166,6 +167,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	 * Validates the ProformaBankBillRequest for mandatory fields
 	 */
 	private void validateProformaBankBillRequest(ProformaBankBillRequest request) {
+		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
 		if (request.getIssuerBankId() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_ISSUER_BANK_ID_REQUIRED);
 		}
@@ -187,6 +189,9 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		if (request.getProformaDetailId() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_ID_REQUIRED);
 		}
+		if (!request.getIssueDate().before(request.getDueDate())) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUE_DATE_AFTER_DUE_DATE);
+		}
 	}
 
 	/**
@@ -197,7 +202,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Transactional
 	public ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto) {
 		// یافتن برات بر اساس شناسه
-		ProformaBankBillModel bill = extraBillRepository.findById(updateDto.getId())
+		ExtraBankBillModel bill = extraBillRepository.findById(updateDto.getId())
 				.orElseThrow(() -> new RuntimeException("برات با شناسه " + updateDto.getId() + " یافت نشد"));
 
 		// بروزرسانی فیلدهای مورد نظر
@@ -216,7 +221,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	@Transactional
 	public void sendReckoningEmail(Long extraBillId) {
-		ProformaBankBillModel billModel = extraBillRepository.findById(extraBillId)
+
+		ExtraBankBillModel billModel = extraBillRepository.findById(extraBillId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
@@ -235,14 +241,14 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	 * علامت‌گذاری تمام برات‌های مرتبط با یک قرارداد به عنوان تسویه شده
 	 */
 	private void markAllBillsAsReckoning(Long proformaMasterId) {
-		List<ProformaBankBillModel> billItems = extraBillRepository.findAllByProformaMasterId(proformaMasterId);
+		List<ExtraBankBillModel> billItems = extraBillRepository.findAllByProformaMasterId(proformaMasterId);
 
 		if (billItems == null || billItems.isEmpty()) {
 			log.warn("No extra bill items found for proformaMasterId: {}", proformaMasterId);
 			return;
 		}
 
-		for (ProformaBankBillModel billItem : billItems) {
+		for (ExtraBankBillModel billItem : billItems) {
 			if (!billItem.isReckoningSend()) {
 				Date newReckoningSendDate = new Date();
 				billItem.setReckoningSend(true);
@@ -297,7 +303,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	@Override
 	public String generateExtraBillBrokerEmailContent(long extraBillId) {
-		ProformaBankBillModel billModel = extraBillRepository.findById(extraBillId)
+		ExtraBankBillModel billModel = extraBillRepository.findById(extraBillId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
@@ -335,7 +341,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	@Transactional
 	public ProformaBankBillDto.Info updateExtraBill(UpdateExtraBillRequest updateExtraBillRequest) {
-		ProformaBankBillModel bill = extraBillRepository.findById(updateExtraBillRequest.getId())
+		ExtraBankBillModel bill = extraBillRepository.findById(updateExtraBillRequest.getId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		bill.setIssuerBankId(updateExtraBillRequest.getIssuerBankId());
@@ -346,7 +352,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		bill.setIssueDate(updateExtraBillRequest.getIssueDate());
 		bill.setDueDate(updateExtraBillRequest.getDueDate());
 
-		ProformaBankBillModel savedBill = extraBillRepository.save(bill);
+		ExtraBankBillModel savedBill = extraBillRepository.save(bill);
 		log.info("Extra bill updated successfully with id: {}", savedBill.getId());
 		return mapper.toDTO(savedBill);
 	}
@@ -365,6 +371,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	@Override
 	public SearchDTO.SearchRs<ProformaBankBillDto.Info> findReadyReckoning(SearchDTO.SearchRq request) {
+		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
 		SearchDTO.SearchRq searchRq = request == null ? new SearchDTO.SearchRq() : request;
 		SearchDTO.CriteriaRq rootCriteria = searchRq.getCriteria();
 
@@ -389,10 +396,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		}
 
 		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
-				.setFieldName("acknowledgment")
-				.setOperator(EOperator.notEqual)
-				.setValue(Acknowledgment.REMITTANCE));
-		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
 				.setFieldName("workflowApproveStatus")
 				.setOperator(EOperator.equals)
 				.setValue(WorkflowApproveStatus.IN_PROGRESS));
@@ -403,7 +406,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	public void markAllLcsAsReckoning(Long proformaMasterId) {
 
-		List<ProformaBankBillModel> billModels = extraBillRepository.findAllByProformaMasterId(proformaMasterId);
+		List<ExtraBankBillModel> billModels = extraBillRepository.findAllByProformaMasterId(proformaMasterId);
 
 		if (billModels == null || billModels.isEmpty()) {
 			log.warn("No ExtraBill items found for proformaMasterId: {}", proformaMasterId);
@@ -411,7 +414,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		}
 
 
-		for (ProformaBankBillModel item : billModels) {
+		for (ExtraBankBillModel item : billModels) {
 			boolean oldReckoningSend = item.isReckoningSend();
 			if (!oldReckoningSend) {
 				Date newReckoningSendDate = new Date();
@@ -419,10 +422,12 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				item.setReckoningSendDate(newReckoningSendDate);
 				item.setAcknowledgment(Acknowledgment.RECKONING);
 
+				extraBillRepository.saveAndFlush(item);
 			}
 
 		}
-		extraBillRepository.saveAllAndFlush(billModels);
+
 	}
+
 
 }

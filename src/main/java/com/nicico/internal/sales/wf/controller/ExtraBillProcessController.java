@@ -36,14 +36,14 @@ public class ExtraBillProcessController {
 			description = "این متد برای تایید یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت برات الکترونیک به روزرسانی می شود."
 	)
 	@PutMapping("/approve-task")
-	public ResponseEntity<HttpStatus> approveTask(@RequestBody  TaskActionDto taskActionDto) {
+	public ResponseEntity<HttpStatus> approveTask(@RequestBody @Valid TaskActionDto taskActionDto) {
 		extraBillProcessService.approveTask(taskActionDto);
 		return ResponseEntity.ok().build();
 	}
 
 	@Operation(summary = "رد تسک", description = "این متد برای رد کردن یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و علت رد، عملیات رد را انجام داده و جریان کاری را به مرحله قبلی بازمی گرداند یا متوقف می کند. کاربر باید علت رد را به صورت کامل وارد نماید.")
 	@PutMapping("/reject-task")
-	public ResponseEntity<HttpStatus> rejectTask(@RequestBody  TaskActionDto taskActionDto) {
+	public ResponseEntity<HttpStatus> rejectTask(@RequestBody @Valid TaskActionDto taskActionDto) {
 		extraBillProcessService.rejectTask(taskActionDto);
 		return ResponseEntity.ok().build();
 	}

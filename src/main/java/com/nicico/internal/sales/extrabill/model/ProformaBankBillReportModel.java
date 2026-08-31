@@ -68,7 +68,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    tipm.C_OFFER_DESCRIPTION,
 		    tipm.C_IME_COMMODITY_SYMBOL,
 		    tipm.N_GOOD_ID
-		FROM T_INS_PROFORMA_BANK_BILL tpbb
+		FROM T_INS_EXTRA_BANK_BILL tpbb
 		         LEFT JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
 		         LEFT JOIN T_INS_PERFORMA_MASTER tipm ON tipm.ID = tpbb.F_PERFORMA_MASTER_ID
 		""")

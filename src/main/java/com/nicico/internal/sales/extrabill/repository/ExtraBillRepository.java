@@ -1,6 +1,7 @@
 package com.nicico.internal.sales.extrabill.repository;
 
-import com.nicico.internal.sales.extrabill.model.ProformaBankBillModel;
+import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
+import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,31 +14,30 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ExtraBillRepository extends JpaRepository<ProformaBankBillModel, Long>, JpaSpecificationExecutor<ProformaBankBillModel> {
-	List<ProformaBankBillModel> findAllByProformaMasterId(Long masterId);
+public interface ExtraBillRepository extends JpaRepository<ExtraBankBillModel, Long>, JpaSpecificationExecutor<ExtraBankBillModel> {
+	List<ExtraBankBillModel> findAllByProformaMasterId(Long masterId);
 
-	List<ProformaBankBillModel> findAllByWorkflowApproveStatusIn(List<WorkflowApproveStatus> statuses);
 
-	ProformaBankBillModel findByProcessId(String processId);
+	List<ExtraBankBillModel> findAllByWorkflowApproveStatusIn(List<WorkflowApproveStatus> statuses);
 
-	@Query(value = "SELECT * FROM T_INS_PERFORMA_DETAIL WHERE F_PERFORMA_MASTER_ID IN (SELECT F_PERFORMA_MASTER_ID FROM t_ins_proforma_bank_bill WHERE id = :billId)", nativeQuery = true)
+	ExtraBankBillModel findByProcessId(String processId);
+
+	@Query(value = "SELECT * FROM T_INS_PERFORMA_DETAIL WHERE F_PERFORMA_MASTER_ID IN (SELECT F_PERFORMA_MASTER_ID FROM T_INS_EXTRA_BANK_BILL WHERE id = :billId)", nativeQuery = true)
 	Optional<ProformaDetailModel> getDetailByBillId(@Param("billId") Long billId);
 
 
-
-
-	@Query(value = "SELECT C_NOSA_CODE FROM T_INS_PROFORMA_BANK_BILL WHERE N_ISSUER_BANK_ID = :bankId AND C_NOSA_CODE LIKE :prefix% ORDER BY C_NOSA_CODE DESC FETCH FIRST 1 ROWS ONLY", nativeQuery = true)
+	@Query(value = "SELECT C_NOSA_CODE FROM T_INS_EXTRA_BANK_BILL WHERE N_ISSUER_BANK_ID = :bankId AND C_NOSA_CODE LIKE :prefix% ORDER BY C_NOSA_CODE DESC FETCH FIRST 1 ROWS ONLY", nativeQuery = true)
 	String findLastNosaCodeByBankIdAndPrefix(Long bankId, String prefix);
 
 	@Query(value = """
-        SELECT *
-        FROM T_INS_PROFORMA_BANK_BILL
-        WHERE F_PROFORMA_DETAIL_ID = :detailId
-          AND C_WORKFLOW_APPROVE_STATUS = 'IN_PROGRESS'
-        ORDER BY ID DESC
-        FETCH FIRST 1 ROW ONLY
-        """, nativeQuery = true)
-	Optional<ProformaBankBillModel> findLastInProgressByProformaDetailId(
+			SELECT *
+			FROM T_INS_EXTRA_BANK_BILL
+			WHERE F_PROFORMA_DETAIL_ID = :detailId
+			  AND C_WORKFLOW_APPROVE_STATUS = 'IN_PROGRESS'
+			ORDER BY ID DESC
+			FETCH FIRST 1 ROW ONLY
+			""", nativeQuery = true)
+	Optional<ExtraBankBillModel> findLastInProgressByProformaDetailId(
 			@Param("detailId") Long detailId
 	);
 }

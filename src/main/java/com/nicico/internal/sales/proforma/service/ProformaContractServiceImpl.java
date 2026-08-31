@@ -72,16 +72,16 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 	@Transactional
 	public ProformaCreationContext getProformaCreationData(Long tradeId, String paymentCode, Integer jalaliYear) {
 		log.debug("Fetching proforma creation data for tradeId: {}, paymentCode: {}", tradeId, paymentCode);
-		
+
 		TradeExtractModel tradeExtract = findTradeExtract(tradeId);
 		String actualPaymentCode = paymentCode != null ? paymentCode : tradeExtract.getPaymentCode();
-		
+
 		IMETradeModel tradeModel = getTradeModel(actualPaymentCode);
 		GoodsModel goodsModel = getGoodsModel(actualPaymentCode);
 		SaleConditionModel saleConditionModel = getSaleConditionModel(actualPaymentCode);
 		GoodsBucketModel goodsBucketModel = getGoodBucketModel(actualPaymentCode);
 		CustomerModel customerModel = getCustomerModel(tradeExtract.getBuyerNationalCode());
-		
+
 		return ProformaCreationContext.builder()
 				.tradeExtract(tradeExtract)
 				.tradeModel(tradeModel)
@@ -100,13 +100,13 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 
 		int jalaliYear = DateUtility.getJalaliYear(requestDto.getOrderDate());
 		ProformaCreationContext context = getProformaCreationData(
-				requestDto.getTradeId(), 
+				requestDto.getTradeId(),
 				null, // Payment code will be fetched from TradeExtract
 				jalaliYear
 		);
 
 		PerformaDetailGenerator params = createPerformaDetailGenerator(
-				requestDto, context.getTradeModel(), context.getGoodsModel(), 
+				requestDto, context.getTradeModel(), context.getGoodsModel(),
 				jalaliYear, context.getGoodsBucketModel(), context.getSaleConditionModel()
 		);
 
@@ -117,8 +117,8 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 		CashCreditPercentages percentages = calculateCashCreditPercentages(context.getGoodsBucketModel(), false);
 
 		ProformaMasterModel masterModel = buildMasterModel(
-				context.getTradeExtract(), context.getTradeModel(), context.getGoodsModel(), 
-				context.getCustomerModel(), context.getGoodsBucketModel(), 
+				context.getTradeExtract(), context.getTradeModel(), context.getGoodsModel(),
+				context.getCustomerModel(), context.getGoodsBucketModel(),
 				requestDto, totals, percentages
 		);
 
@@ -525,6 +525,7 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						MSG_GOOD_NOT_FOUND + commodityCode));
 	}
+
 	private String getCleanGoodName(GoodsModel goodsModel, String description) {
 		String cleanName = goodsModel.getDescription()
 				.replace(goodsModel.getImeCommoditySymbol(), "")

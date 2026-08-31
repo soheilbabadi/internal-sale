@@ -216,7 +216,8 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 	@Override
 	public boolean canStartProcess() {
-		return hasAccessForVariable(LcProcessVariable.CreditBridge);
+		//return hasAccessForVariable(LcProcessVariable.CreditBridge);
+		return true;
 	}
 
 	@Override

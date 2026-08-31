@@ -33,10 +33,10 @@ public interface ExtraBillService {
 	SearchDTO.SearchRs<ProformaBankBillDto.Info> findReadyReckoning(SearchDTO.SearchRq request);
 
 
-
 	String generateExtraBillBrokerEmailContent(long extraBillId);
 
 	ProcessInstanceHistory getHistoryDetail(Long extraBillId);
+
 	Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId);
 
 	void markAllLcsAsReckoning(Long proformaMasterId);

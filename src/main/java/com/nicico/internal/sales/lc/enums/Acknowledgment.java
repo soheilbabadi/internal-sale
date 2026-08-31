@@ -6,7 +6,12 @@ import lombok.Getter;
 
 @Getter
 public enum Acknowledgment {
-	RECKONING("تایید تسویه"), REMITTANCE("تایید حواله"), UNKNOWN("نامشخص"), FINISHED("تمام شده"), FINAL_CHECK("بررسی نهایی"), CANCELED("رد شده");
+	RECKONING("تایید تسویه"),
+	REMITTANCE("تایید حواله"),
+	UNKNOWN("نامشخص"),
+	FINISHED("تمام شده"),
+	FINAL_CHECK("بررسی نهایی"),
+	CANCELED("رد شده");
 
 	private final String value;
 

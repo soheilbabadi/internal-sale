@@ -1,33 +1,33 @@
-
 CREATE SEQUENCE SEQ_PRICE_FORMULA
     START WITH 1
     INCREMENT BY 1
     CACHE 20;
 
 
-CREATE TABLE T_INS_PRICE_COMMODITY (
-                                       ID NUMBER(19,0) PRIMARY KEY,
-                                       DAY_OF_WEEK VARCHAR2(20) NOT NULL,
-                                       PERSIAN_SHORT_DATE VARCHAR2(20) NOT NULL,
-                                       SHORT_DATE DATE NOT NULL,
-                                       N_USD_PER_MT_CU NUMBER(19,3),
-                                       N_USD_PER_OUNCE_GOLD NUMBER(19,3),
-                                       N_USD_PER_OUNCE_SILVER NUMBER(19,3),
-                                       N_USD_PER_LB_SELENIUM_BID NUMBER(19,3),
-                                       N_USD_PER_LB_SELENIUM_ASK NUMBER(19,3),
-                                       N_USD_PER_LB_MOLYBDENUM_LOW NUMBER(19,3),
-                                       N_USD_PER_LB_MOLYBDENUM_HIGH NUMBER(19,3),
-                                       N_USD_PER_TO_PLATINUM_AM NUMBER(19,3),
-                                       N_USD_PER_TO_PLATINUM_PM NUMBER(19,3),
-                                       N_USD_PER_TO_PALLADIUM_AM NUMBER(19,3),
-                                       N_USD_PER_TO_PALLADIUM_PM NUMBER(19,3),
-                                       N_USD_PER_LB_MOLYBDENUM_AM NUMBER(19,3),
-                                       N_USD_PER_LB_MOLYBDENUM_PM NUMBER(19,3),
-                                       D_CREATED_DATE TIMESTAMP NOT NULL,
-                                       D_LAST_MODIFIED_DATE TIMESTAMP,
-                                       C_CREATED_BY VARCHAR2(250) NOT NULL,
-                                       C_LAST_MODIFIED_BY VARCHAR2(250),
-                                       C_COMMENT VARCHAR2(4000),
-                                       C_DESCRIPTION VARCHAR2(4000),
-                                       N_VERSION NUMBER(10,0) NOT NULL
+CREATE TABLE T_INS_PRICE_COMMODITY
+(
+    ID                           NUMBER(19, 0) PRIMARY KEY,
+    DAY_OF_WEEK                  VARCHAR2(20)  NOT NULL,
+    PERSIAN_SHORT_DATE           VARCHAR2(20)  NOT NULL,
+    SHORT_DATE                   DATE          NOT NULL,
+    N_USD_PER_MT_CU              NUMBER(19, 3),
+    N_USD_PER_OUNCE_GOLD         NUMBER(19, 3),
+    N_USD_PER_OUNCE_SILVER       NUMBER(19, 3),
+    N_USD_PER_LB_SELENIUM_BID    NUMBER(19, 3),
+    N_USD_PER_LB_SELENIUM_ASK    NUMBER(19, 3),
+    N_USD_PER_LB_MOLYBDENUM_LOW  NUMBER(19, 3),
+    N_USD_PER_LB_MOLYBDENUM_HIGH NUMBER(19, 3),
+    N_USD_PER_TO_PLATINUM_AM     NUMBER(19, 3),
+    N_USD_PER_TO_PLATINUM_PM     NUMBER(19, 3),
+    N_USD_PER_TO_PALLADIUM_AM    NUMBER(19, 3),
+    N_USD_PER_TO_PALLADIUM_PM    NUMBER(19, 3),
+    N_USD_PER_LB_MOLYBDENUM_AM   NUMBER(19, 3),
+    N_USD_PER_LB_MOLYBDENUM_PM   NUMBER(19, 3),
+    D_CREATED_DATE               TIMESTAMP     NOT NULL,
+    D_LAST_MODIFIED_DATE         TIMESTAMP,
+    C_CREATED_BY                 VARCHAR2(250) NOT NULL,
+    C_LAST_MODIFIED_BY           VARCHAR2(250),
+    C_COMMENT                    VARCHAR2(4000),
+    C_DESCRIPTION                VARCHAR2(4000),
+    N_VERSION                    NUMBER(10, 0) NOT NULL
 );

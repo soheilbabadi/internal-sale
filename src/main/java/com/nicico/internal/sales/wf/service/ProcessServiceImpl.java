@@ -2,6 +2,7 @@ package com.nicico.internal.sales.wf.service;
 
 import com.nicico.bpmsclient.config.BPMNClientException;
 import com.nicico.bpmsclient.model.flowable.enums.ProcessDefinitionStatus;
+import com.nicico.bpmsclient.model.flowable.enums.SortField;
 import com.nicico.bpmsclient.model.flowable.enums.SortType;
 import com.nicico.bpmsclient.model.flowable.process.ProcessDefinitionRequestDTO;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInsHistoryDTO;
@@ -50,12 +51,13 @@ public class ProcessServiceImpl implements ProcessService {
 		String currentUserId = SecurityUtil.getUserId().toString();
 		taskSearchDto.setUserIds(List.of(currentUserId));
 		taskSearchDto.setWithLastComment(false);
+		taskSearchDto.setSortField(SortField.START_TIME);
 		GridDTO result = bpmsClientService.infiniteSearchTask(taskSearchDto, page, size);
 		if (result == null || result.getData() == null) return null;
-		String marker = "ثبت پیش فاکتور";
+//		String marker = "ثبت پیش فاکتور";
 		result.getData().removeIf(task -> {
 			String name = task.getName();
-			if (!name.contains(marker)) return false;
+//			if (!name.contains(marker)) return false;
 			Map<?, ?> details = task.getInstanceDetails();
 			if (details != null) {
 				Object starterObj = details.get("starter");
@@ -74,7 +76,7 @@ public class ProcessServiceImpl implements ProcessService {
 			var dto = new ProcessDefinitionRequestDTO();
 			dto.setSortType(SortType.DESC);
 			dto.setProcessDefinitionStatus(ProcessDefinitionStatus.ACTIVE);
-			dto.setTenantId("internal-sales");
+			dto.setUserId(SecurityUtil.getUserId().toString());
 			Map<String, Object> result = (Map<String, Object>) bpmsClientService.searchProcess(dto, pageable.getPageNumber(), pageable.getPageSize());
 			return (List<Map<String, Object>>) result.getOrDefault("content", Collections.emptyList());
 		} catch (BPMNClientException e) {

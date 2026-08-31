@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
 
     <changeSet id="14040911-update-bank-base-titles-1" author="saeb">
-        <comment>Update bank titles in T_INS_BANK_BASE table and make them  PMS.BANKGROUPTBL@DBL_DS2_COPLINK BANKGROUPDESC</comment>
+        <comment>Update bank titles in T_INS_BANK_BASE table and make them PMS.BANKGROUPTBL@DBL_DS2_COPLINK
+            BANKGROUPDESC
+        </comment>
 
         <update tableName="T_INS_BANK_BASE">
             <column name="C_BANK_TITLE" value="بانک توسعه تعاون"/>
@@ -149,7 +151,8 @@
     </changeSet>
 
     <changeSet id="update-trading-bank-titles-1" author="developer">
-        <comment>Update bank titles in T_INS_TRADING_BANK table based on IBAN and make them like T_INS_BANK_BASE </comment>
+        <comment>Update bank titles in T_INS_TRADING_BANK table based on IBAN and make them like T_INS_BANK_BASE
+        </comment>
 
         <update tableName="T_INS_TRADING_BANK">
             <column name="C_BANK_TITLE" value="بانك تجارت"/>
@@ -225,8 +228,6 @@
             <comment>Rollback is not provided - manual intervention required</comment>
         </rollback>
     </changeSet>
-
-
 
 
 </databaseChangeLog>

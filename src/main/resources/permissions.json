@@ -167,18 +167,15 @@
     {
       "code": "C_INS_SEND_NOTIFICATION",
       "title": "ارسال ایمیلهای اطلاع رسانی"
-    }
-  ,
+    },
     {
       "code": "R_INS_LOADING_PLACE",
       "title": "خواندن محل بارگیری"
-    }
-  ,
+    },
     {
       "code": "C_INS_LOADING_PLACE",
       "title": "ایجاد محل بارگیری"
-    }
-  ,
+    },
     {
       "code": "R_INS_EXTRA_BILL",
       "title": "مشاهده  جدول برات الکترونیک"
@@ -191,6 +188,5 @@
       "code": "D_INS_EXTRA_BILL",
       "title": "حذف آیتم برات الکترونیک"
     }
-
   ]
 }

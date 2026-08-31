@@ -16,6 +16,7 @@ import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
+import com.nicico.internal.sales.nosa.LcNosaCodeService;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;

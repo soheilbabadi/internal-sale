@@ -1029,11 +1029,11 @@
             <column name="N_GAM_CERTIFICATE_COUNT" type="INT" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="N_EXTRA_BILL_OF_AMOUNT" type="DECIMAL(19,3)"  defaultValue="0">
+            <column name="N_EXTRA_BILL_OF_AMOUNT" type="DECIMAL(19,3)" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
             <column name="N_EXTRA_BILL_OF_PERCENT" type="DECIMAL(19,3)" defaultValue="0">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
@@ -2099,289 +2099,296 @@
     </changeSet>
 
     <!-- Include remittance table changes -->
-<<<<<<<< HEAD:src/main/resources/config/liquibase/changelog/initdb.xml
+    <
+    <
+    <
+    <
+    <
+    <
+    <
+    < HEAD:src/main/resources/config/liquibase/changelog/initdb.xml
     <!-- Inlined from classpath:config/liquibase/changelog/ins/create_remittance_table.xml -->
     <!-- <include file="classpath:config/liquibase/changelog/ins/create_remittance_table.xml"/> -->
-<!--        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"-->
-<!--        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
-<!--        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-->
-<!--        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">-->
+    <!--        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"-->
+    <!--        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+    <!--        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-->
+    <!--        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">-->
 
-<!--    <changeSet id="20250801-01-create-seq-ins-performa-good-item" author="soheil babadi">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <not>-->
-<!--                <sequenceExists sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"/>-->
-<!--            </not>-->
-<!--        </preConditions>-->
-
-
-<!--        <createSequence-->
-<!--                sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"-->
-<!--                startValue="1"-->
-<!--                incrementBy="1"/>-->
-<!--    </changeSet>-->
+    <!--    <changeSet id="20250801-01-create-seq-ins-performa-good-item" author="soheil babadi">-->
+    <!--        <preConditions onFail="MARK_RAN">-->
+    <!--            <not>-->
+    <!--                <sequenceExists sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"/>-->
+    <!--            </not>-->
+    <!--        </preConditions>-->
 
 
-<!--    <changeSet id="20250801-02-create-seq-ins-remittance" author="soheil babadi">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <not>-->
-<!--                <sequenceExists sequenceName="SEQ_INS_REMITTANCE"/>-->
-<!--            </not>-->
-<!--        </preConditions>-->
+    <!--        <createSequence-->
+    <!--                sequenceName="SEQ_INS_PERFORMA_GOOD_ITEM"-->
+    <!--                startValue="1"-->
+    <!--                incrementBy="1"/>-->
+    <!--    </changeSet>-->
 
 
-<!--        <createSequence-->
-<!--                sequenceName="SEQ_INS_REMITTANCE"-->
-<!--                startValue="1"-->
-<!--                incrementBy="1"/>-->
-<!--    </changeSet>-->
-
-<!--    <changeSet id="20250801-03-create-t-ins-remittance-good-item" author="soheil babadi">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <not>-->
-<!--                <tableExists tableName="T_INS_REMITTANCE_GOOD_ITEM"/>-->
-<!--            </not>-->
-<!--        </preConditions>-->
+    <!--    <changeSet id="20250801-02-create-seq-ins-remittance" author="soheil babadi">-->
+    <!--        <preConditions onFail="MARK_RAN">-->
+    <!--            <not>-->
+    <!--                <sequenceExists sequenceName="SEQ_INS_REMITTANCE"/>-->
+    <!--            </not>-->
+    <!--        </preConditions>-->
 
 
-<!--        <createTable tableName="T_INS_REMITTANCE_GOOD_ITEM">-->
-<!--            <column name="ID" type="NUMBER(38,0)">-->
-<!--                <constraints primaryKey="true" nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_CREATED_DATE" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>-->
-<!--            <column name="C_CREATED_BY" type="VARCHAR2(250)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>-->
-<!--            <column name="C_COMMENT" type="VARCHAR2(4000)"/>-->
-<!--            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>-->
-<!--            <column name="N_VERSION" type="INTEGER">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_GOOD_ID" type="NUMBER(38,0)"/>-->
-<!--            <column name="C_GOOD_NAME" type="VARCHAR2(100)"/>-->
-<!--            <column name="N_UNIT_ID" type="NUMBER(38,0)"/>-->
-<!--            <column name="N_QUANTITY" type="DECIMAL(10,3)"/>-->
-<!--            <column name="N_CREDIT_AMOUNT" type="DECIMAL"/>-->
-<!--            <column name="N_CASH_AMOUNT" type="DECIMAL"/>-->
-<!--            <column name="N_TOTAL_AMOUNT" type="DECIMAL"/>-->
-<!--            <column name="N_VAT_AMOUNT" type="DECIMAL"/>-->
-<!--            <column name="N_UNIT_PRICE_CREDIT" type="DECIMAL"/>-->
-<!--            <column name="N_UNIT_PRICE_CASH" type="DECIMAL"/>-->
-<!--            <column name="N_NET_QUANTITY" type="DECIMAL(10,3)"/>-->
-<!--            <column name="N_FINAL_AMOUNT" type="DECIMAL"/>-->
-<!--            <column name="N_UNIT_PRICE" type="DECIMAL"/>-->
-<!--            <column name="N_CREDIT_QUANTITY" type="DECIMAL(10,3)"/>-->
-<!--            <column name="C_LOT_NUMBER" type="VARCHAR2(255)"/>-->
-<!--            <column name="N_CREDIT_PERCENTAGE" type="DECIMAL"/>-->
-<!--            <column name="F_REMITTANCE_ID" type="NUMBER(38,0)"/>-->
+    <!--        <createSequence-->
+    <!--                sequenceName="SEQ_INS_REMITTANCE"-->
+    <!--                startValue="1"-->
+    <!--                incrementBy="1"/>-->
+    <!--    </changeSet>-->
 
-<!--            <column name="d_created_date" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="d_last_modified_date" type="DATETIME"/>-->
-<!--            <column name="c_created_by" type="VARCHAR2(250)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="c_last_modified_by" type="VARCHAR2(250)"/>-->
-<!--            <column name="c_comment" type="VARCHAR2(4000)"/>-->
-<!--            <column name="c_description" type="VARCHAR2(4000)"/>-->
-<!--            <column name="n_version" type="INT">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-
-<!--        </createTable>-->
-
-<!--        <addPrimaryKey-->
-<!--                tableName="T_INS_REMITTANCE_GOOD_ITEM"-->
-<!--                columnNames="ID"-->
-<!--                constraintName="PK_T_INS_REMITTANCE_GOOD_ITEM"/>-->
-<!--    </changeSet>-->
-
-<!--    <changeSet id="20250801-04-create-t-ins-remittance-master" author="soheil babadi">-->
-
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <not>-->
-<!--                <tableExists tableName="T_INS_REMITTANCE_MASTER"/>-->
-<!--            </not>-->
-<!--        </preConditions>-->
-
-<!--        <createTable tableName="T_INS_REMITTANCE_MASTER">-->
-<!--            <column name="ID" type="NUMBER(38,0)">-->
-<!--                <constraints primaryKey="true" nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_CREATED_DATE" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>-->
-<!--            <column name="C_CREATED_BY" type="VARCHAR2(250)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>-->
-<!--            <column name="C_COMMENT" type="VARCHAR2(4000)"/>-->
-<!--            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>-->
-<!--            <column name="N_VERSION" type="INTEGER">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_REMITTANCE_NO" type="VARCHAR2(255)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_REMITTANCE_DATE" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_VALIDITY_DATE" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_CUSTOMER_ID" type="NUMBER(38,0)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_CUSTOMER_NAME" type="VARCHAR2(200)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_ECONOMIC_CODE" type="VARCHAR2(50)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_NATIONAL_CODE" type="VARCHAR2(15)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_TARGET_ADDRESS" type="VARCHAR2(500)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_LOADING_PORT_ID" type="NUMBER(38,0)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_LOADING_PORT" type="VARCHAR2(255)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_GOOD_ID" type="NUMBER(38,0)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_GOOD_NAME" type="VARCHAR2(200)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_PACKING_NAME" type="VARCHAR2(100)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_PACKING_ID" type="INTEGER">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_LOT_NUMBER" type="VARCHAR2(255)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_CONTRACT_DATE" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_CONTRACT_NO" type="VARCHAR2(50)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_SELLER_BROKER_NAME" type="VARCHAR2(200)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_BUYER_BROKER_NAME" type="VARCHAR2(200)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_CASH_PERCENTAGE" type="DECIMAL">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_CREDIT_PERCENTAGE" type="DECIMAL">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_REMITTANCE_QUANTITY" type="DECIMAL">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_REMITTANCE_QUANTITY_CASH" type="DECIMAL">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_REMITTANCE_QUANTITY_CREDIT" type="DECIMAL">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_REMITTANCE_UNIT_PRICE_CASH" type="DECIMAL">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_REMITTANCE_UNIT_PRICE_CREDIT" type="DECIMAL">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_LC_EXPIRY_DATE" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="D_SETTLEMENT_DUE_DATE" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_ISSUER_BANK_ID" type="NUMBER(38,0)"/>-->
-<!--            <column name="C_ISSUER_BANK_NAME" type="VARCHAR2(200)"/>-->
-<!--            <column name="C_ISSUER_BANK_BRANCH_NAME" type="VARCHAR2(200)"/>-->
-<!--            <column name="C_ISSUER_BANK_CODE" type="VARCHAR2(200)"/>-->
-<!--            <column name="C_PROCESS_ID" type="VARCHAR2(50)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_WORKFLOW_APPROVE_STATUS" type="VARCHAR2(100)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_PROFORMA_MASTER_ID" type="NUMBER(38,0)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_PROFORMA_DETAIL_ID" type="NUMBER(38,0)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_LC_ID" type="NUMBER(38,0)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_LC_NO" type="VARCHAR2(255)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_ISSUE_PLACE_ID" type="NUMBER(38,0)"/>-->
-<!--            <column name="C_ISSUE_PLACE" type="VARCHAR2(50)"/>-->
-<!--            <column name="C_PROFORMA_NO" type="VARCHAR2(50)"/>-->
-<!--            <column name="D_PROFORMA_DATE" type="DATETIME"/>-->
-<!--            <column name="C_PROFORMA_ISSUE_TYPE" type="VARCHAR2(255)"/>-->
-<!--            <column name="C_ISSUE_SOURCE_TYPE" type="VARCHAR2(50)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="C_ISSUER_NAME" type="VARCHAR2(100)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="N_ISSUER_ID" type="NUMBER(38,0)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="IS_PROCESS_FINAL" type="NUMBER(1)" defaultValue="0"/>-->
+    <!--    <changeSet id="20250801-03-create-t-ins-remittance-good-item" author="soheil babadi">-->
+    <!--        <preConditions onFail="MARK_RAN">-->
+    <!--            <not>-->
+    <!--                <tableExists tableName="T_INS_REMITTANCE_GOOD_ITEM"/>-->
+    <!--            </not>-->
+    <!--        </preConditions>-->
 
 
-<!--            <column name="d_created_date" type="DATETIME">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="d_last_modified_date" type="DATETIME"/>-->
-<!--            <column name="c_created_by" type="VARCHAR2(250)">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--            <column name="c_last_modified_by" type="VARCHAR2(250)"/>-->
-<!--            <column name="c_comment" type="VARCHAR2(4000)"/>-->
-<!--            <column name="c_description" type="VARCHAR2(4000)"/>-->
-<!--            <column name="n_version" type="INT">-->
-<!--                <constraints nullable="false"/>-->
-<!--            </column>-->
-<!--        </createTable>-->
+    <!--        <createTable tableName="T_INS_REMITTANCE_GOOD_ITEM">-->
+    <!--            <column name="ID" type="NUMBER(38,0)">-->
+    <!--                <constraints primaryKey="true" nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_CREATED_DATE" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>-->
+    <!--            <column name="C_CREATED_BY" type="VARCHAR2(250)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>-->
+    <!--            <column name="C_COMMENT" type="VARCHAR2(4000)"/>-->
+    <!--            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>-->
+    <!--            <column name="N_VERSION" type="INTEGER">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_GOOD_ID" type="NUMBER(38,0)"/>-->
+    <!--            <column name="C_GOOD_NAME" type="VARCHAR2(100)"/>-->
+    <!--            <column name="N_UNIT_ID" type="NUMBER(38,0)"/>-->
+    <!--            <column name="N_QUANTITY" type="DECIMAL(10,3)"/>-->
+    <!--            <column name="N_CREDIT_AMOUNT" type="DECIMAL"/>-->
+    <!--            <column name="N_CASH_AMOUNT" type="DECIMAL"/>-->
+    <!--            <column name="N_TOTAL_AMOUNT" type="DECIMAL"/>-->
+    <!--            <column name="N_VAT_AMOUNT" type="DECIMAL"/>-->
+    <!--            <column name="N_UNIT_PRICE_CREDIT" type="DECIMAL"/>-->
+    <!--            <column name="N_UNIT_PRICE_CASH" type="DECIMAL"/>-->
+    <!--            <column name="N_NET_QUANTITY" type="DECIMAL(10,3)"/>-->
+    <!--            <column name="N_FINAL_AMOUNT" type="DECIMAL"/>-->
+    <!--            <column name="N_UNIT_PRICE" type="DECIMAL"/>-->
+    <!--            <column name="N_CREDIT_QUANTITY" type="DECIMAL(10,3)"/>-->
+    <!--            <column name="C_LOT_NUMBER" type="VARCHAR2(255)"/>-->
+    <!--            <column name="N_CREDIT_PERCENTAGE" type="DECIMAL"/>-->
+    <!--            <column name="F_REMITTANCE_ID" type="NUMBER(38,0)"/>-->
 
-<!--        <addPrimaryKey-->
-<!--                tableName="T_INS_REMITTANCE_MASTER"-->
-<!--                columnNames="ID"-->
-<!--                constraintName="PK_T_INS_REMITTANCE_MASTER"/>-->
-<!--    </changeSet>-->
+    <!--            <column name="d_created_date" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="d_last_modified_date" type="DATETIME"/>-->
+    <!--            <column name="c_created_by" type="VARCHAR2(250)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="c_last_modified_by" type="VARCHAR2(250)"/>-->
+    <!--            <column name="c_comment" type="VARCHAR2(4000)"/>-->
+    <!--            <column name="c_description" type="VARCHAR2(4000)"/>-->
+    <!--            <column name="n_version" type="INT">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
 
-<!--    <changeSet id="20250801-05-fk-remittance-good-item-performa-detail" author="soheil babadi">-->
-<!--        <comment>Add foreign key constraint from remittance good item to performa detail</comment>-->
+    <!--        </createTable>-->
 
-<!--        <addForeignKeyConstraint-->
-<!--                baseTableName="T_INS_REMITTANCE_GOOD_ITEM"-->
-<!--                baseColumnNames="F_REMITTANCE_ID"-->
-<!--                constraintName="FK_T_INS_REMITTANCE_GOOD_ITEM_ON_F_REMIITANCE"-->
-<!--                referencedTableName="T_INS_PERFORMA_DETAIL"-->
-<!--                referencedColumnNames="ID"/>-->
-<!--    </changeSet>-->
+    <!--        <addPrimaryKey-->
+    <!--                tableName="T_INS_REMITTANCE_GOOD_ITEM"-->
+    <!--                columnNames="ID"-->
+    <!--                constraintName="PK_T_INS_REMITTANCE_GOOD_ITEM"/>-->
+    <!--    </changeSet>-->
+
+    <!--    <changeSet id="20250801-04-create-t-ins-remittance-master" author="soheil babadi">-->
+
+    <!--        <preConditions onFail="MARK_RAN">-->
+    <!--            <not>-->
+    <!--                <tableExists tableName="T_INS_REMITTANCE_MASTER"/>-->
+    <!--            </not>-->
+    <!--        </preConditions>-->
+
+    <!--        <createTable tableName="T_INS_REMITTANCE_MASTER">-->
+    <!--            <column name="ID" type="NUMBER(38,0)">-->
+    <!--                <constraints primaryKey="true" nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_CREATED_DATE" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>-->
+    <!--            <column name="C_CREATED_BY" type="VARCHAR2(250)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>-->
+    <!--            <column name="C_COMMENT" type="VARCHAR2(4000)"/>-->
+    <!--            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>-->
+    <!--            <column name="N_VERSION" type="INTEGER">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_REMITTANCE_NO" type="VARCHAR2(255)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_REMITTANCE_DATE" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_VALIDITY_DATE" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_CUSTOMER_ID" type="NUMBER(38,0)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_CUSTOMER_NAME" type="VARCHAR2(200)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_ECONOMIC_CODE" type="VARCHAR2(50)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_NATIONAL_CODE" type="VARCHAR2(15)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_TARGET_ADDRESS" type="VARCHAR2(500)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_LOADING_PORT_ID" type="NUMBER(38,0)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_LOADING_PORT" type="VARCHAR2(255)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_GOOD_ID" type="NUMBER(38,0)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_GOOD_NAME" type="VARCHAR2(200)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_PACKING_NAME" type="VARCHAR2(100)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_PACKING_ID" type="INTEGER">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_LOT_NUMBER" type="VARCHAR2(255)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_CONTRACT_DATE" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_CONTRACT_NO" type="VARCHAR2(50)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_SELLER_BROKER_NAME" type="VARCHAR2(200)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_BUYER_BROKER_NAME" type="VARCHAR2(200)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_CASH_PERCENTAGE" type="DECIMAL">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_CREDIT_PERCENTAGE" type="DECIMAL">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_REMITTANCE_QUANTITY" type="DECIMAL">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_REMITTANCE_QUANTITY_CASH" type="DECIMAL">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_REMITTANCE_QUANTITY_CREDIT" type="DECIMAL">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_REMITTANCE_UNIT_PRICE_CASH" type="DECIMAL">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_REMITTANCE_UNIT_PRICE_CREDIT" type="DECIMAL">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_LC_EXPIRY_DATE" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="D_SETTLEMENT_DUE_DATE" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_ISSUER_BANK_ID" type="NUMBER(38,0)"/>-->
+    <!--            <column name="C_ISSUER_BANK_NAME" type="VARCHAR2(200)"/>-->
+    <!--            <column name="C_ISSUER_BANK_BRANCH_NAME" type="VARCHAR2(200)"/>-->
+    <!--            <column name="C_ISSUER_BANK_CODE" type="VARCHAR2(200)"/>-->
+    <!--            <column name="C_PROCESS_ID" type="VARCHAR2(50)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_WORKFLOW_APPROVE_STATUS" type="VARCHAR2(100)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_PROFORMA_MASTER_ID" type="NUMBER(38,0)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_PROFORMA_DETAIL_ID" type="NUMBER(38,0)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_LC_ID" type="NUMBER(38,0)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_LC_NO" type="VARCHAR2(255)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_ISSUE_PLACE_ID" type="NUMBER(38,0)"/>-->
+    <!--            <column name="C_ISSUE_PLACE" type="VARCHAR2(50)"/>-->
+    <!--            <column name="C_PROFORMA_NO" type="VARCHAR2(50)"/>-->
+    <!--            <column name="D_PROFORMA_DATE" type="DATETIME"/>-->
+    <!--            <column name="C_PROFORMA_ISSUE_TYPE" type="VARCHAR2(255)"/>-->
+    <!--            <column name="C_ISSUE_SOURCE_TYPE" type="VARCHAR2(50)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="C_ISSUER_NAME" type="VARCHAR2(100)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="N_ISSUER_ID" type="NUMBER(38,0)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="IS_PROCESS_FINAL" type="NUMBER(1)" defaultValue="0"/>-->
+
+
+    <!--            <column name="d_created_date" type="DATETIME">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="d_last_modified_date" type="DATETIME"/>-->
+    <!--            <column name="c_created_by" type="VARCHAR2(250)">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--            <column name="c_last_modified_by" type="VARCHAR2(250)"/>-->
+    <!--            <column name="c_comment" type="VARCHAR2(4000)"/>-->
+    <!--            <column name="c_description" type="VARCHAR2(4000)"/>-->
+    <!--            <column name="n_version" type="INT">-->
+    <!--                <constraints nullable="false"/>-->
+    <!--            </column>-->
+    <!--        </createTable>-->
+
+    <!--        <addPrimaryKey-->
+    <!--                tableName="T_INS_REMITTANCE_MASTER"-->
+    <!--                columnNames="ID"-->
+    <!--                constraintName="PK_T_INS_REMITTANCE_MASTER"/>-->
+    <!--    </changeSet>-->
+
+    <!--    <changeSet id="20250801-05-fk-remittance-good-item-performa-detail" author="soheil babadi">-->
+    <!--        <comment>Add foreign key constraint from remittance good item to performa detail</comment>-->
+
+    <!--        <addForeignKeyConstraint-->
+    <!--                baseTableName="T_INS_REMITTANCE_GOOD_ITEM"-->
+    <!--                baseColumnNames="F_REMITTANCE_ID"-->
+    <!--                constraintName="FK_T_INS_REMITTANCE_GOOD_ITEM_ON_F_REMIITANCE"-->
+    <!--                referencedTableName="T_INS_PERFORMA_DETAIL"-->
+    <!--                referencedColumnNames="ID"/>-->
+    <!--    </changeSet>-->
     <!-- End inlined create_remittance_table.xml -->
-    
+
     <!-- Include pricing currency table changes -->
     <!-- Inlined from classpath:config/liquibase/changelog/ins/pricing_currency_table.xml -->
     <!-- <include file="classpath:config/liquibase/changelog/ins/pricing_currency_table.xml"/> -->
@@ -2407,7 +2414,7 @@
 
             <column name="N_EUR_IRR_SELL" type="NUMBER(20,4)"/>
             <column name="N_EUR_IRR_BUY" type="NUMBER(20,4)"/>
-            
+
             <column name="D_CREATED_DATE" type="DATETIME">
                 <constraints nullable="false"/>
             </column>
@@ -2447,7 +2454,7 @@
 
 
         <!-- ایجاد جدول اصلی -->
-        <createTable tableName="T_INS_PRICE_CURRENCY_TYPE" >
+        <createTable tableName="T_INS_PRICE_CURRENCY_TYPE">
 
             <!-- Primary Key -->
             <column name="ID" type="BIGINT">
@@ -2455,7 +2462,7 @@
             </column>
 
             <!-- Business Field -->
-            <column name="C_RATE_TYPE" type="VARCHAR2(100)" >
+            <column name="C_RATE_TYPE" type="VARCHAR2(100)">
                 <constraints nullable="false"/>
             </column>
 
@@ -2468,41 +2475,48 @@
                 <constraints nullable="true"/>
             </column>
 
-            <column name="C_CREATED_BY" type="VARCHAR2(250)" >
+            <column name="C_CREATED_BY" type="VARCHAR2(250)">
                 <constraints nullable="false"/>
             </column>
 
-            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)" >
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)">
                 <constraints nullable="true"/>
             </column>
 
-            <column name="C_COMMENT" type="VARCHAR2(4000)" >
+            <column name="C_COMMENT" type="VARCHAR2(4000)">
                 <constraints nullable="true"/>
             </column>
 
-            <column name="C_DESCRIPTION" type="VARCHAR2(4000)" >
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)">
                 <constraints nullable="true"/>
             </column>
 
-            <column name="N_VERSION" type="NUMBER(10)"  defaultValue="0">
+            <column name="N_VERSION" type="NUMBER(10)" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
 
         </createTable>
     </changeSet>
     <!-- End inlined pricing_currency_table.xml -->
-========
+    ========
     <include file="classpath:config/liquibase/changelog/ins/create_remittance_table.xml"/>
-    
+
     <!-- Include pricing currency table changes -->
     <include file="classpath:config/liquibase/changelog/ins/pricing_currency_table.xml"/>
->>>>>>>> dev:src/main/resources/db/changelog/2025/08/initdb.xml
-    
+    >>>>>>>> dev:src/main/resources/db/changelog/2025/08/initdb.xml
+
     <!-- Include broker table changes -->
     <include file="classpath:config/liquibase/changelog/ins/create_t_ins_broker.xml"/>
-    
+
     <!-- Include price commodity table changes -->
-<<<<<<<< HEAD:src/main/resources/config/liquibase/changelog/initdb.xml
+    <
+    <
+    <
+    <
+    <
+    <
+    <
+    < HEAD:src/main/resources/config/liquibase/changelog/initdb.xml
     <!-- Inlined from classpath:config/liquibase/changelog/ins/T_INS_PRICE_COMMODITY_create_table.xml -->
     <!-- <include file="classpath:config/liquibase/changelog/ins/T_INS_PRICE_COMMODITY_create_table.xml"/> -->
     <changeSet id="20250804-01-create-seq-price-formula" author="developer">
@@ -2563,14 +2577,14 @@
         </createTable>
     </changeSet>
     <!-- End inlined T_INS_PRICE_COMMODITY_create_table.xml -->
-    
+
     <!-- Include IMS-IME-PMS mapping changes -->
     <!-- Inlined from classpath:config/liquibase/changelog/ins/ims_ime_pms_mapping.xml -->
     <!-- <include file="classpath:config/liquibase/changelog/ins/ims_ime_pms_mapping.xml"/> -->
     <changeSet id="20250805-01-create-seq-ins-pms-ime-mapping" author="saeb">
         <preConditions onFail="CONTINUE">
             <not>
-                <sequenceExists sequenceName="SEQ_INS_PMS_IME_MAPPING" />
+                <sequenceExists sequenceName="SEQ_INS_PMS_IME_MAPPING"/>
             </not>
         </preConditions>
         <!-- Create Sequence -->
@@ -2579,12 +2593,11 @@
                         incrementBy="1"/>
 
 
-
     </changeSet>
     <changeSet id="20250805-02-create-table-ins-pms-ime-mapping-tbl" author="saeb">
         <preConditions onFail="CONTINUE">
             <not>
-                <tableExists tableName="T_INS_PMS_IME_MAPPING" />
+                <tableExists tableName="T_INS_PMS_IME_MAPPING"/>
             </not>
         </preConditions>
 
@@ -2644,12 +2657,11 @@
         </createTable>
 
 
-
     </changeSet>
     <changeSet id="20250805-03-create-table-ins-pms-ime-mapping-tbl-aud" author="saeb">
         <preConditions onFail="CONTINUE">
             <not>
-                <tableExists tableName="T_INS_PMS_IME_MAPPING_AUD" />
+                <tableExists tableName="T_INS_PMS_IME_MAPPING_AUD"/>
             </not>
         </preConditions>
         <!-- Create Audit Table (for Envers) -->
@@ -3625,7 +3637,7 @@
 
     </changeSet>
     <!-- End inlined ims_ime_pms_mapping.xml -->
-    
+
     <!-- Include proforma bank bill changes -->
     <!-- Inlined from classpath:config/liquibase/changelog/ins/ins_proforma_bank_bill.xml -->
     <!-- <include file="classpath:config/liquibase/changelog/ins/ins_proforma_bank_bill.xml"/> -->
@@ -3636,19 +3648,19 @@
             </not>
         </preConditions>
         <createSequence sequenceName="SEQ_INS_PROFORMA_BANK_BILL"
-                         startValue="1"
-                         incrementBy="1"/>
+                        startValue="1"
+                        incrementBy="1"/>
     </changeSet>
 
     <changeSet id="create-table-ins-proforma-bank-bill_exchange" author="soheil">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="t_ins_proforma_bank_bill"/>
+                <tableExists tableName="T_INS_EXTRA_BANK_BILL"/>
             </not>
         </preConditions>
-        <createTable tableName="t_ins_proforma_bank_bill">
+        <createTable tableName="T_INS_EXTRA_BANK_BILL">
             <column name="id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_T_INS_EXTRA_BANK_BILL"/>
             </column>
             <column name="d_created_date" type="DATETIME">
                 <constraints nullable="false"/>
@@ -3728,12 +3740,12 @@
     <changeSet id="create-table-ins-proforma-bank-bill-exchange-aud" author="soheil">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="t_ins_proforma_bank_bill_aud"/>
+                <tableExists tableName="T_INS_EXTRA_BANK_BILL_aud"/>
             </not>
         </preConditions>
-        <createTable tableName="t_ins_proforma_bank_bill_aud">
+        <createTable tableName="T_INS_EXTRA_BANK_BILL_aud">
             <column name="rev" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill_aud"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_T_INS_EXTRA_BANK_BILL_aud"/>
             </column>
             <column name="d_created_date" type="DATETIME"/>
             <column name="d_last_modified_date" type="DATETIME"/>
@@ -3743,7 +3755,7 @@
             <column name="c_description" type="VARCHAR2(4000)"/>
             <column name="revtype" type="SMALLINT"/>
             <column name="id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill_aud"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_T_INS_EXTRA_BANK_BILL_aud"/>
             </column>
 
             <column name="n_issuer_bank_id" type="BIGINT"/>
@@ -3769,7 +3781,6 @@
             <column name="F_TRADE_ID" type="BIGINT"/>
 
 
-
             <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)"/>
             <column name="IS_RECKONING_SEND" type="NUMBER(1)"/>
             <column name="D_RECKONING_SEND_DATE" type="DATETIME"/>
@@ -3780,19 +3791,16 @@
     </changeSet>
 
 
-
-
-
     <changeSet id="20260719-06-idx-bank-bill-proforma-detail" author="soheil">
         <preConditions onFail="MARK_RAN">
             <and>
-                <tableExists tableName="t_ins_proforma_bank_bill"/>
+                <tableExists tableName="T_INS_EXTRA_BANK_BILL"/>
                 <not>
                     <indexExists indexName="idx_bank_bill_proforma_detail"/>
                 </not>
             </and>
         </preConditions>
-        <createIndex indexName="idx_bank_bill_proforma_detail" tableName="t_ins_proforma_bank_bill">
+        <createIndex indexName="idx_bank_bill_proforma_detail" tableName="T_INS_EXTRA_BANK_BILL">
             <column name="f_proforma_detail_id"/>
         </createIndex>
     </changeSet>
@@ -3800,25 +3808,25 @@
     <changeSet id="20260719-07-idx-bank-bill-proforma-master" author="soheil">
         <preConditions onFail="MARK_RAN">
             <and>
-                <tableExists tableName="t_ins_proforma_bank_bill"/>
+                <tableExists tableName="T_INS_EXTRA_BANK_BILL"/>
                 <not>
                     <indexExists indexName="idx_bank_bill_proforma_master"/>
                 </not>
             </and>
         </preConditions>
-        <createIndex indexName="idx_bank_bill_proforma_master" tableName="t_ins_proforma_bank_bill">
+        <createIndex indexName="idx_bank_bill_proforma_master" tableName="T_INS_EXTRA_BANK_BILL">
             <column name="f_performa_master_id"/>
         </createIndex>
     </changeSet>
     <!-- End inlined ins_proforma_bank_bill.xml -->
-========
+    ========
     <include file="classpath:config/liquibase/changelog/ins/T_INS_PRICE_COMMODITY_create_table.xml"/>
-    
+
     <!-- Include IMS-IME-PMS mapping changes -->
     <include file="classpath:config/liquibase/changelog/ins/ims_ime_pms_mapping.xml"/>
-    
+
     <!-- Include proforma bank bill changes -->
     <include file="classpath:config/liquibase/changelog/ins/ins_proforma_bank_bill.xml"/>
->>>>>>>> dev:src/main/resources/db/changelog/2025/08/initdb.xml
+    >>>>>>>> dev:src/main/resources/db/changelog/2025/08/initdb.xml
 
 </databaseChangeLog>

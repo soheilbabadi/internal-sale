@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
@@ -12,19 +12,19 @@
             </not>
         </preConditions>
         <createSequence sequenceName="SEQ_INS_PROFORMA_BANK_BILL"
-                         startValue="1"
-                         incrementBy="1"/>
+                        startValue="1"
+                        incrementBy="1"/>
     </changeSet>
 
     <changeSet id="create-table-ins-proforma-bank-bill_exchange" author="soheil">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="t_ins_proforma_bank_bill"/>
+                <tableExists tableName="T_INS_EXTRA_BANK_BILL"/>
             </not>
         </preConditions>
-        <createTable tableName="t_ins_proforma_bank_bill">
+        <createTable tableName="T_INS_EXTRA_BANK_BILL">
             <column name="id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_T_INS_EXTRA_BANK_BILL"/>
             </column>
             <column name="d_created_date" type="DATETIME">
                 <constraints nullable="false"/>
@@ -90,19 +90,18 @@
             <column name="C_PMS_BILL_ID" type="VARCHAR2(50)"/>
 
 
-
         </createTable>
     </changeSet>
 
     <changeSet id="create-table-ins-proforma-bank-bill-exchange-aud" author="soheil">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="t_ins_proforma_bank_bill_aud"/>
+                <tableExists tableName="T_INS_EXTRA_BANK_BILL_aud"/>
             </not>
         </preConditions>
-        <createTable tableName="t_ins_proforma_bank_bill_aud">
+        <createTable tableName="T_INS_EXTRA_BANK_BILL_aud">
             <column name="rev" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill_aud"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_T_INS_EXTRA_BANK_BILL_aud"/>
             </column>
             <column name="d_created_date" type="DATETIME"/>
             <column name="d_last_modified_date" type="DATETIME"/>
@@ -112,7 +111,7 @@
             <column name="c_description" type="VARCHAR2(4000)"/>
             <column name="revtype" type="SMALLINT"/>
             <column name="id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_t_ins_proforma_bank_bill_aud"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_T_INS_EXTRA_BANK_BILL_aud"/>
             </column>
             <column name="N_ISSUER_BANK_ID" type="BIGINT"/>
             <column name="c_issuer_bank_name" type="VARCHAR2(200)"/>
@@ -138,7 +137,6 @@
             <column name="F_TRADE_ID" type="BIGINT"/>
 
 
-
             <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)"/>
             <column name="IS_RECKONING_SEND" type="NUMBER(1)"/>
             <column name="D_RECKONING_SEND_DATE" type="DATETIME"/>
@@ -149,19 +147,16 @@
     </changeSet>
 
 
-
-
-
     <changeSet id="20260719-06-idx-bank-bill-proforma-detail" author="soheil">
         <preConditions onFail="MARK_RAN">
             <and>
-                <tableExists tableName="t_ins_proforma_bank_bill"/>
+                <tableExists tableName="T_INS_EXTRA_BANK_BILL"/>
                 <not>
                     <indexExists indexName="idx_bank_bill_proforma_detail"/>
                 </not>
             </and>
         </preConditions>
-        <createIndex indexName="idx_bank_bill_proforma_detail" tableName="t_ins_proforma_bank_bill">
+        <createIndex indexName="idx_bank_bill_proforma_detail" tableName="T_INS_EXTRA_BANK_BILL">
             <column name="f_proforma_detail_id"/>
         </createIndex>
     </changeSet>
@@ -169,13 +164,13 @@
     <changeSet id="20260719-07-idx-bank-bill-proforma-master" author="soheil">
         <preConditions onFail="MARK_RAN">
             <and>
-                <tableExists tableName="t_ins_proforma_bank_bill"/>
+                <tableExists tableName="T_INS_EXTRA_BANK_BILL"/>
                 <not>
                     <indexExists indexName="idx_bank_bill_proforma_master"/>
                 </not>
             </and>
         </preConditions>
-        <createIndex indexName="idx_bank_bill_proforma_master" tableName="t_ins_proforma_bank_bill">
+        <createIndex indexName="idx_bank_bill_proforma_master" tableName="T_INS_EXTRA_BANK_BILL">
             <column name="f_performa_master_id"/>
         </createIndex>
     </changeSet>

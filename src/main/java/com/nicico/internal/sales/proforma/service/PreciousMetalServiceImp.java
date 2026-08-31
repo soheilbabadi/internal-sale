@@ -113,9 +113,8 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		masterModel = proformaMasterRepository.save(masterModel);
 
 
-		
 		// ذخیره جزئیات و GoodItem‌ها
-		ProformaModelHelper.saveDetailAndGoodItems(detailList, masterModel.getId(),proformaDetailRepository,proformaGoodItemRepository);
+		ProformaModelHelper.saveDetailAndGoodItems(detailList, masterModel.getId(), proformaDetailRepository, proformaGoodItemRepository);
 
 		log.info("Proforma master created successfully with id: {}", masterModel.getId());
 		return masterModel;
@@ -296,7 +295,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 	 */
 	private List<ProformaDetailModel> generatePerformaDetailList(PreciousMetalDetailGenerator params) {
 		List<String> serial = proformaSerialService.getProformaSerial(1);
-		
+
 		// 1. تولید آیتم‌های کالا
 		List<ProformaGoodItemModel> goodItems = generatePerformaGoodItemList(params);
 
@@ -408,7 +407,6 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		return tradeExtractRepository.findById(tradeId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_TRADE_NOT_FOUND_DETAIL));
 	}
-
 
 
 	/**

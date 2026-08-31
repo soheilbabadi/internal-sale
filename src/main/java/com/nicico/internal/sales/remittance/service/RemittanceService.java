@@ -24,6 +24,8 @@ public interface RemittanceService {
 	List<RemittanceMasterDto.Info> getByContractNo(Long contractNo);
 
 	RemittanceMasterDto updateDescription(RemittanceUpdateRequest request);
+
 	ProcessInstanceHistory getHistoryDetail(Long id);
+
 	Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long id);
 }

@@ -12,7 +12,7 @@
 //import org.springframework.http.ResponseEntity;
 //import static org.assertj.core.api.Assertions.assertThat;
 //@Disabled("این تست فقط برای اجرای دستی است - در build خودکار اجرا نمی شود")
-////@ActiveProfiles("local")
+/// /@ActiveProfiles("local")
 //class PMSLCIntegrationTest extends BaseIntegrationTest {
 //    @Autowired
 //    private LcRepository lcRepository;

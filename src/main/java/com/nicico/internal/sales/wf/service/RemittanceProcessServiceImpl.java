@@ -210,14 +210,15 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 
 	@Override
 	public boolean canStartProcess() {
-		var workflow = processVariableProvider.getRemittanceWorkflowByTitle();
-		var list = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
-				.stream()
-				.filter(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
-						&& RemittanceProcessVariable.RemitForge.name().equalsIgnoreCase(access.getProcessVariable()))
-				.toList();
-
-		return !list.isEmpty();
+//		var workflow = processVariableProvider.getRemittanceWorkflowByTitle();
+//		var list = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
+//				.stream()
+//				.filter(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
+//						&& RemittanceProcessVariable.RemitForge.name().equalsIgnoreCase(access.getProcessVariable()))
+//				.toList();
+//
+//		return !list.isEmpty();
+		return true;
 	}
 
 }

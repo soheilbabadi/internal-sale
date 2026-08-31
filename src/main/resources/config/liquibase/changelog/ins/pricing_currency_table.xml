@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
 
@@ -27,7 +27,7 @@
 
             <column name="N_EUR_IRR_SELL" type="NUMBER(20,4)"/>
             <column name="N_EUR_IRR_BUY" type="NUMBER(20,4)"/>
-            
+
             <column name="D_CREATED_DATE" type="DATETIME">
                 <constraints nullable="false"/>
             </column>
@@ -67,7 +67,7 @@
 
 
         <!-- ایجاد جدول اصلی -->
-        <createTable tableName="T_INS_PRICE_CURRENCY_TYPE" >
+        <createTable tableName="T_INS_PRICE_CURRENCY_TYPE">
 
             <!-- Primary Key -->
             <column name="ID" type="BIGINT">
@@ -75,7 +75,7 @@
             </column>
 
             <!-- Business Field -->
-            <column name="C_RATE_TYPE" type="VARCHAR2(100)" >
+            <column name="C_RATE_TYPE" type="VARCHAR2(100)">
                 <constraints nullable="false"/>
             </column>
 
@@ -88,23 +88,23 @@
                 <constraints nullable="true"/>
             </column>
 
-            <column name="C_CREATED_BY" type="VARCHAR2(250)" >
+            <column name="C_CREATED_BY" type="VARCHAR2(250)">
                 <constraints nullable="false"/>
             </column>
 
-            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)" >
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)">
                 <constraints nullable="true"/>
             </column>
 
-            <column name="C_COMMENT" type="VARCHAR2(4000)" >
+            <column name="C_COMMENT" type="VARCHAR2(4000)">
                 <constraints nullable="true"/>
             </column>
 
-            <column name="C_DESCRIPTION" type="VARCHAR2(4000)" >
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)">
                 <constraints nullable="true"/>
             </column>
 
-            <column name="N_VERSION" type="NUMBER(10)"  defaultValue="0">
+            <column name="N_VERSION" type="NUMBER(10)" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
 

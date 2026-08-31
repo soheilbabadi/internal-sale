@@ -4,18 +4,18 @@ CREATE SEQUENCE SEQ_INS_PROFORMA_BANK_BILL
     NOCACHE
     NOCYCLE;
 
-CREATE TABLE t_ins_proforma_bank_bill
+CREATE TABLE T_INS_EXTRA_BANK_BILL
 (
-    id                        NUMBER(19, 0)   NOT NULL,
-    d_created_date            TIMESTAMP       NOT NULL,
+    id                        NUMBER(19, 0)                  NOT NULL,
+    d_created_date            TIMESTAMP                      NOT NULL,
     d_last_modified_date      TIMESTAMP,
-    c_created_by              VARCHAR2(250)   NOT NULL,
+    c_created_by              VARCHAR2(250)                  NOT NULL,
     c_last_modified_by        VARCHAR2(250),
     c_comment                 VARCHAR2(4000),
     c_description             VARCHAR2(4000),
-    n_version                 NUMBER(10, 0)   NOT NULL,
+    n_version                 NUMBER(10, 0)                  NOT NULL,
     N_ISSUER_BANK_ID          NUMBER(19, 0),
-    c_issuer_bank_name        VARCHAR2(200)   NOT NULL,
+    c_issuer_bank_name        VARCHAR2(200)                  NOT NULL,
 
     c_branch_code             VARCHAR2(50),
     c_branch_name             VARCHAR2(200),
@@ -33,22 +33,22 @@ CREATE TABLE t_ins_proforma_bank_bill
     f_performa_master_id      NUMBER(19, 0),
     C_WORKFLOW_APPROVE_STATUS VARCHAR2(100),
     C_REVERSAL_PROCESS_ID     VARCHAR2(50),
-    C_PROCESS_ID              VARCHAR2(50)    NOT NULL,
-    N_CONTRACT_NO             NUMBER(19, 0)   NOT NULL,
-    F_TRADE_ID                NUMBER(19, 0)   NOT NULL,
-    C_ACKNOWLEDGMENT          VARCHAR2(50)    DEFAULT 'UNKNOWN' NOT NULL,
-    IS_RECKONING_SEND         NUMBER(1)       DEFAULT 0 NOT NULL,
+    C_PROCESS_ID              VARCHAR2(50)                   NOT NULL,
+    N_CONTRACT_NO             NUMBER(19, 0)                  NOT NULL,
+    F_TRADE_ID                NUMBER(19, 0)                  NOT NULL,
+    C_ACKNOWLEDGMENT          VARCHAR2(50) DEFAULT 'UNKNOWN' NOT NULL,
+    IS_RECKONING_SEND         NUMBER(1)    DEFAULT 0         NOT NULL,
     D_RECKONING_SEND_DATE     TIMESTAMP,
     C_CANCELLATION_REASON     VARCHAR2(50),
     D_CANCEL_DATE             TIMESTAMP,
     C_PMS_BILL_ID             VARCHAR2(50),
-    CONSTRAINT pk_t_ins_proforma_bank_bill PRIMARY KEY (id)
+    CONSTRAINT pk_T_INS_EXTRA_BANK_BILL PRIMARY KEY (id)
 );
 
 -- 3. Envers audit table
-CREATE TABLE t_ins_proforma_bank_bill_aud
+CREATE TABLE T_INS_EXTRA_BANK_BILL_aud
 (
-    rev                       NUMBER(19, 0)   NOT NULL,
+    rev                       NUMBER(19, 0) NOT NULL,
     d_created_date            TIMESTAMP,
     d_last_modified_date      TIMESTAMP,
     c_created_by              VARCHAR2(250),
@@ -56,7 +56,7 @@ CREATE TABLE t_ins_proforma_bank_bill_aud
     c_comment                 VARCHAR2(4000),
     c_description             VARCHAR2(4000),
     revtype                   NUMBER(3, 0),
-    id                        NUMBER(19, 0)   NOT NULL,
+    id                        NUMBER(19, 0) NOT NULL,
     N_ISSUER_BANK_ID          NUMBER(19, 0),
     c_issuer_bank_name        VARCHAR2(200),
 
@@ -85,7 +85,7 @@ CREATE TABLE t_ins_proforma_bank_bill_aud
     C_CANCELLATION_REASON     VARCHAR2(50),
     D_CANCEL_DATE             TIMESTAMP,
     C_PMS_BILL_ID             VARCHAR2(50),
-    CONSTRAINT pk_t_ins_proforma_bank_bill_aud PRIMARY KEY (id, rev)
+    CONSTRAINT pk_T_INS_EXTRA_BANK_BILL_aud PRIMARY KEY (id, rev)
 );
 
 

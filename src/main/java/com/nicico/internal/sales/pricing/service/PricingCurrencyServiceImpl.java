@@ -55,7 +55,7 @@ public class PricingCurrencyServiceImpl implements PricingCurrencyService {
 
 		PricingCurrencyModel model = repository.findByPersianShortDate(request.getPersianShortDate())
 				.orElse(new PricingCurrencyModel());
-		
+
 		BeanUtils.copyProperties(request, model);
 		model.setDayOfWeek(dateRecord.getDayOfWeek());
 		model.setRateType(priceType.getRateType());

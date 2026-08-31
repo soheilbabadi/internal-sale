@@ -42,7 +42,7 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 		if (request.getStartDate() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_START_DATE_EMPTY);
 		}
-		Date expireDate = DateUtility.subtractDay(request.getStartDate(),1);
+		Date expireDate = DateUtility.subtractDay(request.getStartDate(), 1);
 		List<SaleConditionModel> rulesToExpire = saleConditionRepository.findAllByGoodId(request.getGoodId()).stream()
 				.filter(rule -> rule.getExpireDate() == null || rule.getExpireDate().after(now))
 				.toList();
@@ -118,7 +118,7 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						MSG_GOOD_NOT_FOUND));
 
-		log.info("get sales condition for good: "+ good.getName()+ " on date ->" + DateUtility.toGregorianDate(trade.getContractDate()));
+		log.info("get sales condition for good: " + good.getName() + " on date ->" + DateUtility.toGregorianDate(trade.getContractDate()));
 
 		return this.getOnSpecificDateModel(good.getId(), DateUtility.toGregorianDate(trade.getContractDate()));
 	}

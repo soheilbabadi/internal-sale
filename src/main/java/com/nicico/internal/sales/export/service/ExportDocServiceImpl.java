@@ -267,6 +267,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 			throw new InternalSaleCustomException.FileContentException(exception.getMessage());
 		}
 	}
+
 	private void addRemittanceBasicReplacements(List<DocumentReplacement> replacements, RemittanceMasterModel masterModel) {
 		String lcDate = DateUtility.getJalaliDate(masterModel.getLcExpiryDate());
 		lcDate = lcDate.contains("1348") ? DEFAULT_PLACEHOLDER : lcDate;

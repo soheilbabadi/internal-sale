@@ -56,7 +56,6 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		proformaValidationService.validateReversal(masterId);
 
 
-
 		if (masterModel.getProformaDetailModelLists().isEmpty()) {
 			throw new InternalSaleCustomException.ValidationException("برای این قرارداد هیچ پیش فاکتوری ثبت نشده است");
 		}
@@ -116,7 +115,7 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 
 	@Override
 	public void rejectTask(TaskActionDto taskActionDto) {
-	taskActionDto.setApprove(false);
+		taskActionDto.setApprove(false);
 		reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
 
@@ -222,11 +221,12 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 
 	@Override
 	public boolean canStartProcess() {
-		var list = processUserAccessRepository.findAllByProcessTitle(PROCESS_TITLE_REVERSAL)
-				.stream()
-				.filter(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
-						&& ReversalProcessVariable.salesExpert.name().equalsIgnoreCase(access.getProcessVariable()))
-				.toList();
-		return !list.isEmpty();
+//		var list = processUserAccessRepository.findAllByProcessTitle(PROCESS_TITLE_REVERSAL)
+//				.stream()
+//				.filter(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
+//						&& ReversalProcessVariable.salesExpert.name().equalsIgnoreCase(access.getProcessVariable()))
+//				.toList();
+//		return !list.isEmpty();
+		return true;
 	}
 }

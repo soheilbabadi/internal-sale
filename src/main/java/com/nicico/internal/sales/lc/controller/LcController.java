@@ -11,7 +11,7 @@ import com.nicico.internal.sales.lc.dto.request.LcCancelRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateAcceptedLcRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateStartedLcRequest;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
-import com.nicico.internal.sales.lc.service.LcNosaCodeService;
+import com.nicico.internal.sales.nosa.LcNosaCodeService;
 import com.nicico.internal.sales.lc.service.LcService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import io.swagger.v3.oas.annotations.Operation;

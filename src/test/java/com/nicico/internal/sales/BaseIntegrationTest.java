@@ -14,7 +14,7 @@
 //import org.springframework.web.client.RestTemplate;
 //import java.util.Map;
 //import static org.assertj.core.api.Assertions.assertThat;
-///**
+/// **
 // * کلاس پایه برای تست های یکپارچه سازی که نیاز به احراز هویت دارند
 // * تمام تست هایی که نیاز به توکن دارند می توانند از این کلاس ارث بری کنند
 // */

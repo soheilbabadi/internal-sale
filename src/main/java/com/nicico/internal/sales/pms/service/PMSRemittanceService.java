@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface PMSRemittanceService {
-    void create(Long remittanceId, String username, boolean resend) throws IOException;
+	void create(Long remittanceId, String username, boolean resend) throws IOException;
 
 	void update(Long remittanceId, String username) throws IOException;
 

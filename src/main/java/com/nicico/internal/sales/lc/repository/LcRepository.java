@@ -42,7 +42,7 @@ public interface LcRepository extends JpaRepository<LcModel, Long>, JpaSpecifica
 
 	@Query(value = "SELECT l.* FROM T_INS_LC l " +
 			"INNER JOIN T_INS_PERFORMA_DETAIL pd ON l.N_PROFORMA_DETAIL_ID = pd.ID " +
-			"WHERE pd.C_PROFORMA_REVERSAL_STATUS != 'CANCELED' " +
+			"WHERE pd.C_PROFORMA_REVERSAL_STATUS != 'CANCELED' and l.C_ACKNOWLEDGMENT != 'CANCELED' " +
 			"AND l.N_PROFORMA_MASTER_ID = :proformaMasterId",
 			nativeQuery = true)
 	List<LcModel> findByMasterId(@Param("proformaMasterId") Long proformaMasterId);

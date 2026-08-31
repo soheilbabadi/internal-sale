@@ -4,7 +4,7 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.oauth.common.repository.OAUserDAO;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.extrabill.model.ProformaBankBillModel;
+import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.model.LcModel;
@@ -110,8 +110,9 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	}
 
 
-	public Acknowledgment determineAcknowledgment(ProformaBankBillModel proformaBankBillModel) {
-		Map<String, List<UserTaskReportDTO>> report = getUserTaskReportOrEmpty(proformaBankBillModel.getProcessId());
+	@Override
+	public Acknowledgment determineAcknowledgment(ExtraBankBillModel extraBankBillModel) {
+		Map<String, List<UserTaskReportDTO>> report = getUserTaskReportOrEmpty(extraBankBillModel.getProcessId());
 		if (report.isEmpty()) {
 			return Acknowledgment.UNKNOWN;
 		}
@@ -123,7 +124,7 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 				.toList();
 
 
-		if (proformaBankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED) {
+		if (extraBankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED) {
 			return Acknowledgment.FINISHED;
 		}
 
@@ -173,13 +174,13 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 
 	@Override
 	public ProcessInstanceHistory getProformaBankBillHistoryDetail(Long billId) {
-		ProformaBankBillModel billModel = findExtraBillOrThrow(billId);
+		ExtraBankBillModel billModel = findExtraBillOrThrow(billId);
 		return getHistoryWithResolvedAssignees(billModel.getProcessId());
 	}
 
 	@Override
 	public Map<String, List<UserTaskReportDTO>> getProformaBankBillSummaryReport(Long billId) {
-		ProformaBankBillModel billModel = findExtraBillOrThrow(billId);
+		ExtraBankBillModel billModel = findExtraBillOrThrow(billId);
 		return getUserTaskReportOrEmpty(billModel.getProcessId());
 	}
 
@@ -189,7 +190,7 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	}
 
 
-	private ProformaBankBillModel findExtraBillOrThrow(Long extraBillId) {
+	private ExtraBankBillModel findExtraBillOrThrow(Long extraBillId) {
 		return extraBillRepository.findById(extraBillId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
 	}
@@ -210,6 +211,26 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 			if (lcModel.getAcknowledgment() != determined) {
 				lcModel.setAcknowledgment(determined);
 				lcRepository.saveAndFlush(lcModel);
+			}
+		}
+	}
+
+
+	@Override
+	public void updateAllExtraBillAcknowledgments() {
+		List<ExtraBankBillModel> extraBankBillModels = extraBillRepository.findAllByWorkflowApproveStatusIn(
+				List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
+
+		for (ExtraBankBillModel bankBillModel : extraBankBillModels) {
+			if (isTerminalAcknowledgment(bankBillModel.getAcknowledgment())) {
+				continue;
+			}
+
+			Acknowledgment determined = determineAcknowledgment(bankBillModel);
+
+			if (bankBillModel.getAcknowledgment() != determined) {
+				bankBillModel.setAcknowledgment(determined);
+				extraBillRepository.saveAndFlush(bankBillModel);
 			}
 		}
 	}
@@ -305,4 +326,6 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 				localVars.containsKey(APPROVED_KEY) &&
 				Boolean.TRUE.equals(localVars.get(APPROVED_KEY));
 	}
+
+
 }

@@ -16,13 +16,13 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ProformaCreationContext {
-    
-    private final TradeExtractModel tradeExtract;
-    private final IMETradeModel tradeModel;
-    private final GoodsModel goodsModel;
-    private final SaleConditionModel saleConditionModel;
-    private final GoodsBucketModel goodsBucketModel;
-    private final CustomerModel customerModel;
-    private final Integer jalaliYear;
-    
+
+	private final TradeExtractModel tradeExtract;
+	private final IMETradeModel tradeModel;
+	private final GoodsModel goodsModel;
+	private final SaleConditionModel saleConditionModel;
+	private final GoodsBucketModel goodsBucketModel;
+	private final CustomerModel customerModel;
+	private final Integer jalaliYear;
+
 }

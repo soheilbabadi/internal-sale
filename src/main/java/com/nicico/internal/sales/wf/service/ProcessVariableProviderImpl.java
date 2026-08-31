@@ -151,7 +151,6 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	}
 
 
-
 	@Override
 	public Map<String, String> getProformaUserAccess() {
 		var workflow = getProformaWorkflowByTitle();
@@ -211,16 +210,21 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 
 	@Override
 	public ReviewTaskRequest prepareReviewTaskRequest(TaskActionDto taskActionDto) {
-		TaskDetail taskInfo = bpmsClientService.getTaskDetail(taskActionDto.getTaskId());
-		String action = taskActionDto.getApprove() ? "تایید" : "رد";
-		ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
-		reviewTaskRequest.setProcessInstanceId(taskInfo.getProcessInstanceId());
-		reviewTaskRequest.setUserId(SecurityUtil.getUserId().toString());
-		reviewTaskRequest.setUserName(SecurityUtil.getUsername());
-		reviewTaskRequest.setTaskId(taskActionDto.getTaskId());
-		reviewTaskRequest.setApprove(taskActionDto.getApprove());
-		reviewTaskRequest.setDescription(action + " پروسه ");
-		return reviewTaskRequest;
+		try {
+			TaskDetail taskInfo = bpmsClientService.getTaskDetail(taskActionDto.getTaskId());
+			String action = taskActionDto.getApprove() ? "تایید" : "رد";
+			ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
+			reviewTaskRequest.setProcessInstanceId(taskInfo.getProcessInstanceId());
+			reviewTaskRequest.setUserId(SecurityUtil.getUserId().toString());
+			reviewTaskRequest.setUserName(SecurityUtil.getUsername());
+			reviewTaskRequest.setTaskId(taskActionDto.getTaskId());
+			reviewTaskRequest.setApprove(taskActionDto.getApprove());
+			reviewTaskRequest.setDescription(action + " پروسه ");
+			return reviewTaskRequest;
+		} catch (Exception e) {
+			throw new InternalSaleCustomException.ApplicationServerException("خواندن اطلاعات تسک به مشکل خورده است");
+		}
+
 	}
 
 	@Override

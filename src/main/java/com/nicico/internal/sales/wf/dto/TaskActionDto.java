@@ -18,4 +18,5 @@ public class TaskActionDto implements Serializable {
 	private String taskId;
 	private String comment;
 	private Boolean approve;
+
 }

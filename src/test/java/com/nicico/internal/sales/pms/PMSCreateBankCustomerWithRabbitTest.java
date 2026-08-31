@@ -18,7 +18,7 @@
 //import org.springframework.data.jpa.domain.Specification;
 //
 //@Disabled("این تست فقط برای اجرای دستی است - در build خودکار اجرا نمی شود")
-////@ActiveProfiles("local")
+/// /@ActiveProfiles("local")
 //class PMSCreateBankCustomerWithRabbitTest extends BaseIntegrationTest {
 //    @Autowired
 //    private PmsBankCreateRabbitService pmsBankCreateRabbitService;
