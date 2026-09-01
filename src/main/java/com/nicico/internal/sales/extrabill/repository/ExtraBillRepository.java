@@ -40,4 +40,6 @@ public interface ExtraBillRepository extends JpaRepository<ExtraBankBillModel, L
 	Optional<ExtraBankBillModel> findLastInProgressByProformaDetailId(
 			@Param("detailId") Long detailId
 	);
+
+	List<ExtraBankBillModel> findAllByProcessId(String processInstanceId);
 }

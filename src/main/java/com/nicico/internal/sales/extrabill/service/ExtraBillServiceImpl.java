@@ -17,12 +17,14 @@ import com.nicico.internal.sales.extrabill.repository.ProformaBankBillReportRepo
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
+import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.lc.service.LcServiceHelper;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
+import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -139,27 +141,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.toList();
 	}
 
-	@Override
-	public String generateLcBrokerEmailContent(Long id) {
 
-
-		var extraBillModel = extraBillRepository.findById(id)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_SALES_CONTRACT_NOT_FOUND));
-
-
-		var masterModel = proformaMasterRepository.findById(extraBillModel.getProformaMasterId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-						MSG_SALES_CONTRACT_NOT_FOUND));
-
-		ProformaDetailModel detail = proformaDetailRepository.findById(extraBillModel.getProformaDetailId()).get();
-		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest dto = lcServiceHelper.buildLcBrokerEmailRequest(detail, broker);
-
-		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
-				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
-				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
-				" جهت تسویه مورد تایید می باشد";
-	}
 	// ==================== PRIVATE HELPER METHODS ====================
 
 
@@ -428,6 +410,58 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		}
 
 	}
+
+
+	@Override
+	public void cancel(ExtraBillCancelRequest request) {
+
+		ExtraBankBillModel bill = extraBillRepository.findById(request.getId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+
+		List<ExtraBankBillModel> lcModelList = extraBillRepository.findAllByProformaMasterId(bill.getProformaMasterId());
+
+		lcModelList.forEach(model -> cancelExtraBillModel(model, request));
+	}
+
+
+	public void cancelExtraBillModel(ExtraBankBillModel model, ExtraBillCancelRequest request) {
+		model.setCancelDate(new Date());
+		model.setCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
+		model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
+
+		String cancellationRecord = buildCancellationRecord(request);
+		appendCancellationRecord(model, cancellationRecord);
+
+		extraBillRepository.save(model);
+	}
+
+	private String buildCancellationRecord(ExtraBillCancelRequest request) {
+		String timestamp = DateUtility.getJalaliDate(new Date());
+		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
+		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
+
+		return String.format(
+				"""
+						سابقه ابطال برات الکترونیک
+						**************************
+						تاریخ و زمان ابطال: %s
+						نام کاربری اقدام کننده: %s
+						دلیل ابطال: %s
+						توضیحات تکمیلی: %s
+						وضعیت: ابطال شده
+						**************************""",
+				timestamp, userFullName, LcCancellationReason.BUYER_WITHDRAWAL, notes
+		);
+	}
+	private void appendCancellationRecord(ExtraBankBillModel model, String cancellationRecord) {
+		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
+		if (!existingDesc.isEmpty()) {
+			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
+		} else {
+			model.setDescription(cancellationRecord);
+		}
+	}
+
 
 
 }

@@ -20,7 +20,6 @@ public interface ExtraBillService {
 
 	List<ProformaBankBillDto.Info> getByMasterId(Long proformaMasterId);
 
-	String generateLcBrokerEmailContent(Long id);
 
 	ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto);
 
@@ -40,4 +39,7 @@ public interface ExtraBillService {
 	Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId);
 
 	void markAllLcsAsReckoning(Long proformaMasterId);
+
+	void cancel(ExtraBillCancelRequest request);
+
 }

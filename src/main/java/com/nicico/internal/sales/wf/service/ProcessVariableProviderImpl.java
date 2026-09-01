@@ -210,7 +210,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 
 	@Override
 	public ReviewTaskRequest prepareReviewTaskRequest(TaskActionDto taskActionDto) {
-		try {
+
 			TaskDetail taskInfo = bpmsClientService.getTaskDetail(taskActionDto.getTaskId());
 			String action = taskActionDto.getApprove() ? "تایید" : "رد";
 			ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
@@ -221,9 +221,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 			reviewTaskRequest.setApprove(taskActionDto.getApprove());
 			reviewTaskRequest.setDescription(action + " پروسه ");
 			return reviewTaskRequest;
-		} catch (Exception e) {
-			throw new InternalSaleCustomException.ApplicationServerException("خواندن اطلاعات تسک به مشکل خورده است");
-		}
+
 
 	}
 

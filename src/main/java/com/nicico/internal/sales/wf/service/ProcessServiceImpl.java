@@ -2,7 +2,6 @@ package com.nicico.internal.sales.wf.service;
 
 import com.nicico.bpmsclient.config.BPMNClientException;
 import com.nicico.bpmsclient.model.flowable.enums.ProcessDefinitionStatus;
-import com.nicico.bpmsclient.model.flowable.enums.SortField;
 import com.nicico.bpmsclient.model.flowable.enums.SortType;
 import com.nicico.bpmsclient.model.flowable.process.ProcessDefinitionRequestDTO;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInsHistoryDTO;
@@ -46,28 +45,39 @@ public class ProcessServiceImpl implements ProcessService {
 		return tasks;
 	}
 
+
 	@Override
 	public GridDTO searchTaskInbox(TaskSearchDto taskSearchDto, int page, int size) {
 		String currentUserId = SecurityUtil.getUserId().toString();
 		taskSearchDto.setUserIds(List.of(currentUserId));
+		taskSearchDto.setTenantId("internal-sales");
 		taskSearchDto.setWithLastComment(false);
-		taskSearchDto.setSortField(SortField.START_TIME);
-		GridDTO result = bpmsClientService.infiniteSearchTask(taskSearchDto, page, size);
-		if (result == null || result.getData() == null) return null;
-//		String marker = "ثبت پیش فاکتور";
-		result.getData().removeIf(task -> {
-			String name = task.getName();
-//			if (!name.contains(marker)) return false;
-			Map<?, ?> details = task.getInstanceDetails();
-			if (details != null) {
-				Object starterObj = details.get("starter");
-				String starter = starterObj == null ? null : starterObj.toString();
-				return !currentUserId.equals(starter);
-			}
-			return true;
-		});
-		return result.getData().isEmpty() ? null : result;
+
+		return bpmsClientService.infiniteSearchTask(taskSearchDto, page, size);
 	}
+
+//	@Override
+//	public GridDTO searchTaskInbox(TaskSearchDto taskSearchDto, int page, int size) {
+//		String currentUserId = SecurityUtil.getUserId().toString();
+//		taskSearchDto.setUserIds(List.of(currentUserId));
+//		taskSearchDto.setWithLastComment(false);
+//		GridDTO result = bpmsClientService.infiniteSearchTask(taskSearchDto, page, size);
+//		if (result == null || result.getData() == null) return null;
+//		String marker = "ثبت پیش فاکتور";
+//		result.getData().removeIf(task -> {
+//			String name = task.getName();
+//			if (!name.contains(marker)) return false;
+//			Map<?, ?> details = task.getInstanceDetails();
+//			if (details != null) {
+//				Object starterObj = details.get("starter");
+//				String starter = starterObj == null ? null : starterObj.toString();
+//				return !currentUserId.equals(starter);
+//			}
+//			return true;
+//		});
+//		return result.getData().isEmpty() ? null : result;
+//	}
+
 
 	@SuppressWarnings("unchecked")
 	@Override

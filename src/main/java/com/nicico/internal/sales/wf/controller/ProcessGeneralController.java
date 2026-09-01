@@ -175,7 +175,7 @@ public class ProcessGeneralController {
 	@Operation(summary = "جستجوی کارتابل", description = "جستجو در تسک های کارتابل بر اساس فیلترهای ارسالی")
 	@PostMapping("/search-task-inbox")
 	public ResponseEntity<GridDTO> searchInbox(
-			@RequestBody @Valid TaskSearchDto taskSearchDto,
+			@RequestBody  TaskSearchDto taskSearchDto,
 			@RequestParam(defaultValue = "0") Integer pageIndex,
 			@RequestParam(defaultValue = "10") Integer pageSize) {
 

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MultiValueMap;
@@ -127,7 +128,6 @@ public class ExtraBillController {
 	)
 
 	@GetMapping("/audit-history/{extraBillId}")
-
 	public ResponseEntity<List<ProformaBankBillAuditDto>> getAuditHistory(@PathVariable Long extraBillId) {
 		return ResponseEntity.ok(service.getAuditHistory(extraBillId));
 	}
@@ -137,7 +137,6 @@ public class ExtraBillController {
 			description = "لیست برات‌هایی که آماده فرآیند تسویه هستند را بر اساس فیلترهای دریافتی برمی‌گرداند."
 	)
 	@PostMapping("/search/ready-reckoning")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
 	public ResponseEntity<SearchDTO.SearchRs<ProformaBankBillDto.Info>> findReadyReckoning(
 			@RequestBody(required = false) SearchDTO.SearchRq request) {
 		return ResponseEntity.ok(service.findReadyReckoning(request));
@@ -148,7 +147,6 @@ public class ExtraBillController {
 			description = "تاریخچه کامل گردش کار (Workflow) یک برات شامل تاییدیه‌ها، ردیه‌ها و توضیحات را برمی‌گرداند."
 	)
 	@GetMapping("/history/{extraBillId}")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
 	public ResponseEntity<ProcessInstanceHistory> getExtraBillHistoryDetail(@PathVariable Long extraBillId) {
 		return ResponseEntity.ok(service.getHistoryDetail(extraBillId));
 	}
@@ -158,7 +156,6 @@ public class ExtraBillController {
 			description = "محتوای HTML ایمیل فارسی برای اطلاع‌رسانی به کارگزار درباره جزئیات برات را تولید می‌کند."
 	)
 	@GetMapping("/get-broker-email-content/{extraBillId}")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
 	public ResponseEntity<String> generateExtraBillBrokerEmailContent(@PathVariable long extraBillId) {
 		return ResponseEntity.ok(service.generateExtraBillBrokerEmailContent(extraBillId));
 	}
@@ -168,9 +165,15 @@ public class ExtraBillController {
 			description = "گزارش وظایف کاربران مرتبط با گردش کار برات را برمی‌گرداند."
 	)
 	@GetMapping("/user-tasks-report/{extraBillId}")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
-
 	public ResponseEntity<?> getUserTasksReport(@PathVariable Long extraBillId) {
 		return ResponseEntity.ok(service.getUserTasksReport(extraBillId));
 	}
+
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+	@PutMapping("/cancel-extrabill")
+	public ResponseEntity<?> cancelLc(@RequestBody ExtraBillCancelRequest request) {
+		service.cancel(request);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
 }

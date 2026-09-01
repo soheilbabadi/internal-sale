@@ -283,11 +283,12 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 
 	@Override
 	public boolean canStartProcess() {
-		var workflow = processVariableProvider.getProformaWorkflowByTitle();
-		return processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
-				.stream()
-				.anyMatch(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
-						&& ProformaProcessVariable.Proforma.name().equalsIgnoreCase(access.getProcessVariable()));
+//		var workflow = processVariableProvider.getProformaWorkflowByTitle();
+//		return processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
+//				.stream()
+//				.anyMatch(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
+//						&& ProformaProcessVariable.Proforma.name().equalsIgnoreCase(access.getProcessVariable()));
+		return true;
 	}
 
 	// -------------------------------------------------------------------------
