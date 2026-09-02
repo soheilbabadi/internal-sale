@@ -26,60 +26,56 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Data
 @Audited(targetAuditMode = NOT_AUDITED)
 @Subselect("""
-
-SELECT
-    tpbb.ID,
-    tpbb.C_ISSUER_BANK_NAME,
-    tpbb.C_BRANCH_CODE,
-    tpbb.C_BRANCH_NAME,
-    tpbb.C_PAYMENT_CITY,
-    tpbb.C_AGENT_BANK_NAME,
-    tpbb.C_NOSA_CODE,
-    tpbb.C_SEPAM_CODE,
-    tpbb.C_TREASURY_ID,
-    tpbb.D_ISSUE_DATE,
-    tpbb.D_DUE_DATE,
-    tpbb.N_CONTRACT_NO,
-    tpbb.F_TRADE_ID,
-    tpbb.F_PERFORMA_MASTER_ID,
-    tpbb.C_WORKFLOW_APPROVE_STATUS AS BILL_STATUS,
-    tpbb.C_PROCESS_ID,
-    tpbb.C_ACKNOWLEDGMENT,
-    tpbb.IS_RECKONING_SEND,
-    tpbb.D_RECKONING_SEND_DATE,
-    tpbb.C_PMS_BILL_ID,
-    tpbb.D_CANCEL_DATE,
-    tpbb.C_CANCELLATION_REASON,
-    tpbb.C_EXTRA_BILL_FILE_ID,
-    tpbb.C_DISPATCH_FILE_ID,
-    tit.BUYER_NAME,
-    tit.BUYER_NATIONAL_CODE,
-    tit.COMMODITY_CODE,
-    tit.CONTRACT_DATE AS TRADE_CONTRACT_DATE,
-    tit.PAYMENT_CODE,
-    tipm.C_CUSTOMER_NAME,
-    tipm.c_national_code AS CUSTOMER_NATIONAL_CODE,
-    tipm.C_GOOD_NAME,
-    tipm.N_TOTAL_FINAL_AMOUNT,
-    tipm.N_TOTAL_CASH_AMOUNT,
-    tipm.N_TOTAL_CREDIT_AMOUNT,
-    tipm.C_WORKFLOW_APPROVE_STATUS AS PROFORMA_STATUS,
-    tipm.N_BROKER_ID,
-    tipm.C_BROKER_NAME,
-    tipm.C_BROKER_NATIONAL_CODE,
-    tipm.N_TOTAL_QUANTITY,
-    tipm.C_OFFER_DESCRIPTION,
-    tipm.C_IME_COMMODITY_SYMBOL,
-    tipm.N_GOOD_ID,
-    tipd.C_PERFORMA_NO,
-    tipd.D_PERFORMA_DATE
-   
-FROM T_INS_EXTRA_BANK_BILL tpbb
-         LEFT JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
-         INNER JOIN T_INS_PERFORMA_MASTER tipm ON tipm.ID = tpbb.F_PERFORMA_MASTER_ID
-         INNER JOIN T_INS_PERFORMA_DETAIL tipd ON tipd.F_PERFORMA_MASTER_ID=tipm.ID 
-         
-
+		SELECT
+		    tpbb.ID,
+		    tpbb.C_ISSUER_BANK_NAME,
+		    tpbb.C_BRANCH_CODE,
+		    tpbb.C_BRANCH_NAME,
+		    tpbb.C_PAYMENT_CITY,
+		    tpbb.C_AGENT_BANK_NAME,
+		    tpbb.C_NOSA_CODE,
+		    tpbb.C_SEPAM_CODE,
+		    tpbb.C_TREASURY_ID,
+		    tpbb.D_ISSUE_DATE,
+		    tpbb.D_DUE_DATE,
+		    tpbb.N_CONTRACT_NO,
+		    tpbb.F_TRADE_ID,
+		    tpbb.F_PERFORMA_MASTER_ID,
+		    tpbb.C_WORKFLOW_APPROVE_STATUS AS BILL_STATUS,
+		    tpbb.C_PROCESS_ID,
+		    tpbb.C_ACKNOWLEDGMENT,
+		    tpbb.IS_RECKONING_SEND,
+		    tpbb.D_RECKONING_SEND_DATE,
+		    tpbb.C_PMS_BILL_ID,
+		    tpbb.D_CANCEL_DATE,
+		    tpbb.C_CANCELLATION_REASON,
+		    tpbb.C_EXTRA_BILL_FILE_ID,
+		    tpbb.C_DISPATCH_FILE_ID,
+		    tit.BUYER_NAME,
+		    tit.BUYER_NATIONAL_CODE,
+		    tit.COMMODITY_CODE,
+		    tit.CONTRACT_DATE AS TRADE_CONTRACT_DATE,
+		    tit.PAYMENT_CODE,
+		    tipm.C_CUSTOMER_NAME,
+		    tipm.C_NATIONAL_CODE AS CUSTOMER_NATIONAL_CODE,
+		    tipm.C_GOOD_NAME,
+		    tipm.N_TOTAL_FINAL_AMOUNT,
+		    tipm.N_TOTAL_CASH_AMOUNT,
+		    tipm.N_TOTAL_CREDIT_AMOUNT,
+		    tipm.C_WORKFLOW_APPROVE_STATUS AS PROFORMA_STATUS,
+		    tipm.N_BROKER_ID,
+		    tipm.C_BROKER_NAME,
+		    tipm.C_BROKER_NATIONAL_CODE,
+		    tipm.N_TOTAL_QUANTITY,
+		    tipm.C_OFFER_DESCRIPTION,
+		    tipm.C_IME_COMMODITY_SYMBOL,
+		    tipm.N_GOOD_ID,
+		    tipd.C_PERFORMA_NO,
+		    tipd.D_PERFORMA_DATE
+		FROM T_INS_EXTRA_BANK_BILL tpbb
+		LEFT JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
+		INNER JOIN T_INS_PERFORMA_MASTER tipm  ON tipm.ID = tpbb.F_PERFORMA_MASTER_ID
+		INNER JOIN T_INS_PERFORMA_DETAIL tipd     ON tipd.ID = tpbb.F_PROFORMA_DETAIL_ID
 		""")
 public class ProformaBankBillReportModel implements Serializable {
 

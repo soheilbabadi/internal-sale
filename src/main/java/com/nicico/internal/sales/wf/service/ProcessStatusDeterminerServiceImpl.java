@@ -161,7 +161,7 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 			return Acknowledgment.FINAL_CHECK;
 		}
 
-		if (hasApprovedRemittanceExtraBill(allActivities)) {
+		if (hasApprovedRemittanceExtraBill(allActivities) || extraBankBillModel.getAgentBankName()!= null) {
 			return Acknowledgment.REMITTANCE;
 		}
 

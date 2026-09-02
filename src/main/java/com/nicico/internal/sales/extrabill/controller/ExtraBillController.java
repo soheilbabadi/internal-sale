@@ -7,6 +7,7 @@ import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.extrabill.dto.*;
 import com.nicico.internal.sales.extrabill.service.ExtraBillIssueService;
 import com.nicico.internal.sales.extrabill.service.ExtraBillService;
+import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class ExtraBillController {
 
 	private final ExtraBillService service;
 	private final ExtraBillIssueService extraBillIssueService;
+	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
 	@Operation(summary = "جستجوی براتهای قابل صدور", description = "لیست براتها که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی گرداند.")
 	@PostMapping("/search-issuable")
@@ -184,4 +186,9 @@ public class ExtraBillController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
+	@PutMapping("/update-all-acknowledgment")
+	public ResponseEntity<Void> updateAllLcAcknowledgment() {
+		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 }
