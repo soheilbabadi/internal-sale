@@ -17,6 +17,8 @@ import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepositor
 import com.nicico.internal.sales.wf.enums.ExtraBillProcessVariable;
 import com.nicico.internal.sales.wf.enums.LcProcessVariable;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -26,6 +28,7 @@ import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDeterminerService {
 
 	private static final String RESOURCE_NOT_FOUND_MESSAGE = "آیتم مورد درخواست وجود ندارد";
@@ -65,6 +68,28 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 			lcModel.setAcknowledgment(determined);
 			lcRepository.saveAndFlush(lcModel);
 		}
+	}
+
+	@Override
+	public void updateExtraBillAcknowledgment(Long masterId) {
+
+		var billModel = extraBillRepository.findAllByProformaMasterId(masterId);
+
+		for (ExtraBankBillModel item : billModel) {
+
+			Acknowledgment determined = determineAcknowledgment(item);
+
+			if (item.getAcknowledgment() != determined) {
+				item.setAcknowledgment(determined);
+				try {
+					extraBillRepository.saveAndFlush(item);
+				} catch (ObjectOptimisticLockingFailureException ex) {
+					log.debug("Skipping concurrent extra-bill acknowledgment update for id={}", item.getId(), ex);
+				}
+			}
+		}
+		
+		
 	}
 
 	@Override
@@ -113,9 +138,9 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	@Override
 	public Acknowledgment determineAcknowledgment(ExtraBankBillModel extraBankBillModel) {
 		Map<String, List<UserTaskReportDTO>> report = getUserTaskReportOrEmpty(extraBankBillModel.getProcessId());
-		if (report.isEmpty()) {
-			return Acknowledgment.UNKNOWN;
-		}
+//		if (report.isEmpty()) {
+//			return Acknowledgment.UNKNOWN;
+//		}
 
 		List<UserTaskReportDTO> allActivities = report.values().stream()
 				.filter(Objects::nonNull)
@@ -128,19 +153,19 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 			return Acknowledgment.FINISHED;
 		}
 
-		if (hasCancelledActivity(allActivities)) {
+		if (extraBankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED || extraBankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL) {
 			return Acknowledgment.CANCELED;
 		}
 
-		if (hasApprovedFinalCheckLC(allActivities)) {
+		if (hasApprovedFinalCheckExtraBill(allActivities)) {
 			return Acknowledgment.FINAL_CHECK;
 		}
 
-		if (hasApprovedRemittanceLC(allActivities)) {
+		if (hasApprovedRemittanceExtraBill(allActivities)) {
 			return Acknowledgment.REMITTANCE;
 		}
 
-		if (hasApprovedReckoningLC(allActivities)) {
+		if (hasApprovedReckoningExtraBill(allActivities) && extraBankBillModel.getAcknowledgment()!=Acknowledgment.RECKONING) {
 			return Acknowledgment.RECKONING;
 		}
 
@@ -210,7 +235,11 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 
 			if (lcModel.getAcknowledgment() != determined) {
 				lcModel.setAcknowledgment(determined);
-				lcRepository.saveAndFlush(lcModel);
+				try {
+					lcRepository.saveAndFlush(lcModel);
+				} catch (ObjectOptimisticLockingFailureException ex) {
+					log.debug("Skipping concurrent LC acknowledgment update for id={}", lcModel.getId(), ex);
+				}
 			}
 		}
 	}
@@ -230,7 +259,11 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 
 			if (bankBillModel.getAcknowledgment() != determined) {
 				bankBillModel.setAcknowledgment(determined);
-				extraBillRepository.saveAndFlush(bankBillModel);
+				try {
+					extraBillRepository.saveAndFlush(bankBillModel);
+				} catch (ObjectOptimisticLockingFailureException ex) {
+					log.debug("Skipping concurrent extra-bill acknowledgment update for id={}", bankBillModel.getId(), ex);
+				}
 			}
 		}
 	}
@@ -294,15 +327,31 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 		return activities.get(0).getActivityName().contains("بررسی نهایی") && activities.size() > 2;
 	}
 
+	private boolean hasApprovedFinalCheckExtraBill(List<UserTaskReportDTO> activities) {
+		return activities.get(0).getActivityName().contains("بررسی نهایی") && activities.size() > 2;
+	}
+
 	private boolean hasApprovedReckoningLC(List<UserTaskReportDTO> activities) {
 		return activities.stream().anyMatch(activity ->
 				isActivityType(activity, LcProcessVariable.SettleSure) && isApproved(activity)
 		);
 	}
 
+	private boolean hasApprovedReckoningExtraBill(List<UserTaskReportDTO> activities) {
+		return activities.stream().anyMatch(activity ->
+				isActivityType(activity, ExtraBillProcessVariable.BillSettleSure) && isApproved(activity)
+		);
+	}
+
 	private boolean hasApprovedRemittanceLC(List<UserTaskReportDTO> activities) {
 		return activities.stream().anyMatch(activity ->
 				isActivityType(activity, LcProcessVariable.RemitSure) && isApproved(activity)
+		);
+	}
+
+	private boolean hasApprovedRemittanceExtraBill(List<UserTaskReportDTO> activities) {
+		return activities.stream().anyMatch(activity ->
+				isActivityType(activity, ExtraBillProcessVariable.BillRemitSure) && isApproved(activity)
 		);
 	}
 

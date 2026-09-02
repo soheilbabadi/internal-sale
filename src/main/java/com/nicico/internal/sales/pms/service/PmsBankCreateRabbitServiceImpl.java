@@ -33,7 +33,9 @@ public class PmsBankCreateRabbitServiceImpl implements PmsBankCreateRabbitServic
 		if (exportConfig.getSendPms() == false) return;
 
 
-		if (issuingBankWithPmsIdRepository.findFirstByPmsBaseBankIdAndBranchCodeAndPmsLcBankIdNotNull(bank.getBaseBankId(), bank.getBranchCode()).isPresent())
+		if (bank.getBaseBankId() != null && issuingBankWithPmsIdRepository
+				.findFirstByPmsBaseBankIdAndBranchCodeAndPmsLcBankIdNotNull(bank.getBaseBankId(), bank.getBranchCode())
+				.isPresent())
 			throw new InternalSaleCustomException.ValidationException(String.format("bank with pmsBaseId %s and branchCode %s already exists",
 					bank.getBaseBankId(), bank.getBranchCode()));
 		rabbitTemplate.convertAndSend(rabbitConfigPMSProperties.getExchange(),
@@ -52,6 +54,14 @@ public class PmsBankCreateRabbitServiceImpl implements PmsBankCreateRabbitServic
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
 		if (exportConfig.getSendPms() == false) return;
+
+		if (bank.getPmsLcBankId() != null) {
+			log.warn("issuing bank {} ({} {}) already exists in PMS: pmsBaseBankId={}, pmsLcBankId={}",
+					bank.getId(), bank.getBankName(), bank.getBranchName(), bank.getPmsBaseBankId(), bank.getPmsLcBankId());
+			throw new InternalSaleCustomException.ValidationException(String.format(
+					"issuing bank %s (%s %s) already exists in PMS (pmsLcBankId=%s)",
+					bank.getId(), bank.getBankName(), bank.getBranchName(), bank.getPmsLcBankId()));
+		}
 
 		PMSCreateBankDto.Create bankDto = PMSCreateBankDto.Create.builderr().baseBankId(bank.getPmsBaseBankId())
 				.user(pmsProperties.getPreFactor().getUser())

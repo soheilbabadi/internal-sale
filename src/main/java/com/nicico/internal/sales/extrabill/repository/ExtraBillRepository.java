@@ -1,15 +1,17 @@
 package com.nicico.internal.sales.extrabill.repository;
 
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
-import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,4 +44,6 @@ public interface ExtraBillRepository extends JpaRepository<ExtraBankBillModel, L
 	);
 
 	List<ExtraBankBillModel> findAllByProcessId(String processInstanceId);
+
+
 }

@@ -10,7 +10,6 @@ import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
 import com.nicico.internal.sales.lc.dto.request.LcCancelRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateAcceptedLcRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateStartedLcRequest;
-import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
@@ -60,7 +59,7 @@ public interface LcService {
 
 	void updateLcAcknowledgment(Long lcId);
 
-	Acknowledgment determineAcknowledgment(Long lcId);
+
 
 
 	void updateAllAcknowledgments();

@@ -25,7 +25,7 @@
 //
 //	@GetMapping("/create-from-proforma-master-id/{proformaMasterId}")
 //	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
-//	@Operation(summary = "ایجاد برات در PMS از روی پروفرما", description = "با دریافت شناسه ProformaMasterId، اطلاعات برات را به سیستم PMS ارسال می‌کند")
+//	@Operation(summary = "ایجاد برات در PMS از روی پروفرما", description = "با دریافت شناسه ProformaMasterId، اطلاعات برات را به سیستم PMS ارسال می کند")
 //	public ResponseEntity<HttpStatus> createPMSExtraBill(
 //			@Parameter(description = "شناسه پروفرما مستر", required = true) @PathVariable Long proformaMasterId,
 //			@Parameter(description = "نام کاربر ثبت کننده در PMS") @RequestParam(required = false, name = "username") String pmsUserName,
@@ -37,7 +37,7 @@
 //
 //	@GetMapping("/update/{pmsId}")
 //	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
-//	@Operation(summary = "بروزرسانی برات در PMS", description = "با دریافت شناسه برات در PMS، اطلاعات برات را به PMS ارسال و بروزرسانی می‌کند")
+//	@Operation(summary = "بروزرسانی برات در PMS", description = "با دریافت شناسه برات در PMS، اطلاعات برات را به PMS ارسال و بروزرسانی می کند")
 //	public ResponseEntity<HttpStatus> updatePmsExtraBill(
 //			@Parameter(description = "شناسه برات در PMS", required = true) @PathVariable String pmsId,
 //			@Parameter(description = "نام کاربر ثبت کننده در PMS") @RequestParam(required = false, name = "username") String pmsUserName) {

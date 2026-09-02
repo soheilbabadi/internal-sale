@@ -68,7 +68,7 @@ public class ProformaServiceImpl implements ProformaService {
 			throw new InternalSaleCustomException.AccessDeniedException(ERR_PROFORMA_ACCESS_DENIED);
 		}
 
-		// اعتبارسنجی داده‌ها
+		// اعتبارسنجی داده ها
 		proformaValidationService.validateProformaData(requestDto);
 		proformaValidationService.validateDate(requestDto);
 
@@ -115,7 +115,7 @@ public class ProformaServiceImpl implements ProformaService {
 		Long masterId = ProformaMasterModel.getId();
 		List<ProformaDetailModel> detailModels = distinctDetails(contractDetail.getDetailModels());
 
-		// ذخیره Detail و GoodItem‌ها
+		// ذخیره Detail و GoodItem ها
 		saveDetailAndGoodItems(detailModels, masterId);
 
 		ProformaMasterModel.setProformaDetailModelLists(detailModels);
@@ -230,7 +230,7 @@ public class ProformaServiceImpl implements ProformaService {
 	public ProformaResponseDto getActiveProformaById(long id) {
 		ProformaResponseDto response = getDetailById(id);
 
-		// فیلتر کردن Detail‌های فعال با Helper
+		// فیلتر کردن Detail های فعال با Helper
 		response.setDetailDtoList(getActiveDetailDTOs(response.getDetailDtoList()));
 
 		return response;
@@ -363,7 +363,7 @@ public class ProformaServiceImpl implements ProformaService {
 	}
 
 	/**
-	 * ذخیره Detail و GoodItem‌ها
+	 * ذخیره Detail و GoodItem ها
 	 */
 	private void saveDetailAndGoodItems(List<ProformaDetailModel> detailModels, Long masterId) {
 		detailModels.forEach(detailModel -> {

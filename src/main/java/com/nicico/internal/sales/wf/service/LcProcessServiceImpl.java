@@ -121,7 +121,9 @@ public class LcProcessServiceImpl implements LcProcessService {
 			}
 
 			List<LcModel> lcList = lcRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
-			updateLcStatuses(lcList);
+			for (LcModel lc : lcList) {
+				applyCurrentStatus(lc);
+			}
 			lcRepository.saveAll(lcList);
 
 
@@ -147,7 +149,9 @@ public class LcProcessServiceImpl implements LcProcessService {
 			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(
 					List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
 
-			updateLcStatuses(lcList);
+			for (LcModel lc : lcList) {
+				applyCurrentStatus(lc);
+			}
 			lcRepository.saveAll(lcList);
 
 		} catch (Exception ex) {
@@ -171,12 +175,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 	// -------------------------------------------------------------------------
 	// Helper methods for batch operations
 	// -------------------------------------------------------------------------
-
-	private void updateLcStatuses(List<LcModel> lcList) {
-		for (LcModel lc : lcList) {
-			applyCurrentStatus(lc);
-		}
-	}
 
 	private void updateLcStatusesAccepted(List<LcModel> lcList) {
 		for (LcModel lc : lcList) {

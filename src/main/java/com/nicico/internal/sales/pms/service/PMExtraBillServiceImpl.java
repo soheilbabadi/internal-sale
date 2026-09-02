@@ -37,24 +37,24 @@
 //@Slf4j
 //public class PMExtraBillServiceImpl implements PMExtraBillService {
 //private static final String CONFIG_NOT_FOUND_MESSAGE = "تنظیمات پیکربندی وجود ندارد";
-//private static final String EXTRA_BILL_NOT_FOUND_BY_MASTER_ID_MESSAGE = "ال‌سی با شناسه پروفرما یافت نشد ";
-//private static final String EXTRA_BILL_NOT_FOUND_BY_PMS_ID_MESSAGE = "ال‌سی با شناسه ال‌سی PMS یافت نشد ";
+//private static final String EXTRA_BILL_NOT_FOUND_BY_MASTER_ID_MESSAGE = "ال سی با شناسه پروفرما یافت نشد ";
+//private static final String EXTRA_BILL_NOT_FOUND_BY_PMS_ID_MESSAGE = "ال سی با شناسه ال سی PMS یافت نشد ";
 //private static final String CUSTOMER_NOT_FOUND_MESSAGE = "مشتری با شناسه ";
 //private static final String CONTRACT_NOT_FOUND_MESSAGE = "شماره قرارداد وجود ندارد";
 //private static final String INVALID_PROFORMA_GOOD_ITEM_MESSAGE = "کالای پروفرما نامعتبر است: ";
-//private static final String INVALID_BANK_MODEL_MESSAGE = "مدل بانک نمی‌تواند null باشد";
-//private static final String INVALID_TRADING_BANK_MESSAGE = "مدل بانک عامل نمی‌تواند null باشد";
-//private static final String EXTRA_BILL_MODEL_NULL_MESSAGE = "مدل ال‌سی نمی‌تواند null باشد";
-//private static final String EXTRA_BILL_ID_NULL_MESSAGE = "شناسه ال‌سی نمی‌تواند null باشد";
-//private static final String EXTRA_BILL_NUMBER_EMPTY_MESSAGE = "شماره ال‌سی نمی‌تواند خالی باشد";
-//private static final String PROFORMA_MASTER_ID_NULL_MESSAGE = "شناسه پروفرما نمی‌تواند null باشد";
-//private static final String PROFORMA_DETAIL_ID_NULL_MESSAGE = "شناسه جزئیات پروفرما نمی‌تواند null باشد";
-//private static final String PMS_ID_NULL_OR_EMPTY_MESSAGE = "شناسه PMS نمی‌تواند null یا خالی باشد";
-//private static final String BASE_BANK_MODEL_NULL_MESSAGE = "مدل پایه بانک نمی‌تواند null باشد";
-//private static final String BANK_TITLE_EMPTY_MESSAGE = "عنوان بانک نمی‌تواند خالی باشد";
-//private static final String TRADING_BANK_BRANCH_CODE_EMPTY_MESSAGE = "کد شعبه ثابت بانک عامل نمی‌تواند خالی باشد";
+//private static final String INVALID_BANK_MODEL_MESSAGE = "مدل بانک نمی تواند null باشد";
+//private static final String INVALID_TRADING_BANK_MESSAGE = "مدل بانک عامل نمی تواند null باشد";
+//private static final String EXTRA_BILL_MODEL_NULL_MESSAGE = "مدل ال سی نمی تواند null باشد";
+//private static final String EXTRA_BILL_ID_NULL_MESSAGE = "شناسه ال سی نمی تواند null باشد";
+//private static final String EXTRA_BILL_NUMBER_EMPTY_MESSAGE = "شماره ال سی نمی تواند خالی باشد";
+//private static final String PROFORMA_MASTER_ID_NULL_MESSAGE = "شناسه پروفرما نمی تواند null باشد";
+//private static final String PROFORMA_DETAIL_ID_NULL_MESSAGE = "شناسه جزئیات پروفرما نمی تواند null باشد";
+//private static final String PMS_ID_NULL_OR_EMPTY_MESSAGE = "شناسه PMS نمی تواند null یا خالی باشد";
+//private static final String BASE_BANK_MODEL_NULL_MESSAGE = "مدل پایه بانک نمی تواند null باشد";
+//private static final String BANK_TITLE_EMPTY_MESSAGE = "عنوان بانک نمی تواند خالی باشد";
+//private static final String TRADING_BANK_BRANCH_CODE_EMPTY_MESSAGE = "کد شعبه ثابت بانک عامل نمی تواند خالی باشد";
 //private static final String PROFORMA_DETAIL_NOT_FOUND_MESSAGE = "جزئیات پروفرما برای شناسه یافت نشد: ";
-//private static final String NO_EXTRA_BILL_FOUND_IN_PMS_MESSAGE = "هیچ ال‌سی در PMS برای شناسه یافت نشد ";
+//private static final String NO_EXTRA_BILL_FOUND_IN_PMS_MESSAGE = "هیچ ال سی در PMS برای شناسه یافت نشد ";
 //private static final String ISSUING_BANK_NOT_FOUND_MESSAGE = "شناسه بانک صادرکننده یافت نشد: بانک=";
 //private static final String EXTRA_BILL_SEND_FAILURE_MESSAGE = "خطا در ارسال به PMS: ";
 //private static final String JSON_PROCESSING_ERROR_MESSAGE = "خطا در پردازش JSON: ";

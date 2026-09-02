@@ -76,7 +76,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 			throw new InternalSaleCustomException.AccessDeniedException(MSG_PROCESS_ACCESS_DENIED);
 		}
 
-		// اعتبارسنجی داده‌ها
+		// اعتبارسنجی داده ها
 		proformaValidationService.validateProformaData(requestDto);
 
 		// ایجاد پیش فاکتور
@@ -103,14 +103,14 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		// تنظیم شماره قرارداد از درخواست
 		masterModel.setContractNo(requestDto.getContractNo());
 
-		// حذف تکراری‌ها و تنظیم لیست جزئیات
+		// حذف تکراری ها و تنظیم لیست جزئیات
 		List<ProformaDetailModel> detailList = distinctDetails(contractDetail.getDetailModels());
 		masterModel.setProformaDetailModelLists(detailList);
 
 		// ذخیره Master
 		masterModel = proformaMasterRepository.saveAndFlush(masterModel);
 
-		// ذخیره جزئیات و GoodItem‌ها با استفاده از ID مستر
+		// ذخیره جزئیات و GoodItem ها با استفاده از ID مستر
 		saveDetailAndGoodItems(masterModel.getId(), detailList,
 				detailList.stream()
 						.flatMap(d -> d.getProformaGoodItemModels().stream())
@@ -146,7 +146,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		// تولید جزئیات
 		List<ProformaDetailModel> detailDtoList = generatePerformaDetailList(params);
 
-		// محاسبه مجموع‌ها
+		// محاسبه مجموع ها
 		Totals totals = calculateTotals(detailDtoList);
 
 		// ساخت Master
@@ -198,7 +198,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	}
 
 	/**
-	 * ذخیره Detail و GoodItem‌ها (مشابه ExtraBillProformaIssueServiceImpl.saveDetailAndGoodItems)
+	 * ذخیره Detail و GoodItem ها (مشابه ExtraBillProformaIssueServiceImpl.saveDetailAndGoodItems)
 	 */
 	private void saveDetailAndGoodItems(Long masterId, List<ProformaDetailModel> details, List<ProformaGoodItemModel> goodItems) {
 		if (details != null && !details.isEmpty()) {
@@ -308,7 +308,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		// تولید GoodItems terlebih dahulu
 		List<ProformaGoodItemModel> goodItems = generatePerformaGoodItemList(params);
 
-		// محاسبه مجموع‌ها
+		// محاسبه مجموع ها
 		DetailTotals detailTotals = calculateDetailTotals(goodItems);
 
 		// ساخت DetailModel
@@ -347,13 +347,13 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	 * تولید لیست GoodItem (مشابه ExtraBillProformaIssueServiceImpl.generatePerformaGoodItemList)
 	 */
 	private List<ProformaGoodItemModel> generatePerformaGoodItemList(PreciousMetalDetailGenerator params) {
-		// در حال حاضر فقط یک GoodItem برای فلزات گرانبها تولید می‌شود
+		// در حال حاضر فقط یک GoodItem برای فلزات گرانبها تولید می شود
 		ProformaGoodItemModel goodItem = generatePerformaGoodItem(params);
 		return List.of(goodItem);
 	}
 
 	/**
-	 * تولید تکی GoodItem با استفاده از ویژگی‌های فیزیکی (وزن، عیار، قیمت)
+	 * تولید تکی GoodItem با استفاده از ویژگی های فیزیکی (وزن، عیار، قیمت)
 	 * مشابه ExtraBillProformaIssueServiceImpl.generatePerformaGoodItemList اما مخصوص فلزات گرانبها
 	 */
 	private ProformaGoodItemModel generatePerformaGoodItem(PreciousMetalDetailGenerator params) {
@@ -366,7 +366,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		String cleanName = getCleanName(params.good());
 		String finalGoodName = cleanName + " " + selenium;
 
-		// محاسبات مالی بر اساس ویژگی‌های فیزیکی
+		// محاسبات مالی بر اساس ویژگی های فیزیکی
 		PreciousMetalLCCalculation calc = calculatePreciousMetalLCGoodItem(
 				params.tradeModel(),
 				params.goodsBucketModel(),

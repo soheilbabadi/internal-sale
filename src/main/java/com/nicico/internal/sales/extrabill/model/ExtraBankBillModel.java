@@ -99,10 +99,9 @@ public class ExtraBankBillModel extends BaseClassModel {
 	@Column(name = "F_PERFORMA_MASTER_ID")
 	private Long proformaMasterId;
 
-//	@ManyToOne(fetch = FetchType.LAZY, targetEntity = ProformaMasterModel.class)
+	//	@ManyToOne(fetch = FetchType.LAZY, targetEntity = ProformaMasterModel.class)
 //	@JoinColumn(name = "F_PERFORMA_MASTER_ID", insertable = false, updatable = false)
 //	private ProformaMasterModel proformaMasterModel;
-
 
 	@Schema(description = "وضعیت در فرایند", name = "workflowApproveStatus", example = "PENDING")
 	@Enumerated(EnumType.STRING)

@@ -290,14 +290,7 @@ public class LcController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@Operation(
-			summary = "بررسی وضعیت تاییدیه دریافت LC",
-			description = "وضعیت تایید دریافت اعتبار اسنادی را بررسی و نتیجه را بازمی گرداند. این متد مشخص می کند که آیا کاربر مدارک و اطلاعات LC را تایید کرده است یا خیر."
-	)
-	@GetMapping("/get-acknowledgment/{lcId}")
-	public ResponseEntity<?> determineAcknowledgment(@PathVariable Long lcId) {
-		return ResponseEntity.ok(lcService.determineAcknowledgment(lcId));
-	}
+
 
 	@Operation(
 			summary = "گزارش تسک های کاربر",

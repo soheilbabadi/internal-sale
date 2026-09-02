@@ -96,7 +96,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		Long masterId = masterModel.getId();
 		List<ProformaDetailModel> detailModels = distinctDetails(contractDetail.getDetailModels());
 
-		// ذخیره Detail و GoodItem‌ها
+		// ذخیره Detail و GoodItem ها
 		saveDetailAndGoodItems(detailModels, masterId);
 
 		masterModel.setProformaDetailModelLists(detailModels);
@@ -130,7 +130,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 
 		List<ProformaDetailModel> detailDtoList = generatePerformaDetailList(params, saleConditionModel);
 
-		// استفاده از Helper برای محاسبه مجموع‌ها
+		// استفاده از Helper برای محاسبه مجموع ها
 		Totals totals = calculateTotals(detailDtoList);
 
 		// ساخت MasterModel با Helper
@@ -221,10 +221,10 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		List<ProformaDetailModel> detailDtoList = new ArrayList<>();
 
 		for (int i = 0; i < requestDto.getParts().size(); i++) {
-			// 1. تولید آیتم‌های کالا
+			// 1. تولید آیتم های کالا
 			List<ProformaGoodItemModel> goodItem = generatePerformaGoodItemList(params, i);
 
-			// 2. محاسبه مجموع‌های Detail
+			// 2. محاسبه مجموع های Detail
 			DetailTotals detailTotals = calculateDetailTotals(goodItem);
 
 			// 3. ساخت DetailModel
@@ -242,7 +242,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 					params.tradeModel().getContractDate(),
 					ProformaReversalStatus.NORMAL,
 					saleConditionModel.getExtraBillOfExchangePercent(),
-					BigDecimal.ZERO // مقدار موقت، بعداً محاسبه می‌شود
+					BigDecimal.ZERO // مقدار موقت، بعداً محاسبه می شود
 			);
 
 			// 4. محاسبه مبلغ اضافی و مبلغ نهایی
@@ -382,7 +382,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 	// ==================== SAVE HELPERS ====================
 
 	/**
-	 * ذخیره Detail و GoodItem‌ها
+	 * ذخیره Detail و GoodItem ها
 	 * این متد در چند کلاس مشابه است و باید به Helper منتقل شود
 	 */
 	private void saveDetailAndGoodItems(List<ProformaDetailModel> detailModels, Long masterId) {

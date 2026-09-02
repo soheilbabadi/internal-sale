@@ -259,10 +259,6 @@ public class LcServiceImpl implements LcService {
 		processStatusDeterminerService.updateLcAcknowledgment(lcId);
 	}
 
-	@Override
-	public Acknowledgment determineAcknowledgment(Long lcId) {
-		return processStatusDeterminerService.determineAcknowledgment(lcId);
-	}
 
 
 	@Override

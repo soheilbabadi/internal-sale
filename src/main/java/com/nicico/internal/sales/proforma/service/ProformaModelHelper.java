@@ -640,9 +640,9 @@ public final class ProformaModelHelper {
 
 
 	/**
-	 * جمع‌آوری مقادیر از لیست ProformaDetailModel ها و گرد کردن با RoundingMode.HALF_UP
-	 * اگر اعشار 0.5 یا بیشتر باشد، بالا گرد می‌شود
-	 * اگر اعشار 0.4 یا کمتر باشد، پایین گرد می‌شود
+	 * جمع آوری مقادیر از لیست ProformaDetailModel ها و گرد کردن با RoundingMode.HALF_UP
+	 * اگر اعشار 0.5 یا بیشتر باشد، بالا گرد می شود
+	 * اگر اعشار 0.4 یا کمتر باشد، پایین گرد می شود
 	 */
 	private static BigDecimal sum(List<ProformaDetailModel> detailModels,
 	                              Function<ProformaGoodItemModel, BigDecimal> extractor) {
@@ -661,9 +661,9 @@ public final class ProformaModelHelper {
 	}
 
 	/**
-	 * جمع‌آوری مقادیر از لیست ProformaGoodItemModel ها و گرد کردن با RoundingMode.HALF_UP
-	 * اگر اعشار 0.5 یا بیشتر باشد، بالا گرد می‌شود
-	 * اگر اعشار 0.4 یا کمتر باشد، پایین گرد می‌شود
+	 * جمع آوری مقادیر از لیست ProformaGoodItemModel ها و گرد کردن با RoundingMode.HALF_UP
+	 * اگر اعشار 0.5 یا بیشتر باشد، بالا گرد می شود
+	 * اگر اعشار 0.4 یا کمتر باشد، پایین گرد می شود
 	 */
 	private static BigDecimal sumItems(List<ProformaGoodItemModel> goodItems,
 	                                   Function<ProformaGoodItemModel, BigDecimal> extractor) {
@@ -681,7 +681,7 @@ public final class ProformaModelHelper {
 	// ==================== SAVE METHODS ====================
 
 	/**
-	 * ذخیره Detail و GoodItem‌ها
+	 * ذخیره Detail و GoodItem ها
 	 */
 	public static void saveDetailAndGoodItems(
 			List<ProformaDetailModel> detailModels,

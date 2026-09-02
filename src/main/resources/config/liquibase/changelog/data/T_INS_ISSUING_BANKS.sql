@@ -24032,9 +24032,9 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (23790,'بانک قرض الحسنه مهر ایران','سازمان آرامستانهای استان قم','5205','قم','قم',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,NULL),
 	 (23791,'بانک قرض الحسنه مهر ایران','سقز','5407','کردستان','سقز',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,NULL),
 	 (23792,'بانک قرض الحسنه مهر ایران','میدان بار گنبد','6209','گلستان','گنبدکاووس',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,NULL),
-	 (23793,'بانک قرض‌الحسنه مهر ایران','چگنی','6606','لرستان','خرم آباد',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,NULL);
+	 (23793,'بانک قرض الحسنه مهر ایران','چگنی','6606','لرستان','خرم آباد',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,NULL);
 INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_CODE,C_PROVINCE,C_CITY,D_CREATED_DATE,D_LAST_MODIFIED_DATE,C_CREATED_BY,C_LAST_MODIFIED_BY,C_COMMENT,C_DESCRIPTION,N_VERSION,C_BANK_CODE) VALUES
-	 (23794,'بانک قرض‌الحسنه مهر ایران','پلدشت','7816','آذربایجان غربی','پلدشت',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,NULL),
+	 (23794,'بانک قرض الحسنه مهر ایران','پلدشت','7816','آذربایجان غربی','پلدشت',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,NULL),
 	 (23795,'بانک شهر','بورس کالا','201','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'19'),
 	 (23797,'بانک شهر','رودهن','209','تهران','رودهن',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'19'),
 	 (23798,'بانک شهر','شهرداری گلستان','225','تهران','بهارستان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'19'),
@@ -24380,7 +24380,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (19888,'بانک ملی ایران','گمرک مرزي ماهيرود','9022','خراسان جنوبی','سربیشه',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'02'),
 	 (19889,'بانک ملی ایران','حاجی آباد','9036','خراسان جنوبی','بیرجند',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'02'),
 	 (19891,'بانک ملی ایران','اينچه برون','9315','گلستان','گنبدکاووس',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'02'),
-	 (19892,'بانک ملی ایران','خطیرکلا قائم‌شهر','9491','مازندران','سیمرغ - کیاکلا',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'02'),
+	 (19892,'بانک ملی ایران','خطیرکلا قائم شهر','9491','مازندران','سیمرغ - کیاکلا',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'02'),
 	 (19893,'بانک ملی ایران','آزادمهر زيرآب','9508','مازندران','سوادکوه - پل سفید',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'02'),
 	 (19894,'بانک ملی ایران','فریم ساری','9608','مازندران','ساری',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'02'),
 	 (19895,'بانک ملی ایران','شرکت نکاچوب ساري','9624','مازندران','ساری',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'02'),
@@ -24400,7 +24400,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (19908,'بانک تجارت','نفت مناطق مركزي','39','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19909,'بانک تجارت','شرکت نفت سپاهان','40','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19911,'بانک تجارت','بیمه تجارت نو','40','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
-	 (19913,'بانک تجارت','شرکت پخش فرآورده‌هاي نفتي ايران','52','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
+	 (19913,'بانک تجارت','شرکت پخش فرآورده هاي نفتي ايران','52','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19914,'بانک تجارت','برق تهران','56','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19916,'بانک تجارت','بيمارستان سوم شعبان','60','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19917,'بانک تجارت','پارسيان','101','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
@@ -24680,14 +24680,14 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (19973,'بانک تجارت','دانشکده کشاورزی','1433','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19974,'بانک تجارت','بازار سفين كيش','1724','هرمزگان','منطقه آزاد کیش',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19975,'بانک تجارت','دانشگاه شهید رجایی','2140','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
-	 (19976,'بانک تجارت','دانشگاه فني و حرفه‌اي','2140','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
+	 (19976,'بانک تجارت','دانشگاه فني و حرفه اي','2140','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19977,'بانک تجارت','دانشکده دختران دکتر شریعتی','2140','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01');
 INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_CODE,C_PROVINCE,C_CITY,D_CREATED_DATE,D_LAST_MODIFIED_DATE,C_CREATED_BY,C_LAST_MODIFIED_BY,C_COMMENT,C_DESCRIPTION,N_VERSION,C_BANK_CODE) VALUES
 	 (19978,'بانک تجارت','بيمارستان كسري','2190','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19979,'بانک تجارت','امداد خودرو','2200','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19980,'بانک تجارت','مديريت اکتشاف نفت','2200','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19982,'بانک تجارت','شهرداری شمشک دربندسر','3020','تهران','شمیرانات',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
-	 (19983,'بانک تجارت','صالح‌آباد رباط کريم','3080','تهران','رباط کریم',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
+	 (19983,'بانک تجارت','صالح آباد رباط کريم','3080','تهران','رباط کریم',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19984,'بانک تجارت','بیمارستان پیامبران','3140','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19985,'بانک تجارت','بیمارستان پارسیان','3170','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (19987,'بانک تجارت','سازمان بهشت سکینه','3260','البرز','کرج',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
@@ -24920,7 +24920,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (4275,'بانک سپه','روانسر','972','کرمانشاه','روانسر',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'04'),
 	 (4279,'بانک سپه','انقلاب خرم آباد','977','لرستان','خرم آباد',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'04'),
 	 (4331,'بانک سپه','خیام نیشابور','1045','خراسان رضوی','نیشابور',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'04'),
-	 (4336,'بانک سپه','سید جمال‌الدین اسدآبادی تهران','1050','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'04'),
+	 (4336,'بانک سپه','سید جمال الدین اسدآبادی تهران','1050','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'04'),
 	 (4342,'بانک سپه','خیابان آیت اله سعیدی اراک','1057','مرکزی','اراک',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'04'),
 	 (4348,'بانک سپه','دولت آباد تهران','1066','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'04'),
 	 (4352,'بانک سپه','آفریقای شمالی','1074','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'04');
@@ -24994,7 +24994,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (20088,'بانک تجارت','امام خميني نشتارود','9490','مازندران','تنکابن',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (20089,'بانک تجارت','شرکت نفت محمودآباد','9500','مازندران','محمود آباد',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (20090,'بانک تجارت','دانشگاه مازندران','9520','مازندران','بابلسر',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
-	 (20091,'بانک تجارت','سرخرود','9550','مازندران','فریدون‌كنار',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
+	 (20091,'بانک تجارت','سرخرود','9550','مازندران','فریدون كنار',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (20093,'بانک تجارت','تله کابين رامسر','9620','مازندران','رامسر',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (20095,'بانک تجارت','دانشگاه علوم کشاورزی و منابع طبیعی','9680','مازندران','ساری',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (20096,'بانک تجارت','ملی حفاری ایران2','10000','خوزستان','اهواز',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
@@ -25118,7 +25118,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (22653,'پست بانک ایران','فیض آباد','2653','گلستان','گرگان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'81'),
 	 (22655,'پست بانک ایران','اسلام اباد','2653','گلستان','گرگان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'81'),
 	 (22656,'پست بانک ایران','الوکلاته','2653','گلستان','گرگان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'81'),
-	 (22657,'پست بانک ایران','قرن‌آباد','2653','گلستان','گرگان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'81'),
+	 (22657,'پست بانک ایران','قرن آباد','2653','گلستان','گرگان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'81'),
 	 (22658,'پست بانک ایران','آهنگر محله','2653','گلستان','گرگان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'81'),
 	 (22659,'پست بانک ایران','گلند فخرآباد','2653','گلستان','گرگان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'81'),
 	 (22660,'پست بانک ایران','قرق','2653','گلستان','گرگان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'81');
@@ -25185,7 +25185,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (3255,'بانک مسکن','خرامه','2768','فارس','خرامه',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (3259,'بانک مسکن','شهیدمفتح تبریز','2774','آذربایجان شرقی','تبریز',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (3265,'بانک مسکن','چهارباغ خواجو اصفهان','2781','اصفهان','اصفهان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
-	 (3270,'بانک مسکن','فضل‌آباد شیراز','2787','فارس','شیراز',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
+	 (3270,'بانک مسکن','فضل آباد شیراز','2787','فارس','شیراز',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (3275,'بانک مسکن','استادان همدان','2795','همدان','همدان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (3279,'بانک مسکن','بلوار قائم سمنان','2799','سمنان','سمنان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70');
 INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_CODE,C_PROVINCE,C_CITY,D_CREATED_DATE,D_LAST_MODIFIED_DATE,C_CREATED_BY,C_LAST_MODIFIED_BY,C_COMMENT,C_DESCRIPTION,N_VERSION,C_BANK_CODE) VALUES
@@ -25252,7 +25252,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (20142,'بانک تجارت','شهرک صنعتی مامونیه','14370','مرکزی','مامونیه',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (20144,'بانک تجارت','اوقاف وامور خیریه','15110','قم','قم',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (20145,'بانک تجارت','پرديس قم','15210','قم','قم',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
-	 (20146,'بانک تجارت','مرکز مديريت حوزه‌هاي علميه قم','15630','قم','قم',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
+	 (20146,'بانک تجارت','مرکز مديريت حوزه هاي علميه قم','15630','قم','قم',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
 	 (20147,'بانک تجارت','حسین آباد کویر','16000','اصفهان','کاشان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01');
 INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_CODE,C_PROVINCE,C_CITY,D_CREATED_DATE,D_LAST_MODIFIED_DATE,C_CREATED_BY,C_LAST_MODIFIED_BY,C_COMMENT,C_DESCRIPTION,N_VERSION,C_BANK_CODE) VALUES
 	 (20148,'بانک تجارت','مشکات','16170','اصفهان','کاشان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'01'),
@@ -25772,7 +25772,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (3082,'بانک مسکن','هفده شهریورتبریز','2477','آذربایجان شرقی','تبریز',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (3088,'بانک مسکن','میمه','2485','اصفهان','شاهین شهر و میمه',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70');
 INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_CODE,C_PROVINCE,C_CITY,D_CREATED_DATE,D_LAST_MODIFIED_DATE,C_CREATED_BY,C_LAST_MODIFIED_BY,C_COMMENT,C_DESCRIPTION,N_VERSION,C_BANK_CODE) VALUES
-	 (3093,'بانک مسکن','عطار شاهین‌شهر','2492','اصفهان','شاهین شهر و میمه',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
+	 (3093,'بانک مسکن','عطار شاهین شهر','2492','اصفهان','شاهین شهر و میمه',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (3099,'بانک مسکن','جهاد همدان','2499','همدان','همدان',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (3103,'بانک مسکن','شهرک آبادانی و مسکن کرمانشاه','2515','کرمانشاه','کرمانشاه',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (3110,'بانک مسکن','شیراز شمالی تهران','2524','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
@@ -25780,7 +25780,7 @@ INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_C
 	 (3120,'بانک مسکن','شهید بهشتی شرقی تهران','2546','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'70'),
 	 (19281,'بانک ملت','بيمارستان شفايحيائيان','63404','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'03'),
 	 (19287,'بانک ملت','شرکت ملي پالايش وپخش نفتي','63529','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'03'),
-	 (19292,'بانک ملت','پخش فرآورده‌هاي نفتي ايران','63529','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'03'),
+	 (19292,'بانک ملت','پخش فرآورده هاي نفتي ايران','63529','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'03'),
 	 (19298,'بانک ملت','شرکت صنايع پتروشيمي خليج فارس','63529','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'03');
 INSERT INTO UAT_IME.T_INS_ISSUING_BANKS (ID,C_BANK_NAME,C_BRANCH_NAME,C_BRANCH_CODE,C_PROVINCE,C_CITY,D_CREATED_DATE,D_LAST_MODIFIED_DATE,C_CREATED_BY,C_LAST_MODIFIED_BY,C_COMMENT,C_DESCRIPTION,N_VERSION,C_BANK_CODE) VALUES
 	 (19304,'بانک ملت','پژوهشگاه علوم انساني ومطالعات فرهنگی','64394','تهران','تهران',TIMESTAMP'2025-05-28 14:17:45',NULL,'liquibase',NULL,NULL,NULL,0,'03'),

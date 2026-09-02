@@ -35,7 +35,7 @@ public class GoodBucketController {
 	private final GoodBucketService goodBucketService;
 
 	@Operation(summary = "ایجاد ضریب فروش جدید",
-			description = "این متد یک رکورد جدید برای ضریب فروش کالا ایجاد می‌کند")
+			description = "این متد یک رکورد جدید برای ضریب فروش کالا ایجاد می کند")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "ضریب فروش با موفقیت ایجاد شد",
 					content = @Content(mediaType = "application/json",

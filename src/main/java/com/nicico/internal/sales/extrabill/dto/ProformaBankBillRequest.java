@@ -20,36 +20,36 @@ public class ProformaBankBillRequest implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 9158835413259590123L;
 
-//	@NotNull(message = "شناسه  نمی‌تواند خالی باشد")
-//	@Schema(description = "شناسه برات ثبت شده")
-//	private Long id;
+	@NotNull(message = "شناسه  نمی تواند خالی باشد")
+	@Schema(description = "شناسه برات ثبت شده")
+	private Long id;
 
 
-	@NotNull(message = "شناسه بانک صادرکننده نمی‌تواند خالی باشد")
+	@NotNull(message = "شناسه بانک صادرکننده نمی تواند خالی باشد")
 	@Schema(description = "نام بانک صادر کننده برات")
 	private Long issuerBankId;
 
-	@NotBlank(message = "کد تفصیلی نمی‌تواند خالی باشد")
+	@NotBlank(message = "کد تفصیلی نمی تواند خالی باشد")
 	@Schema(description = "کد تفصیلی")
 	private String nosaCode;
 
-	@NotBlank(message = "کد سپام نمی‌تواند خالی باشد")
+	@NotBlank(message = "کد سپام نمی تواند خالی باشد")
 	@Schema(description = "کد سپام")
 	private String sepamCode;
 
-	@NotBlank(message = "شناسه خزانه‌داری نمی‌تواند خالی باشد")
+	@NotBlank(message = "شناسه خزانه داری نمی تواند خالی باشد")
 	@Schema(description = "شناسه خزانه داری")
 	private String treasuryId;
 
-	@NotNull(message = "تاریخ صدور برات نمی‌تواند خالی باشد")
+	@NotNull(message = "تاریخ صدور برات نمی تواند خالی باشد")
 	@Schema(description = "تاریخ صدور برات")
 	private Date issueDate;
 
-	@NotNull(message = "تاریخ سررسید نمی‌تواند خالی باشد")
+	@NotNull(message = "تاریخ سررسید نمی تواند خالی باشد")
 	@Schema(description = "تاریخ سررسید")
 	private Date dueDate;
 
-	@NotNull(message = "شناسه جزئیات پیش‌فاکتور نمی‌تواند خالی باشد")
+	@NotNull(message = "شناسه جزئیات پیش فاکتور نمی تواند خالی باشد")
 	@Schema(description = "شناسه جزئیات پیش فاکتور", name = "proformaDetailId", example = "52")
 	private Long proformaDetailId;
 

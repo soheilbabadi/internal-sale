@@ -26,7 +26,6 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Data
 @Audited(targetAuditMode = NOT_AUDITED)
 @Subselect("""
-
 SELECT
     tpbb.ID,
     tpbb.C_ISSUER_BANK_NAME,
@@ -50,8 +49,6 @@ SELECT
     tpbb.C_PMS_BILL_ID,
     tpbb.D_CANCEL_DATE,
     tpbb.C_CANCELLATION_REASON,
-    tpbb.C_EXTRA_BILL_FILE_ID,
-    tpbb.C_DISPATCH_FILE_ID,
     tit.BUYER_NAME,
     tit.BUYER_NATIONAL_CODE,
     tit.COMMODITY_CODE,
@@ -73,15 +70,21 @@ SELECT
     tipm.N_GOOD_ID,
     tipd.C_PERFORMA_NO,
     tipd.D_PERFORMA_DATE
-   
+
 FROM T_INS_EXTRA_BANK_BILL tpbb
          LEFT JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
          INNER JOIN T_INS_PERFORMA_MASTER tipm ON tipm.ID = tpbb.F_PERFORMA_MASTER_ID
-         INNER JOIN T_INS_PERFORMA_DETAIL tipd ON tipd.F_PERFORMA_MASTER_ID=tipm.ID 
-         
+         INNER JOIN T_INS_PERFORMA_DETAIL tipd ON tipd.F_PERFORMA_MASTER_ID = tipm.ID
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM TBL_IME_SETTLEMENT tis
+    WHERE tis.PAYMENT_CODE = tipm.C_PAYMENT_CODE
+      AND tis.SETTLEMENT_TYPE IN ('انفساخ', 'نقدی')
+)
+
 
 		""")
-public class ProformaBankBillReportModel implements Serializable {
+public class ProformaBankBillReadyRevoking implements Serializable {
 
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -225,13 +228,4 @@ public class ProformaBankBillReportModel implements Serializable {
 	@Schema(description = "تاریخ پیش فاکتور")
 	@Column(name = "D_PERFORMA_DATE")
 	private Date performaDate;
-
-	@Schema(description = "شناسه فایل پیوست برات")
-	@Column(name = "C_EXTRA_BILL_FILE_ID", length = 100)
-	private String extraBillFileId;
-
-	@Schema(description = "شناسه فایل اصلاحیه")
-	@Column(name = "C_DISPATCH_FILE_ID", length = 100)
-	private String dispatchAttachmentId;
-
 }

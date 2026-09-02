@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 class SmsNotificationServiceImpl implements SmsNotificationService {
 	private static final String CONFIG_NOT_FOUND_MESSAGE = "تنظیمات پیکربندی وجود ندارد";
-	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش‌فاکتور با شناسه %d یافت نشد";
+	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور با شناسه %d یافت نشد";
 	private static final String CUSTOMER_NOT_FOUND_MESSAGE = "مشتری با شناسه %d یافت نشد";
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final CustomerRepository customerRepository;

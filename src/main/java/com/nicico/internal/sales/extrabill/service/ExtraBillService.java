@@ -16,6 +16,9 @@ public interface ExtraBillService {
 
 	SearchDTO.SearchRs<ProformaBankBillReportDto.Info> searchReport(SearchDTO.SearchRq request);
 
+
+	List<ProformaBankBillDto.Info> saveAll(List<ProformaBankBillRequest> requests);
+
 	ProformaBankBillDto.Info save(ProformaBankBillRequest extraBillIssue);
 
 	List<ProformaBankBillDto.Info> getByMasterId(Long proformaMasterId);
@@ -29,16 +32,15 @@ public interface ExtraBillService {
 
 	List<ProformaBankBillAuditDto> getAuditHistory(Long extraBillId);
 
-	SearchDTO.SearchRs<ProformaBankBillDto.Info> findReadyReckoning(SearchDTO.SearchRq request);
 
+	public SearchDTO.SearchRs<ProformaBankBillReportDto.Info> findReadyReckoning(SearchDTO.SearchRq request);
 
 	String generateExtraBillBrokerEmailContent(long extraBillId);
 
 	ProcessInstanceHistory getHistoryDetail(Long extraBillId);
-
 	Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId);
 
-	void markAllLcsAsReckoning(Long proformaMasterId);
+	void markAllAsReckoning(Long proformaMasterId);
 
 	void cancel(ExtraBillCancelRequest request);
 

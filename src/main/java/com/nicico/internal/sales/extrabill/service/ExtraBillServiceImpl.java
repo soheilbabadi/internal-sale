@@ -14,6 +14,7 @@ import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillAuditRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillReportRepository;
+import com.nicico.internal.sales.extrabill.repository.ProformaBankBillRevokingRepository;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
@@ -28,14 +29,12 @@ import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -52,16 +51,17 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 
 	// Validation error messages
-	private static final String MSG_ISSUER_BANK_ID_REQUIRED = "شناسه بانک صادرکننده نمی‌تواند خالی باشد";
-	private static final String MSG_NOSA_CODE_REQUIRED = "کد تفصیلی نمی‌تواند خالی باشد";
-	private static final String MSG_SEPAM_CODE_REQUIRED = "کد سپام نمی‌تواند خالی باشد";
-	private static final String MSG_TREASURY_ID_REQUIRED = "شناسه خزانه‌داری نمی‌تواند خالی باشد";
-	private static final String MSG_ISSUE_DATE_REQUIRED = "تاریخ صدور برات نمی‌تواند خالی باشد";
-	private static final String MSG_ISSUE_DATE_AFTER_DUE_DATE = "تاریخ صدور برات نمی‌تواند بعد از تاریخ سررسید باشد";
-	private static final String MSG_DUE_DATE_REQUIRED = "تاریخ سررسید نمی‌تواند خالی باشد";
-	private static final String MSG_PROFORMA_DETAIL_ID_REQUIRED = "شناسه جزئیات پیش‌فاکتور نمی‌تواند خالی باشد";
+	private static final String MSG_ISSUER_BANK_ID_REQUIRED = "شناسه بانک صادرکننده نمی تواند خالی باشد";
+	private static final String MSG_NOSA_CODE_REQUIRED = "کد تفصیلی نمی تواند خالی باشد";
+	private static final String MSG_SEPAM_CODE_REQUIRED = "کد سپام نمی تواند خالی باشد";
+	private static final String MSG_TREASURY_ID_REQUIRED = "شناسه خزانه داری نمی تواند خالی باشد";
+	private static final String MSG_ISSUE_DATE_REQUIRED = "تاریخ صدور برات نمی تواند خالی باشد";
+	private static final String MSG_ISSUE_DATE_AFTER_DUE_DATE = "تاریخ صدور برات نمی تواند بعد از تاریخ سررسید باشد";
+	private static final String MSG_DUE_DATE_REQUIRED = "تاریخ سررسید نمی تواند خالی باشد";
+	private static final String MSG_PROFORMA_DETAIL_ID_REQUIRED = "شناسه جزئیات پیش فاکتور نمی تواند خالی باشد";
 	private static final String MSG_SALES_CONTRACT_NOT_FOUND = "قرارداد فروش وجود ندارد";
-	private static final String MSG_DUPLICATE_PROFORMA_BILL = "برات برای این جزئیات پیش‌فاکتور قبلاً ثبت شده است";
+	private static final String MSG_DUPLICATE_PROFORMA_BILL = "برات برای این جزئیات پیش فاکتور قبلاً ثبت شده است";
+	private static final String MSG_CONCURRENT_EXTRA_BILL_UPDATE = "اطلاعات برات همزمان توسط کاربر دیگری تغییر کرده است. لطفا مجدد تلاش کنید";
 	// ==================== DEPENDENCIES ====================
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final ProformaBankBillMapper mapper;
@@ -74,6 +74,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private final IMETradeRepository imeTradeRepository;
 	private final NotificationService notificationService;
 	private final ProformaBankBillAuditRepository auditRepository;
+	private final ProformaBankBillRevokingRepository proformaBankBillRevokingRepository;
+	private final ProformaBankBillRevokingMapper proformaBankBillRevokingMapper;
 
 	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
@@ -94,6 +96,51 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	}
 
 
+	@Transactional
+	@Override
+	public List<ProformaBankBillDto.Info> saveAll(
+			List<ProformaBankBillRequest> requests) {
+
+		log.debug("Saving {} extra bills", requests.size());
+
+		if (requests.isEmpty()) return Collections.emptyList();
+
+
+		List<ExtraBankBillModel> models = requests.stream().map(this::prepareExtraBankBill).toList();
+		List<ExtraBankBillModel> savedModels = extraBillRepository.saveAllAndFlush(models);
+		return savedModels.stream().map(mapper::toDTO).toList();
+	}
+
+	private ExtraBankBillModel prepareExtraBankBill(ProformaBankBillRequest request) {
+		validateProformaBankBillRequest(request);
+		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId()).orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+
+		try {
+			ExtraBankBillModel model = extraBillRepository.findById(request.getId())
+					.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
+			model.setIssueDate(request.getIssueDate());
+			model.setDueDate(request.getDueDate());
+			model.setNosaCode(request.getNosaCode());
+			model.setSepamCode(request.getSepamCode());
+			model.setTreasuryId(request.getTreasuryId());
+			model.setAgentBankId(issuerBank.getId());
+			model.setAgentBankName(issuerBank.getBankName());
+			model.setIssuerBankId(request.getIssuerBankId());
+			model.setIssuerBankName(issuerBank.getBankName());
+			model.setBranchCode(issuerBank.getBranchCode());
+			model.setBranchName(issuerBank.getBranchName());
+			model.setPaymentCity(issuerBank.getCity());
+			model.setAcknowledgment(Acknowledgment.RECKONING);
+			model.setExtraBillFileId(request.getExtraBillFileId());
+			return model;
+
+		} catch (ObjectOptimisticLockingFailureException ex) {
+			log.warn("Concurrent extra bill update detected for detailId={}", request.getProformaDetailId(), ex);
+
+			throw new InternalSaleCustomException.ValidationException(MSG_CONCURRENT_EXTRA_BILL_UPDATE);
+		}
+	}
+
 	@Override
 	@Transactional
 	public ProformaBankBillDto.Info save(ProformaBankBillRequest request) {
@@ -102,39 +149,44 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		// Validate mandatory fields
 		validateProformaBankBillRequest(request);
 
-		// اعتبارسنجی و یافتن موجودیت‌ها
+		// اعتبارسنجی و یافتن موجودیت ها
 		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		// ساخت و ذخیره مدل
 
-		ExtraBankBillModel model = extraBillRepository.findLastInProgressByProformaDetailId(request.getProformaDetailId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
+		try {
+			ExtraBankBillModel model = extraBillRepository.findById(request.getId())
+					.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 
-		model.setIssueDate(request.getIssueDate());
-		model.setDueDate(request.getDueDate());
-		model.setNosaCode(request.getNosaCode());
-		model.setSepamCode(request.getSepamCode());
-		model.setTreasuryId(request.getTreasuryId());
-		model.setAgentBankId(issuerBank.getId());
-		model.setAgentBankName(issuerBank.getBankName());
-		model.setIssuerBankId(request.getIssuerBankId());
-		model.setIssuerBankName(issuerBank.getBankName());
-		model.setBranchCode(issuerBank.getBranchCode());
-		model.setBranchName(issuerBank.getBranchName());
-		model.setPaymentCity(issuerBank.getCity());
-		model.setAcknowledgment(Acknowledgment.RECKONING);
-		model.setExtraBillFileId(request.getExtraBillFileId());
+			model.setIssueDate(request.getIssueDate());
+			model.setDueDate(request.getDueDate());
+			model.setNosaCode(request.getNosaCode());
+			model.setSepamCode(request.getSepamCode());
+			model.setTreasuryId(request.getTreasuryId());
+			model.setAgentBankId(issuerBank.getId());
+			model.setAgentBankName(issuerBank.getBankName());
+			model.setIssuerBankId(request.getIssuerBankId());
+			model.setIssuerBankName(issuerBank.getBankName());
+			model.setBranchCode(issuerBank.getBranchCode());
+			model.setBranchName(issuerBank.getBranchName());
+			model.setPaymentCity(issuerBank.getCity());
+			model.setAcknowledgment(Acknowledgment.RECKONING);
+			model.setExtraBillFileId(request.getExtraBillFileId());
 
-		ExtraBankBillModel savedModel = extraBillRepository.save(model);
+			ExtraBankBillModel savedModel = extraBillRepository.saveAndFlush(model);
 
-		log.info("Extra bill saved successfully with id: {}", savedModel.getId());
-		return mapper.toDTO(savedModel);
+			log.info("Extra bill saved successfully with id: {}", savedModel.getId());
+			return mapper.toDTO(savedModel);
+		} catch (ObjectOptimisticLockingFailureException ex) {
+			log.warn("Concurrent extra bill update detected for id={}", request.getId(), ex);
+			throw new InternalSaleCustomException.ValidationException(MSG_CONCURRENT_EXTRA_BILL_UPDATE);
+		}
 	}
 
 	@Override
 	public List<ProformaBankBillDto.Info> getByMasterId(Long proformaMasterId) {
-		log.debug("Getting extra bills by masterId: {}", proformaMasterId);
+//		processStatusDeterminerService.updateExtraBillAcknowledgment(proformaMasterId);
 
 		return extraBillRepository.findAllByProformaMasterId(proformaMasterId).stream()
 				.map(mapper::toDTO)
@@ -149,7 +201,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	 * Validates the ProformaBankBillRequest for mandatory fields
 	 */
 	private void validateProformaBankBillRequest(ProformaBankBillRequest request) {
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+		//processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+
 		if (request.getIssuerBankId() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_ISSUER_BANK_ID_REQUIRED);
 		}
@@ -177,8 +230,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	}
 
 	/**
-	 * بروزرسانی فایل‌های پیوست برات
-	 * این متد فقط فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می‌کند
+	 * بروزرسانی فایل های پیوست برات
+	 * این متد فقط فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می کند
 	 */
 	@Override
 	@Transactional
@@ -220,7 +273,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	}
 
 	/**
-	 * علامت‌گذاری تمام برات‌های مرتبط با یک قرارداد به عنوان تسویه شده
+	 * علامت گذاری تمام برات های مرتبط با یک قرارداد به عنوان تسویه شده
 	 */
 	private void markAllBillsAsReckoning(Long proformaMasterId) {
 		List<ExtraBankBillModel> billItems = extraBillRepository.findAllByProformaMasterId(proformaMasterId);
@@ -259,7 +312,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						MSG_PROFORMA_MASTER_NOT_FOUND));
 
-		this.markAllLcsAsReckoning(proformaMaster.getId());
+		this.markAllAsReckoning(proformaMaster.getId());
 
 		LcBrokerEmailRequest request = new LcBrokerEmailRequest();
 		request.setContractNo(proformaMaster.getContractNo());
@@ -285,6 +338,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	@Override
 	public String generateExtraBillBrokerEmailContent(long extraBillId) {
+
+
 		ExtraBankBillModel billModel = extraBillRepository.findById(extraBillId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
@@ -302,12 +357,14 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId) {
 
+		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
 		return processStatusDeterminerService.getProformaBankBillSummaryReport(extraBillId);
 
 	}
 
 	@Override
 	public ProcessInstanceHistory getHistoryDetail(Long extraBillId) {
+		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
 		return processStatusDeterminerService.getProformaBankBillHistoryDetail(extraBillId);
 	}
 
@@ -352,41 +409,16 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	}
 
 	@Override
-	public SearchDTO.SearchRs<ProformaBankBillDto.Info> findReadyReckoning(SearchDTO.SearchRq request) {
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+	public SearchDTO.SearchRs<ProformaBankBillReportDto.Info> findReadyReckoning(SearchDTO.SearchRq request) {
 		SearchDTO.SearchRq searchRq = request == null ? new SearchDTO.SearchRq() : request;
 		SearchDTO.CriteriaRq rootCriteria = searchRq.getCriteria();
 
-		if (rootCriteria == null) {
-			rootCriteria = new SearchDTO.CriteriaRq()
-					.setOperator(EOperator.and)
-					.setCriteria(new ArrayList<>());
-			searchRq.setCriteria(rootCriteria);
-		} else if (rootCriteria.getCriteria() == null && rootCriteria.getFieldName() != null) {
-			rootCriteria = new SearchDTO.CriteriaRq()
-					.setOperator(EOperator.and)
-					.setCriteria(new ArrayList<>(List.of(searchRq.getCriteria())));
-			searchRq.setCriteria(rootCriteria);
-		}
 
-		if (rootCriteria.getOperator() == null) {
-			rootCriteria.setOperator(EOperator.and);
-		}
-
-		if (rootCriteria.getCriteria() == null) {
-			rootCriteria.setCriteria(new ArrayList<>());
-		}
-
-		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
-				.setFieldName("workflowApproveStatus")
-				.setOperator(EOperator.equals)
-				.setValue(WorkflowApproveStatus.IN_PROGRESS));
-
-		return SearchUtil.search(extraBillRepository, searchRq, mapper::toDTO);
+		return SearchUtil.search(proformaBankBillRevokingRepository, searchRq, proformaBankBillRevokingMapper::toDTO);
 	}
 
 	@Override
-	public void markAllLcsAsReckoning(Long proformaMasterId) {
+	public void markAllAsReckoning(Long proformaMasterId) {
 
 		List<ExtraBankBillModel> billModels = extraBillRepository.findAllByProformaMasterId(proformaMasterId);
 
@@ -404,7 +436,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				item.setReckoningSendDate(newReckoningSendDate);
 				item.setAcknowledgment(Acknowledgment.RECKONING);
 
-				extraBillRepository.saveAndFlush(item);
+				extraBillRepository.save(item);
 			}
 
 		}
@@ -453,6 +485,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				timestamp, userFullName, LcCancellationReason.BUYER_WITHDRAWAL, notes
 		);
 	}
+
 	private void appendCancellationRecord(ExtraBankBillModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {
@@ -461,7 +494,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 			model.setDescription(cancellationRecord);
 		}
 	}
-
 
 
 }

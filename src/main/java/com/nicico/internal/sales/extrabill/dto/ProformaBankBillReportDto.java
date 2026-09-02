@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -91,7 +92,7 @@ public class ProformaBankBillReportDto implements Serializable {
 
 	private WorkflowApproveStatus proformaStatus;
 
-	// فیلدهای جدید اضافه شده از پیش‌فاکتور
+	// فیلدهای جدید اضافه شده از پیش فاکتور
 	@Schema(description = "شناسه کارگزار")
 	private Long brokerId;
 
@@ -112,6 +113,19 @@ public class ProformaBankBillReportDto implements Serializable {
 
 	@Schema(description = "شناسه کالا")
 	private Long goodId;
+
+	@Schema(description = "شماره پیش فاکتور")
+	private String performaNo;
+
+	@Schema(description = "تاریخ پیش فاکتور")
+	private Date performaDate;
+
+
+	@Schema(description = "شناسه فایل پیوست برات")
+	private String extraBillFileId;
+
+	@Schema(description = "شناسه فایل اصلاحیه")
+	private String dispatchAttachmentId;
 
 
 	@EqualsAndHashCode(callSuper = true)

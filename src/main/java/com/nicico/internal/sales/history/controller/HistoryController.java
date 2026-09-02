@@ -20,7 +20,7 @@ public class HistoryController {
 
 	private final HistoryService historyService;
 
-	@Operation(summary = "جستجوی تاریخچه", description = "جستجوی تاریخچه معاملات با قابلیت صفحه‌بندی و فیلتر")
+	@Operation(summary = "جستجوی تاریخچه", description = "جستجوی تاریخچه معاملات با قابلیت صفحه بندی و فیلتر")
 	@PostMapping("/search")
 	public ResponseEntity<SearchDTO.SearchRs<HistoryExtractMasterDto.Info>> search(@RequestBody SearchDTO.SearchRq request) {
 		return ResponseEntity.ok(historyService.search(request));

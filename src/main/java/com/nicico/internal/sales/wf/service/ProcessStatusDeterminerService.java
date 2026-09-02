@@ -16,6 +16,8 @@ public interface ProcessStatusDeterminerService {
 
 	void updateLcAcknowledgment(Long lcId);
 
+	void updateExtraBillAcknowledgment(Long masterId);
+
 	Acknowledgment determineAcknowledgment(Long lcId);
 
 

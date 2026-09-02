@@ -290,7 +290,7 @@ public class NotificationServiceImpl implements NotificationService {
 		} else if (model instanceof RemittanceMasterModel) {
 			return String.valueOf(((RemittanceMasterModel) model).getContractNo());
 		}
-		throw new IllegalArgumentException("نوع مدل پشتیبانی نمی‌شود");
+		throw new IllegalArgumentException("نوع مدل پشتیبانی نمی شود");
 	}
 
 	private String formatMessage(String template, Object... args) {

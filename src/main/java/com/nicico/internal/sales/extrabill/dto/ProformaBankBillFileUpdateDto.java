@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO برای بروزرسانی فایل‌های پیوست برات
+ * DTO برای بروزرسانی فایل های پیوست برات
  */
 @Data
 @Builder

@@ -20,7 +20,7 @@ public class NosaCodeController {
 
 	@Operation(
 			summary = "تولید کد نوسا برای LC",
-			description = "این متد کد نوسا را برای LC با فرمت '107/18' + کد بانک + دو رقم آخر سال جلالی + شماره سه رقمی تولید می‌کند."
+			description = "این متد کد نوسا را برای LC با فرمت '107/18' + کد بانک + دو رقم آخر سال جلالی + شماره سه رقمی تولید می کند."
 	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@GetMapping("/lc/{issuerBankId}")
@@ -31,7 +31,7 @@ public class NosaCodeController {
 
 	@Operation(
 			summary = "تولید کد نوسا برای برات الکترونیک",
-			description = "این متد کد نوسا را برای برات الکترونیک با فرمت '109/18' + کد بانک + دو رقم آخر سال جلالی + شماره سه رقمی تولید می‌کند."
+			description = "این متد کد نوسا را برای برات الکترونیک با فرمت '109/18' + کد بانک + دو رقم آخر سال جلالی + شماره سه رقمی تولید می کند."
 	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA_BANK_BILL')")
 	@GetMapping("/extra-bill/{issuerBankId}")

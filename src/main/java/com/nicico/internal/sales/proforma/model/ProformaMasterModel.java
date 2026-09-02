@@ -137,7 +137,10 @@ public class ProformaMasterModel extends BaseClassModel {
 //	@OneToMany(mappedBy = "ProformaMasterModel", fetch = FetchType.LAZY)
 //	@EqualsAndHashCode.Exclude
 //	private List<ExtraBankBillModel> extraBankBillModel;
-
+//
+//	@OneToMany(mappedBy = "proformaMasterModel", fetch = FetchType.LAZY)
+//	@EqualsAndHashCode.Exclude
+//	private List<ExtraBankBillModel> proformaBankBillModels;
 
 	@Column(name = "F_TRADE_ID", nullable = false)
 	private Long tradeId;

@@ -80,7 +80,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 			throw new InternalSaleCustomException.AccessDeniedException(MSG_PROCESS_ACCESS_DENIED);
 		}
 
-		// اعتبارسنجی داده‌ها
+		// اعتبارسنجی داده ها
 		proformaValidationService.validateProformaData(requestDto);
 
 		// ایجاد پیش فاکتور
@@ -105,7 +105,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		ProformaModelResponse contractDetail = getContractDetail(requestDto);
 		ProformaMasterModel masterModel = contractDetail.getMasterModel();
 
-		// حذف تکراری‌ها و تنظیم لیست جزئیات
+		// حذف تکراری ها و تنظیم لیست جزئیات
 		List<ProformaDetailModel> detailList = distinctDetails(contractDetail.getDetailModels());
 		masterModel.setProformaDetailModelLists(detailList);
 
@@ -113,7 +113,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		masterModel = proformaMasterRepository.save(masterModel);
 
 
-		// ذخیره جزئیات و GoodItem‌ها
+		// ذخیره جزئیات و GoodItem ها
 		ProformaModelHelper.saveDetailAndGoodItems(detailList, masterModel.getId(), proformaDetailRepository, proformaGoodItemRepository);
 
 		log.info("Proforma master created successfully with id: {}", masterModel.getId());
@@ -147,7 +147,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		// تولید جزئیات
 		List<ProformaDetailModel> detailDtoList = generatePerformaDetailList(params);
 
-		// محاسبه مجموع‌ها
+		// محاسبه مجموع ها
 		Totals totals = calculateTotals(detailDtoList);
 
 		// ساخت Master
@@ -199,7 +199,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 	}
 
 	/**
-	 * ذخیره Detail و GoodItem‌ها
+	 * ذخیره Detail و GoodItem ها
 	 */
 //	private void saveDetailAndGoodItems(List<ProformaDetailModel> detailModels, Long masterId) {
 //		detailModels.forEach(detail -> {
@@ -296,10 +296,10 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 	private List<ProformaDetailModel> generatePerformaDetailList(PreciousMetalDetailGenerator params) {
 		List<String> serial = proformaSerialService.getProformaSerial(1);
 
-		// 1. تولید آیتم‌های کالا
+		// 1. تولید آیتم های کالا
 		List<ProformaGoodItemModel> goodItems = generatePerformaGoodItemList(params);
 
-		// 2. محاسبه مجموع‌های Detail
+		// 2. محاسبه مجموع های Detail
 		DetailTotals detailTotals = calculateDetailTotals(goodItems);
 
 		// 3. ساخت DetailModel
@@ -317,7 +317,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 				params.tradeModel().getContractDate(),
 				ProformaReversalStatus.NORMAL,
 				params.saleConditionModel().getExtraBillOfExchangePercent(),
-				BigDecimal.ZERO // مقدار موقت، بعداً محاسبه می‌شود
+				BigDecimal.ZERO // مقدار موقت، بعداً محاسبه می شود
 		);
 
 		// 4. محاسبه مبلغ اضافی و مبلغ نهایی

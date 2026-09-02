@@ -30,7 +30,7 @@ public class ExtraBillController {
 	private final ExtraBillService service;
 	private final ExtraBillIssueService extraBillIssueService;
 
-	@Operation(summary = "جستجوی براتهای قابل صدور", description = "لیست براتها که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی‌گرداند.")
+	@Operation(summary = "جستجوی براتهای قابل صدور", description = "لیست براتها که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی گرداند.")
 	@PostMapping("/search-issuable")
 	public ResponseEntity<SearchDTO.SearchRs<ExtraBillIssueProviderDto.Info>> searchIssuable(
 			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
@@ -41,7 +41,7 @@ public class ExtraBillController {
 		return ResponseEntity.ok(extraBillIssueService.search(searchRq));
 	}
 
-	@Operation(summary = "جستجوی براتها", description = "براتها صادر شده را بر اساس فیلترهای ورودی جستجو کرده و نتیجه را برمی‌گرداند.")
+	@Operation(summary = "جستجوی براتها", description = "براتها صادر شده را بر اساس فیلترهای ورودی جستجو کرده و نتیجه را برمی گرداند.")
 	@PostMapping("/search")
 	public ResponseEntity<SearchDTO.SearchRs<ProformaBankBillDto.Info>> search(
 			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
@@ -61,7 +61,7 @@ public class ExtraBillController {
 //		return ResponseEntity.ok(service.generateLcBrokerEmailContent(lcId));
 //	}
 
-	@Operation(summary = "تاریخچه صدور براتها", description = "گزارش تاریخچه کامل صدور براتها شامل وضعیت‌ها، تاریخ‌ها و جزئیات را برمی‌گرداند.")
+	@Operation(summary = "تاریخچه صدور براتها", description = "گزارش تاریخچه کامل صدور براتها شامل وضعیت ها، تاریخ ها و جزئیات را برمی گرداند.")
 	@PostMapping("/search-issue-history")
 	public ResponseEntity<SearchDTO.SearchRs<ProformaBankBillReportDto.Info>> searchIssueHistory(
 			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
@@ -72,7 +72,7 @@ public class ExtraBillController {
 		return ResponseEntity.ok(service.searchReport(searchRq));
 	}
 
-	@Operation(summary = "دریافت براتها بر اساس شناسه قرارداد اصلی", description = "تمام براتها مرتبط با یک قرارداد پیش فاکتور اصلی (Master) را بر اساس شناسه آن برمی‌گرداند.")
+	@Operation(summary = "دریافت براتها بر اساس شناسه قرارداد اصلی", description = "تمام براتها مرتبط با یک قرارداد پیش فاکتور اصلی (Master) را بر اساس شناسه آن برمی گرداند.")
 	@GetMapping("/get-by-master/{masterId}")
 	public ResponseEntity<List<ProformaBankBillDto.Info>> getByMasterId(
 			@Parameter(description = "شناسه قرارداد پیش فاکتور اصلی", required = true, example = "10")
@@ -80,17 +80,25 @@ public class ExtraBillController {
 		return ResponseEntity.ok(service.getByMasterId(masterId));
 	}
 
-	@Operation(summary = "ثبت برات  جدید", description = "یک برات  جدید بر اساس اطلاعات دریافتی ایجاد و ذخیره می‌کند. نیاز به مجوز C_INS_EXTRA_BILL دارد.")
+	@Operation(summary = "ثبت برات  جدید", description = "یک برات  جدید بر اساس اطلاعات دریافتی ایجاد و ذخیره می کند. نیاز به مجوز C_INS_EXTRA_BILL دارد.")
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
 	@PostMapping("/save")
 	public ResponseEntity<ProformaBankBillDto.Info> save(@RequestBody ProformaBankBillRequest proformaBankBillRequest) {
 		return ResponseEntity.ok(service.save(proformaBankBillRequest));
 	}
 
+	@Operation(
+			summary = "ثبت برات های جدید", description = "برات های دریافتی را ثبت و ذخیره می کند. نیاز به مجوز C_INS_EXTRA_BILL دارد."
+	)
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+	@PostMapping("/save-all")
+	public ResponseEntity<List<ProformaBankBillDto.Info>> saveAll(@RequestBody List<ProformaBankBillRequest> requests) {
+		return ResponseEntity.ok(service.saveAll(requests));
+	}
 
 	@Operation(
-			summary = "بروزرسانی فایل‌های پیوست برات",
-			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می‌کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
+			summary = "بروزرسانی فایل های پیوست برات",
+			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
 	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
 	@PutMapping("/update-files")
@@ -113,7 +121,7 @@ public class ExtraBillController {
 
 	@Operation(
 			summary = "بروزرسانی اطلاعات برات",
-			description = "اطلاعات بانکی و الکترونیکی برات را بروزرسانی می‌کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
+			description = "اطلاعات بانکی و الکترونیکی برات را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
 	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
 	@PutMapping("/update")
@@ -124,7 +132,7 @@ public class ExtraBillController {
 
 	@Operation(
 			summary = "دریافت تاریخچه تغییرات برات",
-			description = "لیست کامل تغییرات و نسخه‌های مختلف یک برات را بر اساس شناسه آن برمی‌گرداند. شامل اطلاعات ایجاد، ویرایش و وضعیت‌های مختلف برات در طول زمان."
+			description = "لیست کامل تغییرات و نسخه های مختلف یک برات را بر اساس شناسه آن برمی گرداند. شامل اطلاعات ایجاد، ویرایش و وضعیت های مختلف برات در طول زمان."
 	)
 
 	@GetMapping("/audit-history/{extraBillId}")
@@ -133,18 +141,18 @@ public class ExtraBillController {
 	}
 
 	@Operation(
-			summary = "جستجوی برات‌های آماده تسویه",
-			description = "لیست برات‌هایی که آماده فرآیند تسویه هستند را بر اساس فیلترهای دریافتی برمی‌گرداند."
+			summary = "جستجوی برات های آماده تسویه",
+			description = "لیست برات هایی که آماده فرآیند تسویه هستند را بر اساس فیلترهای دریافتی برمی گرداند."
 	)
 	@PostMapping("/search/ready-reckoning")
-	public ResponseEntity<SearchDTO.SearchRs<ProformaBankBillDto.Info>> findReadyReckoning(
+	public ResponseEntity<?> findReadyReckoning(
 			@RequestBody(required = false) SearchDTO.SearchRq request) {
 		return ResponseEntity.ok(service.findReadyReckoning(request));
 	}
 
 	@Operation(
 			summary = "دریافت جزئیات تاریخچه گردش کار برات",
-			description = "تاریخچه کامل گردش کار (Workflow) یک برات شامل تاییدیه‌ها، ردیه‌ها و توضیحات را برمی‌گرداند."
+			description = "تاریخچه کامل گردش کار (Workflow) یک برات شامل تاییدیه ها، ردیه ها و توضیحات را برمی گرداند."
 	)
 	@GetMapping("/history/{extraBillId}")
 	public ResponseEntity<ProcessInstanceHistory> getExtraBillHistoryDetail(@PathVariable Long extraBillId) {
@@ -153,7 +161,7 @@ public class ExtraBillController {
 
 	@Operation(
 			summary = "تولید محتوای ایمیل کارگزار",
-			description = "محتوای HTML ایمیل فارسی برای اطلاع‌رسانی به کارگزار درباره جزئیات برات را تولید می‌کند."
+			description = "محتوای HTML ایمیل فارسی برای اطلاع رسانی به کارگزار درباره جزئیات برات را تولید می کند."
 	)
 	@GetMapping("/get-broker-email-content/{extraBillId}")
 	public ResponseEntity<String> generateExtraBillBrokerEmailContent(@PathVariable long extraBillId) {
@@ -162,7 +170,7 @@ public class ExtraBillController {
 
 	@Operation(
 			summary = "دریافت گزارش وظایف کاربران",
-			description = "گزارش وظایف کاربران مرتبط با گردش کار برات را برمی‌گرداند."
+			description = "گزارش وظایف کاربران مرتبط با گردش کار برات را برمی گرداند."
 	)
 	@GetMapping("/user-tasks-report/{extraBillId}")
 	public ResponseEntity<?> getUserTasksReport(@PathVariable Long extraBillId) {

@@ -112,7 +112,7 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 
 		List<ProformaDetailModel> detailDtoList = generatePerformaDetailList(params);
 
-		// محاسبه مجموع‌ها و درصدها با استفاده از Helper
+		// محاسبه مجموع ها و درصدها با استفاده از Helper
 		Totals totals = calculateTotals(detailDtoList);
 		CashCreditPercentages percentages = calculateCashCreditPercentages(context.getGoodsBucketModel(), false);
 
@@ -142,7 +142,7 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 
 		validateReversal(existingMaster);
 
-		// استخراج آیتم‌های ابطال شده
+		// استخراج آیتم های ابطال شده
 		List<ProformaDetailModel> canceledDetails = filterDetailsByStatus(
 				existingMaster.getProformaDetailModelLists(),
 				ProformaReversalStatus.CANCELED
@@ -179,10 +179,10 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 		List<ProformaDetailModel> allDetails = combineDetails(copiedDetails, newDetails);
 		newMasterModel.setProformaDetailModelLists(allDetails);
 
-		// به‌روزرسانی وضعیت‌ها
+		// به روزرسانی وضعیت ها
 		updateReversalStatuses(allDetails, requestDto.getExitsProformaNo());
 
-		// محاسبه مجموع‌ها با فیلتر
+		// محاسبه مجموع ها با فیلتر
 		Totals totals = calculateTotalsWithFilter(
 				allDetails,
 				detail -> detail.getProformaReversalStatus() != ProformaReversalStatus.CANCELED
@@ -358,7 +358,7 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 		for (int i = 0; i < requestDto.getParts().size(); i++) {
 			ProformaGoodItemModel goodItem = generatePerformaGoodItem(params, i);
 
-			// استفاده از Helper برای محاسبه مجموع‌های Detail
+			// استفاده از Helper برای محاسبه مجموع های Detail
 			DetailTotals detailTotals = calculateDetailTotals(List.of(goodItem));
 
 			ProformaDetailModel detailModel = ProformaDetailModel.builder()

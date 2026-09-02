@@ -127,12 +127,12 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 	public SaleConditionModel getOnSpecificDateModel(long goodId, Date targetDate) {
 		List<SaleConditionModel> candidates = saleConditionRepository.findActiveByGoodIdAndDate(goodId, targetDate);
 
-		// اولویت اول: آیتم‌های بدون expireDate (expireDate == null)
+		// اولویت اول: آیتم های بدون expireDate (expireDate == null)
 		Optional<SaleConditionModel> model = candidates.stream()
 				.filter(item -> item.getExpireDate() == null)
 				.max(Comparator.comparing(SaleConditionModel::getId));
 
-		// اولویت دوم: آیتم‌های دارای expireDate (expireDate != null)
+		// اولویت دوم: آیتم های دارای expireDate (expireDate != null)
 		if (model.isEmpty()) {
 			model = candidates.stream()
 					.filter(item -> item.getExpireDate() != null)

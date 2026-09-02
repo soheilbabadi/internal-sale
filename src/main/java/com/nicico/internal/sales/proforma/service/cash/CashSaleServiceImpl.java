@@ -136,7 +136,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 		CashSaleDetailGenerator params = buildDetailGenerator(requestDto, tradeExtract);
 		List<ProformaDetailModel> detailDtoList = generateRegularPerformaDetailList(params);
 
-		// محاسبه مجموع‌ها و درصدها با Helper
+		// محاسبه مجموع ها و درصدها با Helper
 		Totals totals = calculateTotals(detailDtoList);
 		CashCreditPercentages percentages = calculateCashCreditPercentages(
 				params.goodsBucketModel(),
@@ -163,7 +163,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 		CashSaleDetailGenerator params = buildDetailGenerator(requestDto, tradeExtract);
 		List<ProformaDetailModel> detailDtoList = generatePreciousPerformaDetailList(params);
 
-		// محاسبه مجموع‌ها با Helper
+		// محاسبه مجموع ها با Helper
 		Totals totals = calculateTotals(detailDtoList);
 		BrokerModel brokerModel = findBrokerModel(params.tradeModel());
 
@@ -527,7 +527,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 			errors.add("مبلغ مالیات باید حداقل 1 باشد");
 		}
 		if (calc.cashQuantity().compareTo(calc.netQuantity()) > 0) {
-			errors.add("مقدار نقدی نمی‌تواند از وزن خالص بیشتر باشد");
+			errors.add("مقدار نقدی نمی تواند از وزن خالص بیشتر باشد");
 		}
 
 		if (!errors.isEmpty()) {
