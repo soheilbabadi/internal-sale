@@ -4,20 +4,12 @@
 *.o
 *.obj
 *.out
-*.dll
-*.so
-*.a
-*.exe
+build/
+target/
 
 # Dependencies
-target/
 .gradle/
-.mypy_cache/
-.pytest_cache/
-node_modules/
-venv/
-.venv/
-__pycache__/
+lib/
 
 # Logs and temp files
 *.log
@@ -33,12 +25,22 @@ __pycache__/
 .env.local
 *.env.*
 
-# Coverage
+# Python (if applicable)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+.mypy_cache/
+.pytest_cache/
+
+# Coverage reports
 coverage/
 htmlcov/
 .coverage
 
-# System
+# System files
 .DS_Store
 Thumbs.db
 ```
