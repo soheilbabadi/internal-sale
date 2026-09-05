@@ -74,6 +74,8 @@ public class ProformaDetailDto implements Serializable {
 	@Schema(description = "درصد اضافه شده به مبلغ کل")
 	private BigDecimal extraBillOfPercent;
 
+	private String proformaFileId;
+
 	private List<ProformaGoodItemDto> proformaGoodItemDtos;
 
 	@EqualsAndHashCode(callSuper = true)

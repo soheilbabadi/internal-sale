@@ -114,6 +114,10 @@ public class RemittanceMasterDto implements Serializable {
 	private String issuerBankBranchName;
 	@Schema(name = "کد شعبه بانک گشایش اعتبار اسنادی")
 	private String issuerBankBranchCode;
+
+	@Schema(description = "شناسه فایل حواله", name = "remittanceFileId", example = "FILE123456")
+	private String remittanceFileId;
+
 	@Schema(description = "کد فرایند", name = "processId", example = "5e2b7f8c9d4a6b1e3f7c8d9a0b1e2c3d")
 	private String processId;
 	@Schema(description = "وضعیت تایید فرایند", name = "workflowApproveStatus", example = "IN_PROGRESS")

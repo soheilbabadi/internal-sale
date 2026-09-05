@@ -229,23 +229,6 @@ public class ProformaController {
 
 	// ==================== EXPORT ====================
 
-	@Operation(summary = "خروجی ورد", description = "خروجی پیش فاکتور به صورت فایل ورد")
-	@GetMapping("/export-doc/{proformaId}")
-	public ResponseEntity<byte[]> exportDoc(@PathVariable Long proformaId) {
-		return ResponseEntity.ok(exportDocService.exportProformaDoc(proformaId));
-	}
-
-	@Operation(summary = "دانلود ورد", description = "خروجی پیش فاکتور به صورت فایل دانلودی ورد")
-	@GetMapping(value = "/export-doc-file/{proformaId}", produces = "application/octet-stream")
-	public ResponseEntity<byte[]> exportDocFile(@PathVariable Long proformaId) {
-		byte[] response = exportDocService.exportProformaDoc(proformaId);
-		return ResponseEntity.ok()
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"proforma_" + proformaId + ".docx\"")
-				.contentType(MediaType.APPLICATION_OCTET_STREAM)
-				.contentLength(response.length)
-				.body(response);
-	}
-
 	@Operation(summary = "دانلود پی دی اف", description = "خروجی پیش فاکتور به صورت فایل پی دی اف قابل دانلود")
 	@GetMapping(value = "/export-pdf-file/{proformaId}", produces = MediaType.APPLICATION_PDF_VALUE)
 	public ResponseEntity<byte[]> exportPdfFile(@PathVariable Long proformaId) {

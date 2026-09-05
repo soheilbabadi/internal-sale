@@ -125,6 +125,9 @@ public class RemittanceMasterModel extends BaseClassModel {
 	@Schema(name = "کد شعبه بانک گشایش اعتبار اسنادی")
 	private String issuerBankBranchCode;
 
+	@Column(name = "C_REMITTANCE_FILE_ID", length = 100)
+	private String remittanceFileId;
+
 	@Column(name = "C_PROCESS_ID", length = 50, nullable = false)
 	@Schema(description = "کد فرایند", name = "processId", example = "5e2b7f8c9d4a6b1e3f7c8d9a0b1e2c3d")
 	private String processId;

@@ -115,5 +115,8 @@ public class ProformaDetailModel extends BaseClassModel {
 	@Column(name = "F_PERFORMA_MASTER_ID")
 	private Long proformaMasterId;
 
+	@Column(name = "C_PROFORMA_FILE_ID", length = 100)
+	private String proformaFileId;
+
 
 }
