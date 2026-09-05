@@ -2,6 +2,7 @@ package com.nicico.internal.sales.wf.controller;
 
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.service.ExtraBillProcessService;
+import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import javax.validation.Valid;
 public class ExtraBillProcessController {
 
 	private final ExtraBillProcessService extraBillProcessService;
+	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
 	@Operation(
 			summary = "شروع فرآیند برات الکترونیک",
@@ -31,9 +33,7 @@ public class ExtraBillProcessController {
 		return ResponseEntity.ok(extraBillProcessService.startExtraBillProcess(masterId));
 	}
 
-	@Operation(
-			summary = "تایید تسک",
-			description = "این متد برای تایید یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت برات الکترونیک به روزرسانی می شود."
+	@Operation(summary = "تایید تسک", description = "این متد برای تایید یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت برات الکترونیک به روزرسانی می شود."
 	)
 	@PutMapping("/approve-task")
 	public ResponseEntity<HttpStatus> approveTask(@RequestBody @Valid TaskActionDto taskActionDto) {
@@ -48,22 +48,14 @@ public class ExtraBillProcessController {
 		return ResponseEntity.ok().build();
 	}
 
-	@Operation(
-			summary = "بروزرسانی وضعیت برات الکترونیک",
-			description = "این متد به صورت دستی وضعیت تمام برات های الکترونیک در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت برات الکترونیک و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید."
+	@Operation(summary = "بروزرسانی وضعیت برات الکترونیک", description = "این متد به صورت دستی وضعیت تمام برات های الکترونیک در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت برات الکترونیک و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید."
 	)
 	@GetMapping("/refresh-status")
 	public ResponseEntity<Void> refreshStatus() {
-		extraBillProcessService.refreshExtraBillStatus();
+		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
 		return ResponseEntity.ok().build();
 	}
 
-	@Operation(
-			summary = "تشخیص مرحله جاری برات الکترونیک",
-			description = "با دریافت شناسه برات الکترونیک، مرحله جاری  فرایند آن را شناسایی و بازمی گرداند. این شامل مراحلی مانند 'در انتظار تایید کارشناس'، 'در انتظار تایید مدیریت'، 'تایید نهایی' و سایر گام های فرآیند می باشد."
-	)
-	@GetMapping("/detect-step/{id}")
-	public ResponseEntity<String> detectLcStep(@PathVariable Long id) {
-		return ResponseEntity.ok(extraBillProcessService.detectExtraBillStep(id).name());
-	}
+
+
 }

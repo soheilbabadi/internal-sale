@@ -14,11 +14,8 @@ public interface ProcessStatusDeterminerService {
 
 	Map<String, List<UserTaskReportDTO>> getLcSummaryReport(Long lcId);
 
+
 	void updateLcAcknowledgment(Long lcId);
-
-	void updateExtraBillAcknowledgment(Long masterId);
-
-	Acknowledgment determineAcknowledgment(Long lcId);
 
 
 	Acknowledgment determineAcknowledgment(LcModel lcModel);
@@ -41,4 +38,6 @@ public interface ProcessStatusDeterminerService {
 	void updateAllLcAcknowledgments();
 
 	void updateAllExtraBillAcknowledgments();
+
+	boolean isTerminalAcknowledgment(Acknowledgment acknowledgment);
 }
