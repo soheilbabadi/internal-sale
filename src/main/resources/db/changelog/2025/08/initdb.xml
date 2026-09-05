@@ -1035,6 +1035,7 @@
             <column name="N_EXTRA_BILL_OF_PERCENT" type="DECIMAL(19,3)" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
+            <column name="C_PROFORMA_FILE_ID" type="VARCHAR2(100)"/>
         </createTable>
     </changeSet>
     <changeSet id="create-table-t-ins-performa-good-item" author="soheil">
@@ -1832,6 +1833,7 @@
             <column name="n_total_final_amount" type="DECIMAL"/>
             <column name="C_OFFER_DESCRIPTION" type="VARCHAR2(4000)"/>
             <column name="c_ime_commodity_symbol" type="VARCHAR2(100)"/>
+            <column name="C_REMITTANCE_FILE_ID" type="VARCHAR2(100)"/>
         </createTable>
     </changeSet>
     <changeSet id="create-table-t-ins-pms-mapping-v2" author="soheil">

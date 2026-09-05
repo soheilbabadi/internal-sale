@@ -3,7 +3,7 @@ package com.nicico.internal.sales.notification.service;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
-import com.nicico.internal.sales.export.service.ExportDocService;
+import com.nicico.internal.sales.fms.service.FmsDocumentService;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
@@ -16,7 +16,6 @@ import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
@@ -81,7 +80,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 	// ==================== DEPENDENCIES ====================
 	private final ProformaMasterRepository proformaMasterRepository;
-	private final ExportDocService exportDocService;
+	private final FmsDocumentService fmsDocumentService;
 	private final MailService mailService;
 	private final CustomerRepository customerRepository;
 	private final RemittanceMasterRepository remittanceMasterRepository;
@@ -318,70 +317,35 @@ public class NotificationServiceImpl implements NotificationService {
 	// ==================== PDF CONVERSION ====================
 
 	private byte[] convertDocumentsToPdf(List<Long> ids, EntityTypeEnum entityType) {
-		log.info("convertDocumentsToPdf start List<XWPFDocument> documents");
-		List<XWPFDocument> documents = loadDocuments(ids, entityType);
+		log.info("convertDocumentsToPdf start List<byte[]> documents");
+		List<byte[]> documents = loadDocuments(ids, entityType);
 
 		if (documents.isEmpty()) {
 			log.error("convertDocumentsToPdf  documents list is empty");
 			throw new InternalSaleCustomException.FileContentException(MSG_FILE_EMPTY_LIST);
 		}
 
-		return convertToPdf(documents);
-	}
-
-	// ==================== DOCUMENT LOADING ====================
-
-	private List<XWPFDocument> loadDocuments(List<Long> ids, EntityTypeEnum entityType) {
-		return ids.stream()
-				.map(id -> loadDocument(id, entityType))
-				.filter(Objects::nonNull)
-				.toList();
-	}
-
-	private XWPFDocument loadDocument(Long id, EntityTypeEnum entityType) {
-		String documentType = entityType == EntityTypeEnum.PROFORMA ? "پیش فاکتور" : "حواله";
-
-		try {
-			byte[] docBytes = entityType == EntityTypeEnum.PROFORMA
-					? exportDocService.exportProformaDoc(id)
-					: exportDocService.exportRemittanceDoc(id);
-
-			if (docBytes == null || docBytes.length == 0) {
-				log.warn("فایل خالی یا نامعتبر برای {} با شناسه: {}", documentType, id);
-				return null;
-			}
-			return new XWPFDocument(new ByteArrayInputStream(docBytes));
-		} catch (IOException ex) {
-			log.error(formatMessage(LOG_LOADING_DOC_ERROR, documentType, id, ex.getMessage()), ex);
-			return null;
+		// Documents are already PDFs from FMS, so just merge them if multiple
+		if (documents.size() == 1) {
+			return documents.get(0);
 		}
-	}
 
-	// ==================== PDF CONVERTER ====================
+		// Merge multiple PDFs using the external PDF converter service
+		return mergePdfs(documents);
+	}
 
 	/**
-	 * Serializes each document fully into memory (byte[]) before building the
-	 * multipart request, rather than streaming via PipedInputStream/PipedOutputStream.
-	 * <p>
-	 * Why: a PipedOutputStream -> PipedInputStream pair has a tiny internal buffer
-	 * (default 1024 bytes). doc.write(out) runs on this same thread and blocks the
-	 * moment that buffer fills, because nothing drains the read side until
-	 * restTemplate sends the multipart body — which can't happen until this loop
-	 * finishes building bodyMap. So any document bigger than the buffer deadlocks:
-	 * the writer waits for a reader that itself is waiting for the writer to finish.
-	 * Reading fully into memory up front avoids the cycle.
+	 * Merges multiple PDF documents using the external PDF converter API.
 	 */
-	private byte[] convertToPdf(List<XWPFDocument> documents) {
-		log.info("convertToPdf start, {} document(s)", documents.size());
+	private byte[] mergePdfs(List<byte[]> pdfDocuments) {
+		log.info("mergePdfs start, {} document(s)", pdfDocuments.size());
 
 		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
-		log.info("convertToPdf start, {} document(s)", documents.size());
 		int fileCounter = 0;
-		for (XWPFDocument doc : documents) {
+		for (byte[] pdfBytes : pdfDocuments) {
 			fileCounter++;
-			String fileName = fileCounter + DOC_EXTENSION;
-			byte[] docBytes = toByteArray(doc);
-			bodyMap.add(FILES_PARAM, new ByteArrayResource(docBytes) {
+			String fileName = fileCounter + PDF_EXTENSION;
+			bodyMap.add(FILES_PARAM, new ByteArrayResource(pdfBytes) {
 				@Override
 				public String getFilename() {
 					return fileName;
@@ -389,7 +353,7 @@ public class NotificationServiceImpl implements NotificationService {
 			});
 		}
 
-		log.info("convertToPdf all documents written to memory, sending to pdf convertor");
+		log.info("mergePdfs all documents written to memory, sending to pdf convertor");
 		bodyMap.add(MERGE_PARAM, TRUE);
 
 		RequestEntity<MultiValueMap<String, Object>> request = RequestEntity
@@ -398,9 +362,9 @@ public class NotificationServiceImpl implements NotificationService {
 				.body(bodyMap);
 
 		try {
-			log.info("convertToPdf calling pdf convertor at {}", pdfConvertorUrl);
+			log.info("mergePdfs calling pdf convertor at {}", pdfConvertorUrl);
 			byte[] response = restTemplate.exchange(request, byte[].class).getBody();
-			log.info("convertToPdf received response, {} bytes", response == null ? 0 : response.length);
+			log.info("mergePdfs received response, {} bytes", response == null ? 0 : response.length);
 			if (response == null || response.length == 0) {
 				throw new InternalSaleCustomException.FileContentException(MSG_PDF_EMPTY_RESPONSE);
 			}
@@ -411,13 +375,31 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 	}
 
-	private byte[] toByteArray(XWPFDocument doc) {
-		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-			doc.write(out);
-			return out.toByteArray();
-		} catch (IOException ex) {
-			log.error("خطا در سریال کردن سند به بایت: {}", ex.getMessage(), ex);
-			throw new InternalSaleCustomException.FileContentException(MSG_FILE_WRITE_ERROR);
+	// ==================== DOCUMENT LOADING ====================
+
+	private List<byte[]> loadDocuments(List<Long> ids, EntityTypeEnum entityType) {
+		return ids.stream()
+				.map(id -> loadDocument(id, entityType))
+				.filter(Objects::nonNull)
+				.toList();
+	}
+
+	private byte[] loadDocument(Long id, EntityTypeEnum entityType) {
+		String documentType = entityType == EntityTypeEnum.PROFORMA ? "پیش فاکتور" : "حواله";
+
+		try {
+			byte[] pdfBytes = entityType == EntityTypeEnum.PROFORMA
+					? fmsDocumentService.getProformaPdfBytes(id)
+					: fmsDocumentService.getRemittancePdfBytes(id);
+
+			if (pdfBytes == null || pdfBytes.length == 0) {
+				log.warn("فایل خالی یا نامعتبر برای {} با شناسه: {}", documentType, id);
+				return null;
+			}
+			return pdfBytes;
+		} catch (Exception ex) {
+			log.error(formatMessage(LOG_LOADING_DOC_ERROR, documentType, id, ex.getMessage()), ex);
+			return null;
 		}
 	}
 }
