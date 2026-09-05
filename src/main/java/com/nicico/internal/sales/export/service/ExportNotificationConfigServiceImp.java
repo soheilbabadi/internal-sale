@@ -46,7 +46,15 @@ public class ExportNotificationConfigServiceImp implements ExportNotificationCon
 
 	@Override
 	public ExportNotificationConfigDto.Info save(ExportNotificationConfigDto.Create request) {
+
 		request.setId((long) request.getEntityType().getPersianName().hashCode());
+
+		exportNotificationConfigRepository.findById(request.getId())
+				.ifPresent(exportNotificationConfig -> {
+					exportNotificationConfigRepository.deleteById(request.getId());
+					exportNotificationConfigRepository.flush();
+				});
+
 		var exportConfig = mapper.fromDTO(request);
 		exportNotificationConfigRepository.save(exportConfig);
 		return mapper.toDTO(exportConfig);

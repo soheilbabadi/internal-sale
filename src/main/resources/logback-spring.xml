@@ -1,7 +1,7 @@
 <configuration>
     <springProperty scope="context" name="AppName" source="spring.application.name" defaultValue=""/>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <springProfile name="local,test">
+    <springProfile name="local,test,uat">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
                 <pattern>${CONSOLE_LOG_PATTERN}</pattern>
@@ -17,8 +17,8 @@
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
-    <springProfile name="dev,Production,stg,uat">
-        <property name="LOG_FILE" value="/var/log/nicico/${AppName}.log"/>
+    <springProfile name="dev,Production,stg">
+<!--        <property name="LOG_FILE" value="/var/log/nicico/${AppName}.log"/>-->
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <encoder>
                 <pattern>${FILE_LOG_PATTERN}</pattern>

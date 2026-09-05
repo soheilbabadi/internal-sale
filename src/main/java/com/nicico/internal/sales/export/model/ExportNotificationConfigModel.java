@@ -30,7 +30,7 @@ public class ExportNotificationConfigModel extends BaseClassModel {
 
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "C_ENTITY_TYPE", nullable = false, unique = true, length = 30)
+	@Column(name = "C_ENTITY_TYPE", nullable = false, length = 30)
 	@Schema(description = "نوع موجودیت (پیش فاکتور، اعتبار اسنادی، حواله فروش)", example = "PROFORMA")
 	private EntityTypeEnum entityType;
 
