@@ -22,7 +22,6 @@ import javax.validation.Valid;
 public class ExtraBillProcessController {
 
 	private final ExtraBillProcessService extraBillProcessService;
-	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
 	@Operation(
 			summary = "شروع فرآیند برات الکترونیک",
