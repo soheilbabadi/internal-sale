@@ -39,6 +39,9 @@ nicico:
   lc-bcc-address: hassani_hos@nicico.com
   terminate-remittance: tehransaleoffice@nicico.com
   crm-link: http://devapp01.icico.net.ir/sso/api/user-request-application/my-approved-company-requests
+  fms:
+    base-url: http://dev.icico.net.ir/fms
+    group-id: 687c87bc2c1dc36d5389747a
 ui:
   landing-address: http://devapp01.icico.net.ir/internal-sales
   redirect-address: http://devapp01.icico.net.ir/internal-sales/

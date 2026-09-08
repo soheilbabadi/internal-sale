@@ -58,12 +58,5 @@ public class LcProcessController {
 		return ResponseEntity.ok().build();
 	}
 
-	@Operation(
-			summary = "تشخیص مرحله جاری LC",
-			description = "با دریافت شناسه اعتبار اسنادی، مرحله جاری  فرایند آن را شناسایی و بازمی گرداند. این شامل مراحلی مانند 'در انتظار تایید کارشناس'، 'در انتظار تایید مدیریت'، 'تایید نهایی' و سایر گام های فرآیند می باشد."
-	)
-	@GetMapping("/detect-step/{lcId}")
-	public ResponseEntity<String> detectLcStep(@PathVariable Long lcId) {
-		return ResponseEntity.ok(lcProcessService.detectLcStep(lcId).name());
-	}
+
 }

@@ -239,13 +239,6 @@ public class CrmHistoryServiceImpl implements CrmHistoryService {
 				.toList();
 	}
 
-	@Override
-	public byte[] exportRemittanceDoc(long remittanceId) {
-		RemittanceMasterModel remittance = remittanceMasterRepository.findById(remittanceId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERR_REMITTANCE_NOT_FOUND));
-		checkRemittanceAccess(remittance, fetchNationalCodes());
-		return exportDocService.exportRemittanceDoc(remittanceId);
-	}
 
 	@Override
 	public byte[] exportRemittancePdf(long remittanceId) {
@@ -255,11 +248,6 @@ public class CrmHistoryServiceImpl implements CrmHistoryService {
 		return exportDocService.exportRemittancePdf(remittanceId);
 	}
 
-	@Override
-	public byte[] exportProformaDoc(long proformaDetailId) {
-		checkProformaAccess(proformaDetailId, fetchNationalCodes());
-		return exportDocService.exportProformaDoc(proformaDetailId);
-	}
 
 	@Override
 	public byte[] exportProformaPdf(long proformaDetailId) {

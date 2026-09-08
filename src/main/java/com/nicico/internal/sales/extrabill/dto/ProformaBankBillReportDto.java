@@ -74,8 +74,6 @@ public class ProformaBankBillReportDto implements Serializable {
 
 	private Long commodityCode;
 
-	private String tradeContractDate;
-
 	private String paymentCode;
 
 	private String customerName;
@@ -83,6 +81,8 @@ public class ProformaBankBillReportDto implements Serializable {
 	private String customerNationalCode;
 
 	private String goodName;
+
+
 
 	private BigDecimal totalFinalAmount;
 
@@ -113,6 +113,16 @@ public class ProformaBankBillReportDto implements Serializable {
 
 	@Schema(description = "شناسه کالا")
 	private Long goodId;
+
+
+	@Schema(description = "تاریخ قرارداد", name = "contractDate", example = "1403-02-20")
+	private String contractDate;
+
+
+	@Schema(description = "تاریخ قرارداد", name = "tradeContractDate", example = "1403-02-20")
+	private String tradeContractDate;
+
+
 
 	@Schema(description = "شماره پیش فاکتور")
 	private String performaNo;

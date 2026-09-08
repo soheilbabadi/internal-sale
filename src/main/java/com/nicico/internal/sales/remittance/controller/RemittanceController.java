@@ -3,9 +3,7 @@ package com.nicico.internal.sales.remittance.controller;
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.export.service.ExportDocService;
-import com.nicico.internal.sales.notification.dto.MultipartInputStreamFileResource;
+import com.nicico.internal.sales.fms.service.FmsDocumentService;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.remittance.dto.LotNumberRequest;
 import com.nicico.internal.sales.remittance.dto.RemittanceCreateDto;
@@ -18,26 +16,16 @@ import com.nicico.internal.sales.remittance.service.RemittanceTaxService;
 import com.nicico.internal.sales.schedule.RemittanceScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.bouncycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.net.URI;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -48,8 +36,10 @@ public class RemittanceController {
 	private final RemittanceService remittanceService;
 	private final RemittanceDataProvider remittanceDataProvider;
 	private final RemittanceTaxService taxService;
-	private final ExportDocService exportDocService;
+//	private final ExportDocService exportDocService;
+
 	private final RestTemplate restTemplate;
+	private final FmsDocumentService fmsDocumentService;
 	private final RemittanceScheduler remittanceScheduler;
 	private final NotificationService notificationService;
 
@@ -119,48 +109,43 @@ public class RemittanceController {
 	}
 
 
-	@GetMapping(value = "/export/{remittanceId}", produces = "application/octet-stream")
-
+	@GetMapping(value = "/export/{remittanceId}")
 	public ResponseEntity<byte[]> exportRemittanceDoc(@PathVariable Long remittanceId) {
-		try {
-			byte[] docxBytes = exportDocService.exportRemittanceDoc(remittanceId);
-			XWPFDocument document = new XWPFDocument(new java.io.ByteArrayInputStream(docxBytes));
-			var pdf = convertDocListToPdf(java.util.Collections.singletonList(document));
-			return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"remittance_" + remittanceId + ".pdf\"").contentType(MediaType.APPLICATION_PDF).contentLength(Objects.requireNonNull(pdf.getBody()).length).body(pdf.getBody());
+		return ResponseEntity.ok(fmsDocumentService.getOrCreateRemittancePdf(remittanceId).getContent());
+	}
 
-
-		} catch (IOException ex) {
-			log.error(ex.getMessage());
-			throw new InternalSaleCustomException.FileContentException("خطایی در هنگام نوشتن فایل اتفاق افتاد");
-		}
+	@GetMapping(value = "/export-pdf/{remittanceId}")
+	public ResponseEntity<byte[]> exportRemittancePdf(@PathVariable Long remittanceId) {
+		return ResponseEntity.ok(fmsDocumentService.getOrCreateRemittancePdf(remittanceId).getContent());
 	}
 
 
-	private ResponseEntity<byte[]> convertDocListToPdf(List<XWPFDocument> docList) {
-		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
-		if (!docList.isEmpty()) {
-			int i = 0;
-			for (XWPFDocument doc : docList) {
-				i++;
-				PipedInputStream in = new PipedInputStream();
-				new Thread(() -> {
-					try (PipedOutputStream out = new PipedOutputStream(in)) {
-						doc.write(out);
-					} catch (IOException iox) {
-						throw new InternalSaleCustomException.ValidationException(iox.getMessage());
-					}
-				}).start();
-				bodyMap.add("files", new MultipartInputStreamFileResource(in, i + ".doc"));
-			}
-			bodyMap.add("merge", "true");
-			RequestEntity<MultiValueMap<String, Object>> request = RequestEntity.post(URI.create(pdfConvertorUrl)).contentType(MediaType.MULTIPART_FORM_DATA).body(bodyMap);
-
-			return restTemplate.exchange(request, byte[].class);
-
-		} else {
-			throw new InternalSaleCustomException.FileContentException("خطایی در هنگام نوشتن فایل اتفاق افتاد");
-		}
-	}
+//
+//	private ResponseEntity<byte[]> convertDocListToPdf(List<XWPFDocument> docList) {
+//		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
+//		if (!docList.isEmpty()) {
+//			int i = 0;
+//			for (XWPFDocument doc : docList) {
+//				i++;
+//				PipedInputStream in = new PipedInputStream();
+//				new Thread(() -> {
+//					try (PipedOutputStream out = new PipedOutputStream(in)) {
+//						doc.write(out);
+//					} catch (IOException iox) {
+//						throw new InternalSaleCustomException.ValidationException(iox.getMessage());
+//					}
+//				}).start();
+//				bodyMap.add("files", new MultipartInputStreamFileResource(in, i + ".doc"));
+//			}
+//			bodyMap.add("merge", "true");
+//			RequestEntity<MultiValueMap<String, Object>> request = RequestEntity.post(URI.create(pdfConvertorUrl)).contentType(MediaType.MULTIPART_FORM_DATA).body(bodyMap);
+//
+//			return restTemplate.exchange(request, byte[].class);
+//
+//		} else {
+//			throw new InternalSaleCustomException.FileContentException("خطایی در هنگام نوشتن فایل اتفاق افتاد");
+//		}
+//	}
 
 
 	@GetMapping("/get-by-contract-number/{contractNo}")

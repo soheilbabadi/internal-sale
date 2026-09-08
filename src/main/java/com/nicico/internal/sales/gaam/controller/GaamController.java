@@ -1,0 +1,197 @@
+//package com.nicico.internal.sales.gaam.controller;
+//
+//import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
+//import com.nicico.copper.common.domain.criteria.NICICOCriteria;
+//import com.nicico.copper.common.domain.criteria.SearchUtil;
+//import com.nicico.copper.common.dto.search.SearchDTO;
+//import com.nicico.internal.sales.extrabill.dto.*;
+//import com.nicico.internal.sales.gaam.dto.GaamDto;
+//import com.nicico.internal.sales.gaam.dto.GaamIssueProviderDto;
+//import com.nicico.internal.sales.gaam.dto.GaamReportDto;
+//import com.nicico.internal.sales.gaam.service.GaamIssueService;
+//import com.nicico.internal.sales.gaam.service.GaamService;
+//import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
+//import io.swagger.v3.oas.annotations.Operation;
+//import io.swagger.v3.oas.annotations.Parameter;
+//import lombok.RequiredArgsConstructor;
+//import lombok.extern.slf4j.Slf4j;
+//import org.springframework.http.HttpStatus;
+//import org.springframework.http.ResponseEntity;
+//import org.springframework.security.access.prepost.PreAuthorize;
+//import org.springframework.util.MultiValueMap;
+//import org.springframework.web.bind.annotation.*;
+//
+//import java.util.List;
+//
+//
+//@PreAuthorize("@secUtil.hasAuthority('R_INS_GAAM')")
+//@Slf4j
+//@RequiredArgsConstructor
+//@RestController
+//@RequestMapping("/api/v1/ins/gaam")
+//public class GaamController {
+//
+//	private final GaamService service;
+//	private final GaamIssueService extraBillIssueService;
+//	private final ProcessStatusDeterminerService processStatusDeterminerService;
+//
+//	@Operation(summary = "جستجوی براتهای قابل صدور", description = "لیست براتها که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی گرداند.")
+//	@PostMapping("/search-issuable")
+//	public ResponseEntity<SearchDTO.SearchRs<GaamIssueProviderDto.Info>> searchIssuable(
+//			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
+//			@RequestParam(required = false) MultiValueMap<String, String> criteria) {
+//		if (criteria != null && !criteria.isEmpty()) {
+//			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
+//		}
+//		return ResponseEntity.ok(extraBillIssueService.search(searchRq));
+//	}
+//
+//	@Operation(summary = "جستجوی براتها", description = "براتها صادر شده را بر اساس فیلترهای ورودی جستجو کرده و نتیجه را برمی گرداند.")
+//	@PostMapping("/search")
+//	public ResponseEntity<SearchDTO.SearchRs<GaamDto.Info>> search(
+//			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
+//			@RequestParam(required = false) MultiValueMap<String, String> criteria) {
+//		if (criteria != null && !criteria.isEmpty()) {
+//			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
+//		}
+//		return ResponseEntity.ok(service.search(searchRq));
+//	}
+//
+////	@Operation(
+////			summary = "تولید محتوای ایمیل کارگزار",
+////			description = "با دریافت شناسه LC، محتوای ایمیل مخصوص کارگزار شامل اطلاعات کامل اعتبار اسنادی، تاریخ ها، مبالغ و شرایط را تولید و به صورت رشته متنی بازمی گرداند."
+////	)
+////	@GetMapping("/get-broker-email-content/{lcId}")
+////	public ResponseEntity<String> generateLcBrokerEmailContent(@PathVariable Long lcId) {
+////		return ResponseEntity.ok(service.generateLcBrokerEmailContent(lcId));
+////	}
+//
+//	@Operation(summary = "تاریخچه صدور براتها", description = "گزارش تاریخچه کامل صدور براتها شامل وضعیت ها، تاریخ ها و جزئیات را برمی گرداند.")
+//	@PostMapping("/search-issue-history")
+//	public ResponseEntity<SearchDTO.SearchRs<GaamReportDto.Info>> searchIssueHistory(
+//			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
+//			@RequestParam(required = false) MultiValueMap<String, String> criteria) {
+//		if (criteria != null && !criteria.isEmpty()) {
+//			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
+//		}
+//		return ResponseEntity.ok(service.searchReport(searchRq));
+//	}
+//
+//	@Operation(summary = "دریافت براتها بر اساس شناسه قرارداد اصلی", description = "تمام براتها مرتبط با یک قرارداد پیش فاکتور اصلی (Master) را بر اساس شناسه آن برمی گرداند.")
+//	@GetMapping("/get-by-master/{masterId}")
+//	public ResponseEntity<List<GaamDto.Info>> getByMasterId(
+//			@Parameter(description = "شناسه قرارداد پیش فاکتور اصلی", required = true, example = "10")
+//			@PathVariable Long masterId) {
+//		return ResponseEntity.ok(service.getByMasterId(masterId));
+//	}
+//
+//	@Operation(summary = "ثبت برات  جدید", description = "یک برات  جدید بر اساس اطلاعات دریافتی ایجاد و ذخیره می کند. نیاز به مجوز C_INS_GAAM دارد.")
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+//	@PostMapping("/save")
+//	public ResponseEntity<GaamDto.Info> save(@RequestBody ProformaBankBillRequest proformaBankBillRequest) {
+//		return ResponseEntity.ok(service.save(proformaBankBillRequest));
+//	}
+//
+//	@Operation(
+//			summary = "ثبت برات های جدید", description = "برات های دریافتی را ثبت و ذخیره می کند. نیاز به مجوز C_INS_GAAM دارد."
+//	)
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+//	@PostMapping("/save-all")
+//	public ResponseEntity<List<GaamDto.Info>> saveAll(@RequestBody List<ProformaBankBillRequest> requests) {
+//		return ResponseEntity.ok(service.saveAll(requests));
+//	}
+//
+//	@Operation(
+//			summary = "بروزرسانی فایل های پیوست برات",
+//			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
+//	)
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+//	@PutMapping("/update-files")
+//	public ResponseEntity<GaamDto.Info> updateBillFiles(
+//			@RequestBody ProformaBankBillFileUpdateDto updateDto) {
+//
+//		return ResponseEntity.ok(service.updateBillFiles(updateDto));
+//	}
+//
+//	@Operation(
+//			summary = "ارسال ایمیل تایید تسویه",
+//			description = "برات مشخص، ایمیل تایید تسویه حساب به کارگزار ارسال می شود. این عملیات پس از اتمام فرآیند تسویه و تایید نهایی انجام می گردد."
+//	)
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_SEND_NOTIFICATION')")
+//	@PostMapping("/send-reckoning-extra-bill/{extraBillId}")
+//	public ResponseEntity<Void> sendReckoningEmail(@PathVariable Long extraBillId) {
+//		service.sendReckoningEmail(extraBillId);
+//		return ResponseEntity.ok().build();
+//	}
+//
+//	@Operation(
+//			summary = "بروزرسانی اطلاعات برات",
+//			description = "اطلاعات بانکی و الکترونیکی برات را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
+//	)
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+//	@PutMapping("/update")
+//	public ResponseEntity<GaamDto.Info> updateExtraBill(
+//			@RequestBody UpdateExtraBillRequest updateExtraBillRequest) {
+//		return ResponseEntity.ok(service.updateExtraBill(updateExtraBillRequest));
+//	}
+//
+//	@Operation(
+//			summary = "دریافت تاریخچه تغییرات برات",
+//			description = "لیست کامل تغییرات و نسخه های مختلف یک برات را بر اساس شناسه آن برمی گرداند. شامل اطلاعات ایجاد، ویرایش و وضعیت های مختلف برات در طول زمان."
+//	)
+//
+//	@GetMapping("/audit-history/{extraBillId}")
+//	public ResponseEntity<List<ProformaBankBillAuditDto>> getAuditHistory(@PathVariable Long extraBillId) {
+//		return ResponseEntity.ok(service.getAuditHistory(extraBillId));
+//	}
+//
+//	@Operation(
+//			summary = "جستجوی برات های آماده تسویه",
+//			description = "لیست برات هایی که آماده فرآیند تسویه هستند را بر اساس فیلترهای دریافتی برمی گرداند."
+//	)
+//	@PostMapping("/search/ready-reckoning")
+//	public ResponseEntity<?> findReadyReckoning(
+//			@RequestBody(required = false) SearchDTO.SearchRq request) {
+//		return ResponseEntity.ok(service.findReadyReckoning(request));
+//	}
+//
+//	@Operation(
+//			summary = "دریافت جزئیات تاریخچه گردش کار برات",
+//			description = "تاریخچه کامل گردش کار (Workflow) یک برات شامل تاییدیه ها، ردیه ها و توضیحات را برمی گرداند."
+//	)
+//	@GetMapping("/history/{extraBillId}")
+//	public ResponseEntity<ProcessInstanceHistory> getExtraBillHistoryDetail(@PathVariable Long extraBillId) {
+//		return ResponseEntity.ok(service.getHistoryDetail(extraBillId));
+//	}
+//
+//	@Operation(
+//			summary = "تولید محتوای ایمیل کارگزار",
+//			description = "محتوای HTML ایمیل فارسی برای اطلاع رسانی به کارگزار درباره جزئیات برات را تولید می کند."
+//	)
+//	@GetMapping("/get-broker-email-content/{extraBillId}")
+//	public ResponseEntity<String> generateExtraBillBrokerEmailContent(@PathVariable long extraBillId) {
+//		return ResponseEntity.ok(service.generateExtraBillBrokerEmailContent(extraBillId));
+//	}
+//
+//	@Operation(
+//			summary = "دریافت گزارش وظایف کاربران",
+//			description = "گزارش وظایف کاربران مرتبط با گردش کار برات را برمی گرداند."
+//	)
+//	@GetMapping("/user-tasks-report/{extraBillId}")
+//	public ResponseEntity<?> getUserTasksReport(@PathVariable Long extraBillId) {
+//		return ResponseEntity.ok(service.getUserTasksReport(extraBillId));
+//	}
+//
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+//	@PutMapping("/cancel-extrabill")
+//	public ResponseEntity<?> cancelLc(@RequestBody ExtraBillCancelRequest request) {
+//		service.cancel(request);
+//		return new ResponseEntity<>(HttpStatus.OK);
+//	}
+//
+//	@PutMapping("/update-all-acknowledgment")
+//	public ResponseEntity<Void> updateAllLcAcknowledgment() {
+//		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+//		return new ResponseEntity<>(HttpStatus.OK);
+//	}
+//}

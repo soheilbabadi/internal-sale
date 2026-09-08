@@ -1,17 +1,17 @@
 package com.nicico.internal.sales.wf.service;
 
+import com.nicico.bpmsclient.model.flowable.task.TaskInfo;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
+import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
+import com.nicico.internal.sales.util.TextUtility;
 import com.nicico.internal.sales.wf.enums.LcProcessVariable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +20,9 @@ public class LcAcknowledgmentDeterminerImpl implements LcAcknowledgmentDetermine
 	private static final String APPROVED_KEY = "approved";
 
 	private final ProcessService processService;
+	private final BpmsClientService bpmsClientService;
+
+
 
 	@Override
 	public Acknowledgment determine(LcModel lcModel) {
@@ -50,7 +53,7 @@ public class LcAcknowledgmentDeterminerImpl implements LcAcknowledgmentDetermine
 			return Acknowledgment.REMITTANCE;
 		}
 
-		if (hasApprovedReckoning(allActivities)) {
+		if (hasApprovedReckoning(allActivities) && lcModel.getAcknowledgment()!=Acknowledgment.REMITTANCE) {
 			return Acknowledgment.RECKONING;
 		}
 
@@ -101,6 +104,38 @@ public class LcAcknowledgmentDeterminerImpl implements LcAcknowledgmentDetermine
 				&& Boolean.TRUE.equals(localVars.get(APPROVED_KEY));
 	}
 
+
+
+
+
+
+	private LcProcessVariable detectLcStep(String processInstanceId) {
+		if (!TextUtility.isValidUUID(processInstanceId)) {
+			return null;
+		}
+		try {
+			List<TaskInfo> tasks = bpmsClientService.getProcessInstanceTasks(processInstanceId);
+			if (tasks == null || tasks.isEmpty()) {
+				return null;
+			}
+			String taskName = tasks.get(0).getName();
+			return Arrays.stream(LcProcessVariable.values())
+					.filter(v -> v.getValue().equals(taskName) || v.name().equalsIgnoreCase(taskName))
+					.findFirst()
+					.orElse(null);
+		} catch (Exception ex) {
+			return null;
+		}
+	}
+
+
+	private Acknowledgment resolveAcknowledgmentFromStep(LcProcessVariable step) {
+		return switch (step) {
+			case RemitSure -> Acknowledgment.REMITTANCE;
+			case FinalCheck -> Acknowledgment.FINISHED;
+			case CreditBridge, SettleSure -> Acknowledgment.RECKONING;
+		};
+	}
 
 
 }

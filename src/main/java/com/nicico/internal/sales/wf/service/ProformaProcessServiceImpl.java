@@ -8,7 +8,6 @@ import com.nicico.bpmsclient.model.flowable.task.FlowTaskDto;
 import com.nicico.bpmsclient.model.flowable.task.GridDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
-import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
@@ -26,7 +25,6 @@ import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.enums.ProformaProcessVariable;
 import com.nicico.internal.sales.wf.model.WorkflowModel;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
@@ -387,12 +385,12 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 
 	/**
 	 * Exports each active proforma detail as its own signed .docx (via
-	 * {@link ExportDocService#exportProformaDocOnlySigned(Long)}), then merges
+	 * {@link ExportDocService#exportProformaDoc(Long)}), then merges
 	 * them all into a single PDF via {@link ExportDocService#convertDocListToPdf(List)}.
 	 */
 	private byte[] buildSignedProformaPdf(List<Long> detailIds) {
 		List<XWPFDocument> documents = detailIds.stream()
-				.map(exportDocService::exportProformaDocOnlySigned)
+				.map(exportDocService::exportProformaDoc)
 				.filter(bytes -> bytes != null && bytes.length > 0)
 				.map(this::toXwpfDocument)
 				.toList();

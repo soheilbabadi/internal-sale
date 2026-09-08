@@ -49,6 +49,7 @@ SELECT
     tpbb.C_PMS_BILL_ID,
     tpbb.D_CANCEL_DATE,
     tpbb.C_CANCELLATION_REASON,
+    
     tit.BUYER_NAME,
     tit.BUYER_NATIONAL_CODE,
     tit.COMMODITY_CODE,
@@ -68,8 +69,10 @@ SELECT
     tipm.C_OFFER_DESCRIPTION,
     tipm.C_IME_COMMODITY_SYMBOL,
     tipm.N_GOOD_ID,
+    tipm.C_CONTRACT_DATE,
     tipd.C_PERFORMA_NO,
     tipd.D_PERFORMA_DATE
+    
 
 FROM T_INS_EXTRA_BANK_BILL tpbb
          LEFT JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
@@ -172,8 +175,6 @@ public class ProformaBankBillReadyRevoking implements Serializable {
 	@Column(name = "COMMODITY_CODE")
 	private Long commodityCode;
 
-	@Column(name = "TRADE_CONTRACT_DATE")
-	private String tradeContractDate;
 
 	@Column(name = "PAYMENT_CODE")
 	private String paymentCode;
@@ -221,6 +222,9 @@ public class ProformaBankBillReadyRevoking implements Serializable {
 
 	@Column(name = "N_GOOD_ID")
 	private Long goodId;
+
+	@Column(name = "C_CONTRACT_DATE")
+	private String contractDate;
 
 	@Schema(description = "شماره پیش فاکتور")
 	@Column(name = "C_PERFORMA_NO")

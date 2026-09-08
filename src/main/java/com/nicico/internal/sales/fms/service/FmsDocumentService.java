@@ -7,11 +7,7 @@ import com.fgostar.fms.sdk.model.FmsFile;
  */
 public interface FmsDocumentService {
 
-    /**
-     * Uploads an existing proforma PDF to FMS and returns the file info.
-     * Assumes the PDF already exists (e.g., generated previously).
-     */
-    FmsFile uploadProformaPdfToFms(Long masterId);
+
 
     /**
      * Gets the proforma PDF from FMS if it exists, otherwise generates, uploads, and returns it.
@@ -23,16 +19,6 @@ public interface FmsDocumentService {
      */
     byte[] getProformaPdfBytes(Long detailId);
 
-    /**
-     * Downloads the proforma PDF directly from FMS using the stored UUID.
-     */
-    FmsFile downloadProformaPdfFromFms(Long detailId);
-
-    /**
-     * Uploads an existing remittance PDF to FMS and returns the file info.
-     * Assumes the PDF already exists.
-     */
-    FmsFile uploadRemittancePdfToFms(Long masterId);
 
     /**
      * Gets the remittance PDF from FMS if it exists, otherwise generates, uploads, and returns it.
@@ -44,8 +30,5 @@ public interface FmsDocumentService {
      */
     byte[] getRemittancePdfBytes(Long masterId);
 
-    /**
-     * Downloads the remittance PDF directly from FMS using the stored UUID.
-     */
-    FmsFile downloadRemittancePdfFromFms(Long masterId);
+
 }

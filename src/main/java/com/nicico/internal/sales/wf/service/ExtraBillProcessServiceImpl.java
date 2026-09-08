@@ -54,6 +54,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	@Transactional
 	public ProcessInstance startExtraBillProcess(Long masterId) {
 
+
 		validateAccess();
 		ProformaMasterModel proformaMaster = proformaMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
@@ -170,33 +171,43 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		reviewTask(reviewTaskRequest);
 	}
 
-
 	private void reviewTask(ReviewTaskRequest reviewTaskRequest) {
 		bpmsClientService.reviewTask(reviewTaskRequest);
 
+		String processInstanceId = reviewTaskRequest.getProcessInstanceId();
+		List<ExtraBankBillModel> bills = extraBillRepository.findAllByProcessId(processInstanceId);
+
 		if (Boolean.FALSE.equals(reviewTaskRequest.getApprove())) {
-			extraBillRepository.findAllByProcessId(reviewTaskRequest.getProcessInstanceId()).forEach(bill -> {
-				bill.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-				bill.setAcknowledgment(Acknowledgment.CANCELED);
-				extraBillRepository.saveAndFlush(bill);
-			});
+			cancelBills(bills);
 		} else {
-			extraBillRepository.findAllByProcessId(reviewTaskRequest.getProcessInstanceId()).forEach(bill -> {
-				if (bill.getAcknowledgment() == Acknowledgment.RECKONING)
-					bill.setAcknowledgment(Acknowledgment.REMITTANCE);
-
-				else {
-					bill.setAcknowledgment(extraBillAcknowledgmentDeterminer.determine(bill));
-				}
-				if (bill.getAcknowledgment() == Acknowledgment.FINISHED) {
-					bill.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-				}
-
-				extraBillRepository.saveAndFlush(bill);
-			});
+			approveBills(bills, processInstanceId);
 		}
 
+		extraBillRepository.saveAll(bills);
 	}
+
+	private void cancelBills(List<ExtraBankBillModel> bills) {
+		bills.forEach(bill -> {
+			bill.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+			bill.setAcknowledgment(Acknowledgment.CANCELED);
+		});
+	}
+
+	private void approveBills(List<ExtraBankBillModel> bills, String processInstanceId) {
+		boolean acceptedFinally = processVariableProvider.isProcessAcceptedFinally(processInstanceId);
+
+		bills.forEach(bill -> {
+			bill.setAcknowledgment(bill.getAcknowledgment() == Acknowledgment.RECKONING
+					? Acknowledgment.REMITTANCE
+					: extraBillAcknowledgmentDeterminer.determine(bill));
+
+			if (acceptedFinally) {
+				bill.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+				bill.setAcknowledgment(Acknowledgment.FINISHED);
+			}
+		});
+	}
+
 
 	@Override
 	public boolean canStartProcess() {

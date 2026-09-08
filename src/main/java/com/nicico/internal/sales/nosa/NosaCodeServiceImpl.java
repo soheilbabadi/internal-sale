@@ -8,8 +8,6 @@ import com.nicico.internal.sales.util.date.DateUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-
 @Service
 @RequiredArgsConstructor
 public class NosaCodeServiceImpl implements NosaCodeService {
@@ -20,6 +18,7 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 	private final LcRepository lcRepository;
 	private final ExtraBillRepository extraBillRepository;
 	private final IssuingBankRepository issuingBankRepository;
+	String yearLast2 = String.format("%02d", DateUtility.getCurrentJalaliYear());
 
 	/**
 	 * Generates LC NosaCode with format:
@@ -29,9 +28,9 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 		var bank = issuingBankRepository.findById(issuerBankId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_ISSUING_BANK_NOT_FOUND));
-		String yearLast2 = String.format("%02d", DateUtility.getJalaliYear(new Date()) % 100);
+
 		String bankCode = bank.getBankCode();
-		String prefix = String.format("%s%s%s", LC_PREFIX_BASE, bankCode, yearLast2);
+		String prefix = String.format("%s%s%s", LC_PREFIX_BASE, yearLast2, bankCode);
 		String lastNosaCode = lcRepository.findLastNosaCodeByBankIdAndPrefix(issuerBankId, prefix);
 		if (lastNosaCode == null) {
 			return prefix + "001";
@@ -49,9 +48,8 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 		var bank = issuingBankRepository.findById(issuerBankId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_ISSUING_BANK_NOT_FOUND));
-		String yearLast2 = String.format("%02d", DateUtility.getJalaliYear(new Date()) % 100);
 		String bankCode = bank.getBankCode();
-		String prefix = String.format("%s%s%s", EXTRA_BILL_PREFIX_BASE, bankCode, yearLast2);
+		String prefix = String.format("%s%s%s", EXTRA_BILL_PREFIX_BASE, yearLast2, bankCode);
 		String lastNosaCode = extraBillRepository.findLastNosaCodeByBankIdAndPrefix(issuerBankId, prefix);
 		if (lastNosaCode == null) {
 			return prefix + "001";

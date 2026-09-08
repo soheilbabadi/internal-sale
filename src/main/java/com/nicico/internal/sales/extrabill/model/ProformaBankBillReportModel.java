@@ -55,6 +55,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    tit.BUYER_NATIONAL_CODE,
 		    tit.COMMODITY_CODE,
 		    tit.CONTRACT_DATE AS TRADE_CONTRACT_DATE,
+		    tit.CONTRACT_DATE,
 		    tit.PAYMENT_CODE,
 		    tipm.C_CUSTOMER_NAME,
 		    tipm.C_NATIONAL_CODE AS CUSTOMER_NATIONAL_CODE,
@@ -167,6 +168,9 @@ public class ProformaBankBillReportModel implements Serializable {
 
 	@Column(name = "TRADE_CONTRACT_DATE")
 	private String tradeContractDate;
+
+	@Column(name = "CONTRACT_DATE")
+	private String contractDate;
 
 	@Column(name = "PAYMENT_CODE")
 	private String paymentCode;

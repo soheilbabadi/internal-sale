@@ -6,9 +6,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface ExportDocService {
-	byte[] exportProformaDoc(Long detailId);
 
-	byte[] exportProformaDocOnlySigned(Long detailId);
+
+	byte[] exportProformaDoc(Long detailId);
 
 	byte[] exportProformaPdf(Long proformaDetailId);
 

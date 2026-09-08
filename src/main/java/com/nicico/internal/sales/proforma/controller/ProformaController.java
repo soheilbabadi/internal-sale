@@ -4,7 +4,7 @@ import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.export.service.ExportDocService;
+import com.nicico.internal.sales.fms.service.FmsDocumentService;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.notification.service.SmsNotificationService;
 import com.nicico.internal.sales.proforma.dto.*;
@@ -17,19 +17,15 @@ import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -47,10 +43,12 @@ public class ProformaController {
 	private final ProformaService proformaService;
 	private final PreciousMetalService proformaContractPreciousMetalService;
 	private final NotificationService notificationService;
-	private final ExportDocService exportDocService;
+//	private final ExportDocService exportDocService;
 	private final SmsNotificationService smsNotificationService;
 	private final ProcessStatusDeterminerService processStatusDeterminerService;
 	private final CashSaleService cashSaleService;
+	private final FmsDocumentService fmsDocumentService;
+
 
 	// ==================== TASK HISTORY ====================
 
@@ -229,33 +227,32 @@ public class ProformaController {
 
 	// ==================== EXPORT ====================
 
-	@Operation(summary = "دانلود پی دی اف", description = "خروجی پیش فاکتور به صورت فایل پی دی اف قابل دانلود")
-	@GetMapping(value = "/export-pdf-file/{proformaId}", produces = MediaType.APPLICATION_PDF_VALUE)
-	public ResponseEntity<byte[]> exportPdfFile(@PathVariable Long proformaId) {
-		try {
-			byte[] docxBytes = exportDocService.exportProformaDoc(proformaId);
-			XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(docxBytes));
-			byte[] pdf = exportDocService.convertDocListToPdf(List.of(document));
-
-			return ResponseEntity.ok()
-					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"proforma_" + proformaId + ".pdf\"")
-					.contentType(MediaType.APPLICATION_PDF)
-					.contentLength(pdf.length)
-					.body(pdf);
-		} catch (Exception ex) {
-			log.error("Error exporting PDF for proformaId: {}", proformaId, ex);
-			throw new InternalSaleCustomException.FileContentException(ex.getMessage());
-		}
-	}
+//	@Operation(summary = "دانلود پی دی اف", description = "خروجی پیش فاکتور به صورت فایل پی دی اف قابل دانلود")
+//	@GetMapping(value = "/export-pdf-file/{proformaId}", produces = MediaType.APPLICATION_PDF_VALUE)
+//	public ResponseEntity<byte[]> exportPdfFile(@PathVariable Long proformaId) {
+//		try {
+//			byte[] docxBytes = exportDocService.exportProformaDoc(proformaId);
+//			XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(docxBytes));
+//			byte[] pdf = exportDocService.convertDocListToPdf(List.of(document));
+//
+//			return ResponseEntity.ok()
+//					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"proforma_" + proformaId + ".pdf\"")
+//					.contentType(MediaType.APPLICATION_PDF)
+//					.contentLength(pdf.length)
+//					.body(pdf);
+//		} catch (Exception ex) {
+//			log.error("Error exporting PDF for proformaId: {}", proformaId, ex);
+//			throw new InternalSaleCustomException.FileContentException(ex.getMessage());
+//		}
+//	}
 
 	@Operation(summary = "خروجی پی دی اف", description = "تبدیل پیش فاکتور به فرمت پی دی اف")
 	@GetMapping(value = "/export-pdf/{proformaId}")
 	public ResponseEntity<byte[]> exportPdf(@PathVariable Long proformaId) {
 		try {
-			byte[] docxBytes = exportDocService.exportProformaDoc(proformaId);
-			XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(docxBytes));
-			return ResponseEntity.ok(exportDocService.convertDocListToPdf(List.of(document)));
-		} catch (IOException ex) {
+			fmsDocumentService.getOrCreateProformaPdf(proformaId);
+			return ResponseEntity.ok(fmsDocumentService.getOrCreateProformaPdf(proformaId).getContent());
+		} catch (Exception ex) {
 			log.error("Error converting to PDF for proformaId: {}", proformaId, ex);
 			throw new InternalSaleCustomException.FileContentException(ex.getMessage());
 		}

@@ -19,11 +19,6 @@ public interface LcProcessService {
 
 	boolean canStartProcess();
 
-	boolean canFinishProcess();
 
-	void rejectLc(String processId);
 
-	LcProcessVariable detectLcStep(String processInstanceId);
-
-	LcProcessVariable detectLcStep(long lcId);
 }

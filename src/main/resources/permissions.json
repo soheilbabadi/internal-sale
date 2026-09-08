@@ -187,6 +187,18 @@
     {
       "code": "D_INS_EXTRA_BILL",
       "title": "حذف آیتم برات الکترونیک"
+    },
+    {
+      "code": "R_INS_GAAM",
+      "title": "مشاهده  جدول اوراق گام"
+    },
+    {
+      "code": "C_INS_GAAM",
+      "title": "ایجاد  آیتم اوراق گام"
+    },
+    {
+      "code": "D_INS_GAAM",
+      "title": "حذف آیتم اوراق گام"
     }
   ]
 }

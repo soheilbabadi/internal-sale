@@ -5,6 +5,7 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.notification.dto.MultipartInputStreamFileResource;
 import com.nicico.internal.sales.proforma.dto.DocumentReplacement;
+import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
@@ -90,36 +91,33 @@ public class ExportDocServiceImpl implements ExportDocService {
 	@Value("${nicico.pdf-api}")
 	private String pdfConvertorUrl;
 
+//	@Override
+//	public byte[] exportProformaDoc(Long detailId) {
+//		log.debug("Exporting document for detail ID: {}", detailId);
+//		ProformaDetailModel proforma = findProformaDetail(detailId);
+//		if (proforma.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
+//			return new byte[0];
+//		}
+//		String templatePath = determineTemplatePath(proforma);
+//		try (FileInputStream fileInputStream = new FileInputStream(templatePath)) {
+//			List<DocumentReplacement> replacements = createDocumentReplacements(detailId);
+//			return processDocument(fileInputStream, replacements);
+//		} catch (IOException e) {
+//			throw new InternalSaleCustomException.FileContentException(FILE_WRITE_ERROR_MESSAGE);
+//		}
+//	}
+
+
 	@Override
 	public byte[] exportProformaDoc(Long detailId) {
-		log.debug("Exporting document for detail ID: {}", detailId);
-		ProformaDetailModel proforma = findProformaDetail(detailId);
-		if (proforma.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
-			return new byte[0];
-		}
-		String templatePath = determineTemplatePath(proforma);
-		try (FileInputStream fileInputStream = new FileInputStream(templatePath)) {
-			List<DocumentReplacement> replacements = createDocumentReplacements(detailId);
-			return processDocument(fileInputStream, replacements);
-		} catch (IOException e) {
-			throw new InternalSaleCustomException.FileContentException(FILE_WRITE_ERROR_MESSAGE);
-		}
-	}
-
-
-	@Override
-	public byte[] exportProformaDocOnlySigned(Long detailId) {
 
 		ProformaDetailModel proforma = findProformaDetail(detailId);
 		if (proforma.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
 			log.warn("Proforma with ID {} is canceled, returning empty byte array", detailId);
-			return new byte[0];
+			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + detailId + " ابطال شده است و نمی‌توان آن را صادر کرد.");
 		}
 
-		String filePath = switch (proforma.getProformaIssueType()) {
-			case LETTER_OF_CREDIT_OPENING -> preInvoiceFileAddressSigned;
-			default -> preInvoiceCashFileAddressSigned;
-		};
+		String filePath = determineTemplatePath(proforma);
 
 		try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
 			List<DocumentReplacement> replacements = createDocumentReplacements(detailId);
@@ -134,7 +132,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 	public byte[] exportProformaPdf(Long proformaDetailId) {
 		log.debug("Exporting PDF for proforma detail ID: {}", proformaDetailId);
 		try {
-			byte[] docBytes = exportRemittanceDoc(proformaDetailId);
+			byte[] docBytes = exportProformaDoc(proformaDetailId);
 			XWPFDocument xwpfDocument = new XWPFDocument(new ByteArrayInputStream(docBytes));
 			MultiValueMap<String, Object> requestBody = createMultipartRequestBody(List.of(xwpfDocument));
 			RequestEntity<MultiValueMap<String, Object>> request = createPdfConversionRequest(requestBody);
@@ -155,21 +153,33 @@ public class ExportDocServiceImpl implements ExportDocService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
 	}
 
+
 	private String determineTemplatePath(ProformaDetailModel proforma) {
 		ProformaMasterModel master = findProformaMaster(proforma.getProformaMasterId());
-
 		boolean isApproved = master.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED;
 		boolean isZeroExtraBillPercent = !master.getProformaDetailModelLists().isEmpty()
 				&& master.getProformaDetailModelLists().get(0).getExtraBillOfPercent() != null
 				&& master.getProformaDetailModelLists().get(0).getExtraBillOfPercent().compareTo(BigDecimal.ZERO) == 0;
-		return switch (master.getProformaIssueType()) {
+
+		ProformaIssueType issueType = master.getProformaIssueType();
+
+		String templatePath = switch (issueType) {
 			case FROM_CREDIT_FACILITIES -> isApproved ? preInvoiceCashFileAddressSigned : preInvoiceCashFileAddress;
 			case LETTER_OF_CREDIT_OPENING -> isApproved ? preInvoiceFileAddressSigned : preInvoiceFileAddress;
 			case EXTRA_BILL_OF_EXCHANGE -> isZeroExtraBillPercent ? extraBillFileSignedZero : extraBillFileSigned;
 			case GAM_BONDS -> isZeroExtraBillPercent ? gaamSignZeroFile : gaamSignFile;
-			default -> preInvoiceFileAddress;
-
+			case BANK_GUARANTEE, CASH, GUARANTEE_CHECK, MIXED, UNKNOWN -> {
+				log.warn("تعیین مسیر تمپلیت پیش فاکتور {}: issueType={} هنوز پیاده‌سازی نشده است",
+						proforma.getId(), issueType);
+				throw new InternalSaleCustomException.ValidationException(
+						"نوع صدور پیش فاکتور (" + issueType + ") هنوز پشتیبانی نمی‌شود");
+			}
 		};
+
+		log.info("تعیین مسیر تمپلیت پیش فاکتور {}: issueType={}, templatePath={}",
+				proforma.getId(), issueType, templatePath);
+
+		return templatePath;
 	}
 
 	private MultiValueMap<String, Object> createMultipartRequestBody(List<XWPFDocument> documents) {
@@ -201,7 +211,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 		ProformaDetailModel detailModel = findProformaDetail(proformaDetailId);
 		ProformaMasterModel masterModel = findProformaMaster(detailModel.getProformaMasterId());
 		if (detailModel.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
-			return new ArrayList<>();
+			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + proformaDetailId + " ابطال شده است و نمی‌توان آن را صادر کرد.");
 		}
 		List<DocumentReplacement> replacements = new ArrayList<>();
 		addBasicReplacements(replacements, detailModel, masterModel);
@@ -388,7 +398,10 @@ public class ExportDocServiceImpl implements ExportDocService {
 	private List<String> getCanceledProformaNo(Long masterId) {
 		var masterModel = proformaMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("پیش فاکتور پیدا نشد"));
-		return masterModel.getProformaDetailModelLists().stream().filter(detailModel -> detailModel.getProformaReversalStatus() == ProformaReversalStatus.CANCELED).map(ProformaDetailModel::getPerformaNo).collect(Collectors.toSet()).stream().toList();
+		return masterModel.getProformaDetailModelLists().stream()
+				.filter(detailModel -> detailModel.getProformaReversalStatus() == ProformaReversalStatus.CANCELED)
+				.map(ProformaDetailModel::getPerformaNo)
+				.collect(Collectors.toSet()).stream().toList();
 	}
 
 	private byte[] processDocument(FileInputStream fileInputStream, List<DocumentReplacement> replacements) throws IOException {

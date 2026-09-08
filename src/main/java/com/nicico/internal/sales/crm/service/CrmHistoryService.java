@@ -32,11 +32,9 @@ public interface CrmHistoryService {
 
 	List<RemittanceMasterDto.Info> getAllByProformaMasterId(Long proformaMasterId);
 
-	byte[] exportRemittanceDoc(long remittanceId);
 
 	byte[] exportRemittancePdf(long remittanceId);
 
-	byte[] exportProformaDoc(long proformaDetailId);
 
 	byte[] exportProformaPdf(long proformaDetailId);
 }

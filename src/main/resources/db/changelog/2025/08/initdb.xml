@@ -2117,5 +2117,6 @@
 
     <!-- Include proforma bank bill changes -->
     <include file="classpath:config/liquibase/changelog/ins/ins_proforma_bank_bill.xml"/>
+    <include file="classpath:config/liquibase/changelog/ins/ins_gaam.xml"/>
 
 </databaseChangeLog>
