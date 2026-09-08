@@ -12,4 +12,5 @@ public interface ExtraBillProcessService {
 	void rejectTask(TaskActionDto taskActionDto);
 	boolean canStartProcess();
 
+	void refreshExtraBillStatus();
 }

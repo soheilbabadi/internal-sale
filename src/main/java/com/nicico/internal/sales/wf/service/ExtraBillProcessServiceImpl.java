@@ -7,6 +7,7 @@ import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
+import com.nicico.internal.sales.extrabill.service.ExtraBillServiceImpl;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +42,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private static final String ERROR_DETECTING_STEP = "خطا در تشخیص مرحله فرایند {}";
 	private static final String ERROR_HANDLING_TASK_ACTION = "خطا در انجام عملیات تسک {}";
 	private static final String PROCESS_ID_PLACEHOLDER = "-";
-	private final ObjectProvider<ExtraBillProcessService> self;
+
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
@@ -48,6 +50,8 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final ExtraBillRepository extraBillRepository;
 	private final LcRepository lcRepository;
 	private final ExtraBillAcknowledgmentDeterminer extraBillAcknowledgmentDeterminer;
+	private final ObjectProvider<ExtraBillServiceImpl> self; // lazy handle to the proxy
+
 
 
 	@Override
@@ -223,4 +227,63 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	}
 
 
+	@Override
+	public void refreshExtraBillStatus() {
+		var masterIds = extraBillRepository
+				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS))
+				.stream()
+				.map(ExtraBankBillModel::getId)
+				.toList();
+
+		for (Long masterId : masterIds) {
+			try {
+				refreshOne(masterId);
+			} catch (Exception ex) {
+				log.error("Error while refreshing status for extra bill master id={}", masterId, ex);
+			}
+		}
+	}
+
+
+	public void refreshOne(Long masterId) {
+		ExtraBankBillModel master = extraBillRepository.findById(masterId)
+				.orElseThrow(() -> new EntityNotFoundException("ExtraBankBillModel not found: " + masterId));
+
+		Acknowledgment determined = extraBillAcknowledgmentDeterminer.determine(master);
+		if (master.getAcknowledgment() != determined) {
+			master.setAcknowledgment(determined);
+		}
+
+		if (master.getPmsBillId() != null) {
+			master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			master.setAcknowledgment(Acknowledgment.FINISHED);
+			extraBillRepository.save(master);
+			return;
+		}
+		var processHistory = bpmsClientService.getProcessInstanceHistoryById(master.getProcessId());
+		switch (processHistory.getStatus()) {
+			case ACTIVE -> master.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+			case CANCELED -> {
+				master.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+				master.setAcknowledgment(Acknowledgment.CANCELED);
+			}
+			case FINISHED -> {
+				boolean acceptedFinally = processVariableProvider.isProcessAcceptedFinally(master.getProcessId());
+				if (acceptedFinally) {
+					master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+					master.setAcknowledgment(Acknowledgment.FINISHED);
+				} else {
+					master.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+					master.setAcknowledgment(Acknowledgment.CANCELED);
+				}
+			}
+			default -> {
+				master.setWorkflowApproveStatus(WorkflowApproveStatus.DRAFT);
+				master.setAcknowledgment(Acknowledgment.UNKNOWN);
+			}
+		}
+
+		extraBillRepository.save(master);
+	}
 }
+

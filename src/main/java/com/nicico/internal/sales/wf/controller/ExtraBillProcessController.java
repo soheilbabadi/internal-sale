@@ -52,7 +52,7 @@ public class ExtraBillProcessController {
 	)
 	@GetMapping("/refresh-status")
 	public ResponseEntity<Void> refreshStatus() {
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+		extraBillProcessService.refreshExtraBillStatus();
 		return ResponseEntity.ok().build();
 	}
 
