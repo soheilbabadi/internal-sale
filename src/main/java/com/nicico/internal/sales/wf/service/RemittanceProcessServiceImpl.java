@@ -4,14 +4,12 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInstance;
 import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
-import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.enums.RemittanceProcessVariable;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 	@Transactional(isolation = Isolation.READ_COMMITTED, label = "start_remittance_process")
 	@Override
 	public ProcessInstance startProcess(Long remittanceId) {
-
+		refreshRemittanceStatus();
 		if (!canStartProcess()) {
 			throw new InternalSaleCustomException.AccessDeniedException("شما اجازه شروع فرایند حواله  را ندارید");
 		}
