@@ -15,6 +15,7 @@ import com.nicico.internal.sales.lc.dto.request.LcCancelRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateAcceptedLcRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateStartedLcRequest;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
+import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcAuditRepository;
 import com.nicico.internal.sales.lc.repository.LcRepository;
@@ -290,10 +291,48 @@ public class LcServiceImpl implements LcService {
 	@Override
 	public void cancel(LcCancelRequest request) {
 		validateCancelRequest(request);
-		LcModel lcModel = lcServiceHelper.findLcModel(request.getLcId());
+		LcModel lcModel = lcRepository.findById(request.getLcId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_LC_NOT_FOUND));
 		List<LcModel> lcModelList = lcRepository.findByMasterId(lcModel.getProformaMasterId());
 
-		lcModelList.forEach(model -> lcServiceHelper.cancelLcModel(model, request));
+
+		for (LcModel model : lcModelList) {
+			model.setCancelDate(new Date());
+			model.setLcCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
+			model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
+
+			String cancellationRecord = buildCancellationRecord(request);
+			appendCancellationRecord(model, cancellationRecord);
+
+			lcRepository.save(model);
+		}
+	}
+
+	private void appendCancellationRecord(LcModel model, String cancellationRecord) {
+		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
+		if (!existingDesc.isEmpty()) {
+			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
+		} else {
+			model.setDescription(cancellationRecord);
+		}
+	}
+	private String buildCancellationRecord(LcCancelRequest request) {
+		String timestamp = DateUtility.getJalaliDate(new Date());
+		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
+		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
+
+		return String.format(
+				"""
+						سابقه ابطال اعتبار اسنادی
+						**************************
+						تاریخ و زمان ابطال: %s
+						نام کاربری اقدام کننده: %s
+						دلیل ابطال: %s
+						توضیحات تکمیلی: %s
+						وضعیت: ابطال شده
+						**************************""",
+				timestamp, userFullName, LcCancellationReason.BUYER_WITHDRAWAL, notes
+		);
 	}
 
 	/**

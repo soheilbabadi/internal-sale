@@ -409,8 +409,7 @@ public class NotificationServiceImpl implements NotificationService {
 
 		try {
 			byte[] pdfBytes = entityType == EntityTypeEnum.PROFORMA
-					? fmsDocumentService.getProformaPdfBytes(id)
-					: fmsDocumentService.getRemittancePdfBytes(id);
+					? fmsDocumentService.getProformaPdfBytes(id) : fmsDocumentService.getRemittancePdfBytes(id);
 
 			if (pdfBytes == null || pdfBytes.length == 0) {
 				log.warn("فایل خالی یا نامعتبر برای {} با شناسه: {}", documentType, id);

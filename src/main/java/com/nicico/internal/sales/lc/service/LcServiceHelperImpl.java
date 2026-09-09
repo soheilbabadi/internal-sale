@@ -18,7 +18,6 @@ import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.nosa.LcNosaCodeService;
 import com.nicico.internal.sales.notification.service.NotificationService;
-import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
@@ -299,17 +298,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
-	public void cancelLcModel(LcModel model, LcCancelRequest request) {
-		model.setCancelDate(new Date());
-		model.setLcCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
-		model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
 
-		String cancellationRecord = buildCancellationRecord(request);
-		appendCancellationRecord(model, cancellationRecord);
-
-		lcRepository.save(model);
-	}
 
 
 	@Override

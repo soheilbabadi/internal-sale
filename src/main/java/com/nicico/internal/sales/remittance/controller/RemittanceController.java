@@ -112,12 +112,12 @@ public class RemittanceController {
 
 	@GetMapping(value = "/export/{remittanceId}")
 	public ResponseEntity<byte[]> exportRemittanceDoc(@PathVariable Long remittanceId) {
-		return ResponseEntity.ok(fmsDocumentService.getOrCreateRemittancePdf(remittanceId).getContent());
+		return ResponseEntity.ok(fmsDocumentService.getRemittancePdfBytes(remittanceId));
 	}
 
 	@GetMapping(value = "/export-pdf/{remittanceId}")
 	public ResponseEntity<byte[]> exportRemittancePdf(@PathVariable Long remittanceId) {
-		return ResponseEntity.ok(fmsDocumentService.getOrCreateRemittancePdf(remittanceId).getContent());
+		return ResponseEntity.ok(fmsDocumentService.getRemittancePdfBytes(remittanceId));
 	}
 
 

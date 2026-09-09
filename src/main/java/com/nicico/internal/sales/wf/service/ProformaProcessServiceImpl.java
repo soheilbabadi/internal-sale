@@ -6,6 +6,7 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceStatus;
 import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
+import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
@@ -23,6 +24,7 @@ import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
+import com.nicico.internal.sales.wf.enums.ProformaProcessVariable;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,10 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -181,8 +180,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	@Transactional
 	public void refreshProformaStatus() {
 		List<ProformaMasterModel> masterModelList = proformaMasterRepository
-				.findAllByWorkflowApproveStatusIn(
-						List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
+				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
 
 		for (ProformaMasterModel masterModel : masterModelList) {
 			try {
@@ -240,12 +238,11 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 
 	@Override
 	public boolean canStartProcess() {
-//		var workflow = processVariableProvider.getProformaWorkflowByTitle();
-//		return processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
-//				.stream()
-//				.anyMatch(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
-//						&& ProformaProcessVariable.Proforma.name().equalsIgnoreCase(access.getProcessVariable()));
-		return true;
+		var workflow = processVariableProvider.getProformaWorkflowByTitle();
+		return processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
+				.stream()
+				.anyMatch(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
+						&& ProformaProcessVariable.Proforma.name().equalsIgnoreCase(access.getProcessVariable()));
 	}
 
 	// -------------------------------------------------------------------------

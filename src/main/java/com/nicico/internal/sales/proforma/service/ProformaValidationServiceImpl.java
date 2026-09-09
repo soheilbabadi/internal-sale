@@ -10,6 +10,7 @@ import com.nicico.internal.sales.ime.trade.IMETradeModel;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
+import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.pms.service.PMSCustomerService;
 import com.nicico.internal.sales.proforma.dto.*;
@@ -187,6 +188,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 
 	@Override
 	public List<String> validateReversal(Long masterId) {
+		validateLcStatus(masterId);
 		List<String> errors = new ArrayList<>();
 		var proforma = proformaMasterRepository.findById(masterId);
 
@@ -194,9 +196,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 			errors.add(MSG_CONTRACT_NO_PROFORMA);
 			throw new InternalSaleCustomException.ValidationException(MSG_INVALID_DATA, errors);
 		}
-		if (!lcRepository.findByMasterId(masterId).isEmpty()) {
-			throw new InternalSaleCustomException.ValidationException(MSG_LC_EXISTS_NO_REVERSAL, errors);
-		}
+
 
 //		if (proforma.get().getIsProcessFinal() && ) {
 //			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
@@ -210,15 +210,14 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 
 	@Override
 	public boolean canStartReversal(Long masterId) {
+		validateLcStatus(masterId);
 		ProformaMasterModel proforma = proformaMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_PROFORMA_NOT_FOUND));
 		if (!processVariableProvider.isProcessFinished(proforma.getReversalProcessId())) {
 			throw new InternalSaleCustomException.ValidationException(
 					MessageFormat.format(MSG_REVERSAL_NOT_FINISHED, proforma.getContractNo()));
 		}
-		if (!lcRepository.findByMasterId(masterId).isEmpty()) {
-			throw new InternalSaleCustomException.ValidationException(MSG_LC_EXISTS_NO_CANCEL);
-		}
+
 		return true;
 	}
 
@@ -242,6 +241,18 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 		}
 	}
 
+	public void validateLcStatus(Long masterId){
+		var lcList= lcRepository.findByMasterId(masterId);
+
+		if (lcList.isEmpty()) {return;}
+
+		for (LcModel lcModel:lcList) {
+			if (lcModel.getWorkflowApproveStatus()==WorkflowApproveStatus.ACCEPTED || lcModel.getWorkflowApproveStatus()==WorkflowApproveStatus.IN_PROGRESS){
+				throw new InternalSaleCustomException.ValidationException(MSG_LC_EXISTS_NO_CANCEL);
+			}
+		}
+
+	}
 
 	public boolean isContractExists(Long contractNo) {
 		List<WorkflowApproveStatus> statuses = List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS, WorkflowApproveStatus.ACCEPTED);

@@ -250,8 +250,8 @@ public class ProformaController {
 	@GetMapping(value = "/export-pdf/{proformaId}")
 	public ResponseEntity<byte[]> exportPdf(@PathVariable Long proformaId) {
 		try {
-			fmsDocumentService.getOrCreateProformaPdf(proformaId);
-			return ResponseEntity.ok(fmsDocumentService.getOrCreateProformaPdf(proformaId).getContent());
+			fmsDocumentService.getProformaPdfBytes(proformaId);
+			return ResponseEntity.ok(fmsDocumentService.getProformaPdfBytes(proformaId));
 		} catch (Exception ex) {
 			log.error("Error converting to PDF for proformaId: {}", proformaId, ex);
 			throw new InternalSaleCustomException.FileContentException(ex.getMessage());

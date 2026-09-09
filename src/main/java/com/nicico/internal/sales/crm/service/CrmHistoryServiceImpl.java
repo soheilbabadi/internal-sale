@@ -8,7 +8,7 @@ import com.nicico.internal.sales.crm.dto.LcViewMapper;
 import com.nicico.internal.sales.crm.dto.LcWithProformaDto;
 import com.nicico.internal.sales.crm.repository.LcViewRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.export.service.ExportDocService;
+import com.nicico.internal.sales.fms.service.FmsDocumentService;
 import com.nicico.internal.sales.history.dto.HistoryExtractMapper;
 import com.nicico.internal.sales.history.dto.HistoryExtractMasterDto;
 import com.nicico.internal.sales.history.repository.HistoryRepository;
@@ -71,10 +71,11 @@ public class CrmHistoryServiceImpl implements CrmHistoryService {
 	private final LcViewMapper lcViewMapper;
 	private final RemittanceMasterMapper remittanceMasterMapper;
 	private final RemittanceMasterRepository remittanceMasterRepository;
-	private final ExportDocService exportDocService;
+//	private final ExportDocService exportDocService;
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final LcRepository lcRepository;
 	private final LcMapper lcMapper;
+	private final FmsDocumentService fmsDocumentService;
 	private final RemittanceGoodItemMapper remittanceGoodItemMapper;
 
 	@Value("${nicico.crm-link}")
@@ -245,14 +246,14 @@ public class CrmHistoryServiceImpl implements CrmHistoryService {
 		RemittanceMasterModel remittance = remittanceMasterRepository.findById(remittanceId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERR_REMITTANCE_NOT_FOUND));
 		checkRemittanceAccess(remittance, fetchNationalCodes());
-		return exportDocService.exportRemittancePdf(remittanceId);
+		return fmsDocumentService.getRemittancePdfBytes(remittanceId);
 	}
 
 
 	@Override
 	public byte[] exportProformaPdf(long proformaDetailId) {
 		checkProformaAccess(proformaDetailId, fetchNationalCodes());
-		return exportDocService.exportProformaPdf(proformaDetailId);
+		return fmsDocumentService.getRemittancePdfBytes(proformaDetailId);
 	}
 
 	private HttpHeaders buildSsoHeaders() {

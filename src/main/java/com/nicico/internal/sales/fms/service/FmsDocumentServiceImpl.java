@@ -11,7 +11,9 @@ import com.nicico.internal.sales.export.service.ExportDocService;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
+import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +60,7 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 	private final FmsFileService fmsFileService;
 	private final ProformaDetailRepository proformaDetailRepository;
+	private final ProformaMasterRepository proformaMasterRepository;
 	private final ExportDocService exportDocService;
 	private final RemittanceMasterRepository remittanceMasterRepository;
 	private final HttpServletRequest request;
@@ -66,8 +69,27 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 	private String fmsGroupId;
 
 
-	@Override
 	public FmsFile getOrCreateProformaPdf(Long detailId) {
+
+		ProformaDetailModel detailModel = proformaDetailRepository.findById(detailId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERR_PROFORMA_NOT_FOUND));
+
+		ProformaMasterModel masterModel=proformaMasterRepository.findById(detailModel.getProformaMasterId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERR_PROFORMA_NOT_FOUND));
+
+		if (masterModel.getWorkflowApproveStatus() ==WorkflowApproveStatus.IN_PROGRESS)
+		{
+			return new FmsFile(UUID.randomUUID().toString(),detailId + ".pdf",PDF_CONTENT_TYPE,exportDocService.exportProformaPdf(detailId));
+
+		}
+
+		if (masterModel.getWorkflowApproveStatus() ==WorkflowApproveStatus.CANCELED || detailModel.getProformaReversalStatus()==ProformaReversalStatus.CANCELED)
+		{
+			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + detailModel.getPerformaNo() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
+
+		}
+
+
 		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
 		Map<String, Object> searchTags = Map.of(
 				PROFORMA_TAG_TYPE,
@@ -87,15 +109,14 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 		log.info("فایل پیش فاکتور {} در FMS یافت نشد، در حال ساخت...", detailId);
 
-		ProformaDetailModel proformaDetailModel = proformaDetailRepository.findById(detailId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERR_PROFORMA_NOT_FOUND));
 
 
 
-		byte[] pdfContent = buildSignedProformaPdf(List.of(proformaDetailModel.getId()));
-		String fileName = PROFORMA_FILE_NAME_PREFIX + proformaDetailModel.getPerformaNo() + ".pdf";
 
-		if (proformaDetailModel.getProformaMasterModel().getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED) {
+		byte[] pdfContent = buildSignedProformaPdf(List.of(detailModel.getId()));
+		String fileName = PROFORMA_FILE_NAME_PREFIX + detailModel.getPerformaNo() + ".pdf";
+
+		if (detailModel.getProformaMasterModel().getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED) {
 			String uuid = uploadProformaToFms(detailId, fileName, pdfContent, credentials);
 			saveProformaFileIdToDetails(List.of(detailId), uuid);
 			log.info("منبع فایل پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, uuid);
@@ -106,27 +127,27 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		return new FmsFile(UUID.randomUUID().toString(), fileName, PDF_CONTENT_TYPE, pdfContent);
 	}
 
-	@Override
 	public byte[] getProformaPdfBytes(Long detailId) {
-		ProformaDetailModel detail = proformaDetailRepository.findById(detailId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("جزئیات پیش فاکتور وجود ندارد"));
-		if (detail.getProformaFileId() != null && !detail.getProformaFileId().isEmpty()) {
-			log.info("منبع بایت‌های پیش فاکتور {}: دانلود از FMS (فایل از قبل ثبت شده بود). fileId={}", detailId, detail.getProformaFileId());
-			FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
-			FmsFile fmsFile = fmsFileService.download(fmsGroupId, detail.getProformaFileId(), credentials);
-			return fmsFile.getContent();
-		}
-		if (detail.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
-			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + detail.getPerformaNo() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
-		}
-
-		log.info("منبع بایت‌های پیش فاکتور {}: fileId ثبت نشده، در حال ساخت PDF جدید...", detailId);
-		byte[] pdfContent = buildSignedProformaPdf(List.of(detail.getId()));
-		String fileName = PROFORMA_FILE_NAME_PREFIX + detail.getPerformaNo() + ".pdf";
-		FmsFile fmsFile = uploadProformaToFmsAndGetFile(detailId, fileName, pdfContent);
-		saveProformaFileIdToDetails(List.of(detail.getId()), fmsFile.getUuid());
-		log.info("منبع بایت‌های پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, fmsFile.getUuid());
-		return pdfContent;
+		return exportDocService.exportProformaPdf(detailId);
+//		ProformaDetailModel detail = proformaDetailRepository.findById(detailId)
+//				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("جزئیات پیش فاکتور وجود ندارد"));
+//		if (detail.getProformaFileId() != null && !detail.getProformaFileId().isEmpty()) {
+//			log.info("منبع بایت‌های پیش فاکتور {}: دانلود از FMS (فایل از قبل ثبت شده بود). fileId={}", detailId, detail.getProformaFileId());
+//			FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
+//			FmsFile fmsFile = fmsFileService.download(fmsGroupId, detail.getProformaFileId(), credentials);
+//			return fmsFile.getContent();
+//		}
+//		if (detail.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
+//			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + detail.getPerformaNo() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
+//		}
+//
+//		log.info("منبع بایت‌های پیش فاکتور {}: fileId ثبت نشده، در حال ساخت PDF جدید...", detailId);
+//		byte[] pdfContent = buildSignedProformaPdf(List.of(detail.getId()));
+//		String fileName = PROFORMA_FILE_NAME_PREFIX + detail.getPerformaNo() + ".pdf";
+//		FmsFile fmsFile = uploadProformaToFmsAndGetFile(detailId, fileName, pdfContent);
+//		saveProformaFileIdToDetails(List.of(detail.getId()), fmsFile.getUuid());
+//		log.info("منبع بایت‌های پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, fmsFile.getUuid());
+//		return pdfContent;
 	}
 
 //	@Override
@@ -157,7 +178,7 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 //		}
 //	}
 
-	@Override
+
 	public FmsFile getOrCreateRemittancePdf(Long masterId) {
 		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
 		Map<String, Object> searchTags = Map.of(
@@ -189,25 +210,28 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		return new FmsFile(uuid, fileName, PDF_CONTENT_TYPE, pdfContent);
 	}
 
+
 	@Override
 	public byte[] getRemittancePdfBytes(Long masterId) {
-		RemittanceMasterModel master = findRemittanceMaster(masterId);
-		if (master.getRemittanceFileId() != null && !master.getRemittanceFileId().isEmpty()) {
-			log.info("منبع بایت‌های حواله {}: دانلود از FMS (فایل از قبل ثبت شده بود). fileId={}", masterId, master.getRemittanceFileId());
-			FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
-			FmsFile fmsFile = fmsFileService.download(fmsGroupId, master.getRemittanceFileId(), credentials);
-			return fmsFile.getContent();
-		}
-		log.info("منبع بایت‌های حواله {}: fileId ثبت نشده، در حال ساخت PDF جدید...", masterId);
-		byte[] pdfContent = exportDocService.exportRemittancePdf(masterId);
-		if (pdfContent == null || pdfContent.length == 0) {
-			throw new IllegalStateException("Failed to generate Remittance PDF for ID: " + masterId);
-		}
-		String fileName = "remittance_" + masterId + ".pdf";
-		FmsFile fmsFile = uploadRemittanceToFmsAndGetFile(masterId, fileName, pdfContent);
-		saveRemittanceFileIdToMaster(masterId, fmsFile.getUuid());
-		log.info("منبع بایت‌های حواله {}: تازه ساخته و در FMS آپلود شد. uuid={}", masterId, fmsFile.getUuid());
-		return pdfContent;
+
+		return exportDocService.exportRemittancePdf(masterId);
+//		RemittanceMasterModel master = findRemittanceMaster(masterId);
+//		if (master.getRemittanceFileId() != null && !master.getRemittanceFileId().isEmpty()) {
+//			log.info("منبع بایت‌های حواله {}: دانلود از FMS (فایل از قبل ثبت شده بود). fileId={}", masterId, master.getRemittanceFileId());
+//			FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
+//			FmsFile fmsFile = fmsFileService.download(fmsGroupId, master.getRemittanceFileId(), credentials);
+//			return fmsFile.getContent();
+//		}
+//		log.info("منبع بایت‌های حواله {}: fileId ثبت نشده، در حال ساخت PDF جدید...", masterId);
+//		byte[] pdfContent = exportDocService.exportRemittancePdf(masterId);
+//		if (pdfContent == null || pdfContent.length == 0) {
+//			throw new IllegalStateException("Failed to generate Remittance PDF for ID: " + masterId);
+//		}
+//		String fileName = "remittance_" + masterId + ".pdf";
+//		FmsFile fmsFile = uploadRemittanceToFmsAndGetFile(masterId, fileName, pdfContent);
+//		saveRemittanceFileIdToMaster(masterId, fmsFile.getUuid());
+//		log.info("منبع بایت‌های حواله {}: تازه ساخته و در FMS آپلود شد. uuid={}", masterId, fmsFile.getUuid());
+//		return pdfContent;
 	}
 
 
@@ -237,7 +261,7 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 	private String uploadProformaToFms(Long detailId, String fileName, byte[] pdfContent, FmsCredentials credentials) {
 
-		UploadRequest uploadRequest = UploadRequest.of(fmsGroupId, fileName, pdfContent)
+				UploadRequest uploadRequest = UploadRequest.of(fmsGroupId, fileName, pdfContent)
 				.contentType(PDF_CONTENT_TYPE)
 				.tag(PROFORMA_TAG_TYPE, PROFORMA_TAG_TYPE_VALUE)
 				.tag(PROFORMA_TAG_ID, detailId)

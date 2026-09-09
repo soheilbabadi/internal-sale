@@ -145,8 +145,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 	@Override
 	public void refreshLcStatus() {
 		try {
-//			List<LcModel> lcList = lcRepository					.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
-			List<LcModel> lcList = lcRepository.findAll();
+			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
 			for (LcModel lc : lcList) {
 				lc.setAcknowledgment(lcAcknowledgmentDeterminer.determine(lc));
 			}

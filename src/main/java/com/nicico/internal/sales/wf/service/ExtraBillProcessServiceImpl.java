@@ -4,6 +4,7 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInstance;
 import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
+import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
@@ -16,6 +17,8 @@ import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
+import com.nicico.internal.sales.wf.enums.ExtraBillProcessVariable;
+import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -51,6 +55,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final LcRepository lcRepository;
 	private final ExtraBillAcknowledgmentDeterminer extraBillAcknowledgmentDeterminer;
 	private final ObjectProvider<ExtraBillServiceImpl> self; // lazy handle to the proxy
+	private final ProcessUserAccessRepository processUserAccessRepository;
 
 
 
@@ -215,8 +220,13 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
 	@Override
 	public boolean canStartProcess() {
-//		return hasAccessForVariable(ExtraBillProcessVariable.BillDraftRegistration);
-		return true;
+
+			var workflow = processVariableProvider.getExtraBillWorkflowByTitle();
+			return processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
+					.stream()
+					.anyMatch(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
+							&& ExtraBillProcessVariable.BillDraftRegistration.name().equalsIgnoreCase(access.getProcessVariable()));
+
 	}
 
 
@@ -230,8 +240,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	@Override
 	public void refreshExtraBillStatus() {
 		var masterIds = extraBillRepository
-//				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS))
-				.findAll()
+				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS))
 				.stream()
 				.map(ExtraBankBillModel::getId)
 				.toList();

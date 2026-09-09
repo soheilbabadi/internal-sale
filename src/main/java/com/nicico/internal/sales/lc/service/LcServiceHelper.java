@@ -47,7 +47,7 @@ public interface LcServiceHelper {
 
 	void sendLcBrokerReckoningEmail(LcBrokerEmailRequest lcBrokerEmailRequest, String emailContent);
 
-	void cancelLcModel(LcModel model, LcCancelRequest request);
+
 
 	String buildCancellationRecord(LcCancelRequest request);
 

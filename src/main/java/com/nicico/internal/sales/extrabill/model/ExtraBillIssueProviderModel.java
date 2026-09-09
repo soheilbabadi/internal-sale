@@ -100,7 +100,7 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM T_INS_EXTRA_BANK_BILL tpbb
     WHERE tpbb.F_PERFORMA_MASTER_ID = fm.N_MASTER_ID
-      AND tpbb.C_WORKFLOW_APPROVE_STATUS != 'CANCELED'
+      AND tpbb.C_WORKFLOW_APPROVE_STATUS IN ('ACCEPTED','IN_PROGRESS')  
 )	
 		""")
 public class ExtraBillIssueProviderModel implements Serializable {

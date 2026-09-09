@@ -38,7 +38,7 @@ nicico:
   terminate-remittance: tehransaleoffice@nicico.com
   crm-link: http://prod_crm-gateway/sso/api/user-request-application/my-approved-company-requests
   fms:
-    base-url: https://apps.nicico.com//fms
+    base-url: https://apps.nicico.com/fms
     group-id: 68aee2f2f1e468475a30f24f
 ui:
   landing-address: http://apps.nicico.com/internal-sales

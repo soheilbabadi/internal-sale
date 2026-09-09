@@ -108,7 +108,7 @@ public class CrmController {
 	@Operation(summary = "خروجی PDF حواله", description = "فایل PDF حواله را پس از تبدیل فایل Word مربوطه برمی گرداند.")
 	@GetMapping("/remittance-export-pdf/{id}")
 	public ResponseEntity<byte[]> exportRemittancePdf(@PathVariable long id) {
-		byte[] pdfBytes = fmsDocumentService.getOrCreateRemittancePdf(id).getContent();
+		byte[] pdfBytes = fmsDocumentService.getRemittancePdfBytes(id);
 
 		if (pdfBytes == null) {
 
@@ -127,7 +127,7 @@ public class CrmController {
 	public ResponseEntity<byte[]> exportProformaPdf(
 			@Parameter(description = "شناسه پیش فاکتور", required = true, example = "45")
 			@PathVariable long id) {
-		byte[] pdfBytes = fmsDocumentService.getProformaPdfBytes(id);
+		byte[] pdfBytes = fmsDocumentService.getRemittancePdfBytes(id);
 
 		if (pdfBytes == null) {
 			return ResponseEntity.notFound().build();
