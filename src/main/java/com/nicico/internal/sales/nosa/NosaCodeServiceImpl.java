@@ -18,7 +18,7 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 	private final LcRepository lcRepository;
 	private final ExtraBillRepository extraBillRepository;
 	private final IssuingBankRepository issuingBankRepository;
-	String yearLast2 = String.format("%02d", DateUtility.getCurrentJalaliYear());
+
 
 	/**
 	 * Generates LC NosaCode with format:
@@ -29,8 +29,7 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_ISSUING_BANK_NOT_FOUND));
 
-		String bankCode = bank.getBankCode();
-		String prefix = String.format("%s%s%s", LC_PREFIX_BASE, yearLast2, bankCode);
+		String prefix = String.format("%s%s%s", LC_PREFIX_BASE, DateUtility.currentYearLast2(), bank.getBankCode());
 		String lastNosaCode = lcRepository.findLastNosaCodeByBankIdAndPrefix(issuerBankId, prefix);
 		if (lastNosaCode == null) {
 			return prefix + "001";
@@ -48,8 +47,9 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 		var bank = issuingBankRepository.findById(issuerBankId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_ISSUING_BANK_NOT_FOUND));
-		String bankCode = bank.getBankCode();
-		String prefix = String.format("%s%s%s", EXTRA_BILL_PREFIX_BASE, yearLast2, bankCode);
+
+
+		String prefix = String.format("%s%s%s", EXTRA_BILL_PREFIX_BASE, DateUtility.currentYearLast2(), bank.getBankCode());
 		String lastNosaCode = extraBillRepository.findLastNosaCodeByBankIdAndPrefix(issuerBankId, prefix);
 		if (lastNosaCode == null) {
 			return prefix + "001";
@@ -58,4 +58,5 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 		int newNumber = lastNumber + 1;
 		return String.format("%s%03d", prefix, newNumber);
 	}
+
 }

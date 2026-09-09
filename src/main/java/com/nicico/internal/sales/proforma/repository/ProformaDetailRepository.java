@@ -5,10 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProformaDetailRepository extends JpaRepository<ProformaDetailModel, Long>, JpaSpecificationExecutor<ProformaDetailModel> {
@@ -25,7 +27,11 @@ public interface ProformaDetailRepository extends JpaRepository<ProformaDetailMo
 
 	@Transactional
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
-	@Query(value = "UPDATE T_INS_PERFORMA_DETAIL SET C_REVERSAL_STATUS = ?2 WHERE ID IN ?1", nativeQuery = true)
+	@Query(value = "UPDATE T_INS_PERFORMA_DETAIL SET C_PROFORMA_REVERSAL_STATUS = ?2 WHERE ID IN ?1", nativeQuery = true)
 	void bulkUpdateReversalStatus(List<Long> detailIds, String reversalStatus);
+
+	@Query(value = "SELECT * FROM T_INS_PERFORMA_DETAIL WHERE F_PERFORMA_MASTER_ID IN (SELECT F_PERFORMA_MASTER_ID FROM T_INS_EXTRA_BANK_BILL WHERE id = :billId)", nativeQuery = true)
+	Optional<ProformaDetailModel> getDetailByBillId(@Param("billId") Long billId);
+
 
 }

@@ -176,14 +176,6 @@ public class LcController {
 		return ResponseEntity.ok(lcService.updateCurrentAcceptedLc(updateAcceptedLcRequest));
 	}
 
-	@Operation(
-			summary = "تاریخچه تغییرات LC",
-			description = "لیست کامل تاریخچه تغییرات اعتبار اسنادی را شامل تمام ویرایش ها، به روزرسانی ها و تغییرات وضعیت به همراه زمان و کاربر انجام دهنده بازمی گرداند."
-	)
-	@GetMapping("/audit-history/{lcId}")
-	public ResponseEntity<List<LcAuditDto>> getAuditHistory(@PathVariable Long lcId) {
-		return ResponseEntity.ok(lcService.getAuditHistory(lcId));
-	}
 
 	@Operation(
 			summary = "ارسال ایمیل تایید تسویه",
@@ -205,19 +197,7 @@ public class LcController {
 		return ResponseEntity.ok(lcService.findUnsentReckoning());
 	}
 
-	@Operation(
-			summary = "LCهای آماده برای تایید تسویه",
-			description = "لیست اعتبارات اسنادی که شرایط ارسال تایید تسویه را دارند و آماده ارسال ایمیل تاییدیه به ذینفع و کارگزار می باشند. این خروجی به صورت SearchRs برگردانده می شود تا فیلتر و مرتب سازی نیز ساده باشد."
-	)
-	@GetMapping("/get-ready-reckoning")
-	public ResponseEntity<SearchDTO.SearchRs<LcDto.Info>> findReadyReckoning(@RequestParam(required = false) MultiValueMap<String, String> criteria) {
-		SearchDTO.SearchRq searchRq = null;
-		if (criteria != null && !criteria.isEmpty()) {
-			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
-		}
 
-		return ResponseEntity.ok(lcService.findReadyReckoning(searchRq));
-	}
 
 	@Operation(
 			summary = "جستجو در LCهای آماده برای تایید تسویه",
@@ -278,6 +258,18 @@ public class LcController {
 	public ResponseEntity<?> getLcHistoryDetail(@PathVariable Long lcId) {
 		return ResponseEntity.ok(lcService.getLcHistoryDetail(lcId));
 	}
+
+
+
+	@Operation(
+			summary = "تاریخچه تغییرات LC",
+			description = "لیست کامل تاریخچه تغییرات اعتبار اسنادی را شامل تمام ویرایش ها، به روزرسانی ها و تغییرات وضعیت به همراه زمان و کاربر انجام دهنده بازمی گرداند."
+	)
+	@GetMapping("/audit-history/{lcId}")
+	public ResponseEntity<List<LcAuditDto>> getAuditHistory(@PathVariable Long lcId) {
+		return ResponseEntity.ok(lcService.getAuditHistory(lcId));
+	}
+
 
 	@Operation(
 			summary = "به روزرسانی تاییدیه دریافت LC",

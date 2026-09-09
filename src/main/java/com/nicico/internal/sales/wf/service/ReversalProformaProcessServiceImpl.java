@@ -4,7 +4,6 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInstance;
 import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
-import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
@@ -15,7 +14,6 @@ import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.proforma.service.ProformaValidationService;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.enums.ReversalProcessVariable;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import com.nicico.internal.sales.wf.repository.WorkflowRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -131,7 +132,7 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 					masterModel.setIsReversalProcessFinal(false);
 					updateDetailStatuses(masterModel, ProformaReversalStatus.CANCELED);
 					proformaMasterRepository.saveAndFlush(masterModel);
-					bpmsClientService.cancelProcessInstance(reviewTaskRequest.getProcessInstanceId());
+//					bpmsClientService.cancelProcessInstance(reviewTaskRequest.getProcessInstanceId());
 				});
 			}
 		} catch (Exception ex) {

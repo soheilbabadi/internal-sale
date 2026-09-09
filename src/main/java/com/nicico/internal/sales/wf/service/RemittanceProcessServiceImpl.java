@@ -8,6 +8,7 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
+import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +46,7 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("حواله وجود ندارد"));
 		RemittanceVariablesInput input = new RemittanceVariablesInput();
 		input.setRemittanceMasterId(masterModel.getId());
-		input.setContractDate(String.valueOf(masterModel.getContractDate()));
+		input.setContractDate(DateUtility.getJalaliDate(masterModel.getContractDate()));
 		input.setRemittanceDate(masterModel.getRemittanceDate());
 		input.setGoodId(masterModel.getGoodId());
 		input.setGoodName(masterModel.getGoodName());
@@ -166,49 +168,58 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 
 	@Override
 	public void refreshRemittanceStatus() {
+		var masterIds = remittanceMasterRepository
+				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS))
+				.stream()
+				.map(RemittanceMasterModel::getId)
+				.toList();
 
-		try {
-			var masters = remittanceMasterRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
-			for (RemittanceMasterModel master : masters) {
-				if (master.getPmsId() != null) {
-					master.setProcessFinal(true);
-					master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					continue;
-				}
-
-				var processHistory = bpmsClientService.getProcessInstanceHistoryById(master.getProcessId());
-				switch (processHistory.getStatus()) {
-
-					case ACTIVE:
-						master.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-						master.setProcessFinal(false);
-						break;
-
-					case CANCELED:
-						master.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-						master.setProcessFinal(true);
-						break;
-
-					case FINISHED:
-						master.setProcessFinal(true);
-						boolean acceptedFinally = processVariableProvider.isProcessAcceptedFinally(master.getProcessId());
-						master.setWorkflowApproveStatus(acceptedFinally ? WorkflowApproveStatus.ACCEPTED : WorkflowApproveStatus.CANCELED);
-						break;
-
-					default:
-						master.setWorkflowApproveStatus(WorkflowApproveStatus.DRAFT);
-						master.setProcessFinal(false);
-						break;
-				}
+		for (Long masterId : masterIds) {
+			try {
+				refreshOne(masterId);
+			} catch (Exception ex) {
+				log.error("Error while refreshing remittance status for master id={}", masterId, ex);
 			}
-
-			remittanceMasterRepository.saveAll(masters);
-
-		} catch (Exception ex) {
-			log.error("Error while refreshing remittance status", ex);
 		}
 	}
 
+
+	public void refreshOne(Long masterId) {
+		RemittanceMasterModel master = remittanceMasterRepository.findById(masterId)
+				.orElseThrow(() -> new EntityNotFoundException("RemittanceMasterModel not found: " + masterId));
+
+		if (master.getPmsId() != null) {
+			master.setProcessFinal(true);
+			master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			remittanceMasterRepository.save(master);
+			return;
+		}
+
+		var processHistory = bpmsClientService.getProcessInstanceHistoryById(master.getProcessId());
+		switch (processHistory.getStatus()) {
+			case ACTIVE -> {
+				master.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+				master.setProcessFinal(false);
+			}
+			case CANCELED -> {
+				master.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+				master.setProcessFinal(true);
+			}
+			case FINISHED -> {
+				master.setProcessFinal(true);
+				boolean acceptedFinally = processVariableProvider.isProcessAcceptedFinally(master.getProcessId());
+				master.setWorkflowApproveStatus(acceptedFinally
+						? WorkflowApproveStatus.ACCEPTED
+						: WorkflowApproveStatus.CANCELED);
+			}
+			default -> {
+				master.setWorkflowApproveStatus(WorkflowApproveStatus.DRAFT);
+				master.setProcessFinal(false);
+			}
+		}
+
+		remittanceMasterRepository.save(master);
+	}
 
 	@Override
 	public boolean canStartProcess() {

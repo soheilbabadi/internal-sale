@@ -230,7 +230,8 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	@Override
 	public void refreshExtraBillStatus() {
 		var masterIds = extraBillRepository
-				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS))
+//				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS))
+				.findAll()
 				.stream()
 				.map(ExtraBankBillModel::getId)
 				.toList();

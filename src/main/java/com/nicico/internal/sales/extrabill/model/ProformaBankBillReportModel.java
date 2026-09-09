@@ -74,9 +74,10 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    tipd.C_PERFORMA_NO,
 		    tipd.D_PERFORMA_DATE
 		FROM T_INS_EXTRA_BANK_BILL tpbb
-		LEFT JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
+		INNER JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
 		INNER JOIN T_INS_PERFORMA_MASTER tipm  ON tipm.ID = tpbb.F_PERFORMA_MASTER_ID
 		INNER JOIN T_INS_PERFORMA_DETAIL tipd     ON tipd.ID = tpbb.F_PROFORMA_DETAIL_ID
+		WHERE NOT EXISTS (      SELECT 1      FROM TBL_IME_SETTLEMENT s      WHERE s.PAYMENT_CODE = tit.PAYMENT_CODE)
 		""")
 public class ProformaBankBillReportModel implements Serializable {
 

@@ -17,7 +17,7 @@ public class ExtraBillCancelRequest implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 7459496575730589771L;
 	@Schema(description = "شناسه برات")
-	private long Id;
+	private long id;
 
 	@Schema(description = "دلیل ابطال")
 	@NotEmpty

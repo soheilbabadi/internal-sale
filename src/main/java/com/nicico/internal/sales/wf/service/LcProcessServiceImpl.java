@@ -42,7 +42,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 	private final LcValidationService lcValidationService;
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final ProformaGoodItemRepository proformaGoodItemRepository;
-	private final LcAcknowledgmentDeterminer  lcAcknowledgmentDeterminer;
+	private final LcAcknowledgmentDeterminer lcAcknowledgmentDeterminer;
 
 
 	@Override
@@ -145,7 +145,8 @@ public class LcProcessServiceImpl implements LcProcessService {
 	@Override
 	public void refreshLcStatus() {
 		try {
-			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
+//			List<LcModel> lcList = lcRepository					.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
+			List<LcModel> lcList = lcRepository.findAll();
 			for (LcModel lc : lcList) {
 				lc.setAcknowledgment(lcAcknowledgmentDeterminer.determine(lc));
 			}

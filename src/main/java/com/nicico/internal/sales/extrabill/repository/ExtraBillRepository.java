@@ -24,8 +24,7 @@ public interface ExtraBillRepository extends JpaRepository<ExtraBankBillModel, L
 
 	ExtraBankBillModel findByProcessId(String processId);
 
-	@Query(value = "SELECT * FROM T_INS_PERFORMA_DETAIL WHERE F_PERFORMA_MASTER_ID IN (SELECT F_PERFORMA_MASTER_ID FROM T_INS_EXTRA_BANK_BILL WHERE id = :billId)", nativeQuery = true)
-	Optional<ProformaDetailModel> getDetailByBillId(@Param("billId") Long billId);
+
 
 
 	@Query(value = "SELECT C_NOSA_CODE FROM T_INS_EXTRA_BANK_BILL WHERE N_ISSUER_BANK_ID = :bankId AND C_NOSA_CODE LIKE :prefix% ORDER BY C_NOSA_CODE DESC FETCH FIRST 1 ROWS ONLY", nativeQuery = true)

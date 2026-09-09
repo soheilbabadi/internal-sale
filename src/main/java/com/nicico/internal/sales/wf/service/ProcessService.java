@@ -18,6 +18,8 @@ public interface ProcessService {
 
 	List<TaskInfo> getInstanceTasks(String processInstanceId);
 
+	void rejectTask(String taskId);
+
 	GridDTO searchTaskInbox(TaskSearchDto taskSearchDto, int page, int size);
 
 	List<Map<String, Object>> searchProcess(Pageable pageable);

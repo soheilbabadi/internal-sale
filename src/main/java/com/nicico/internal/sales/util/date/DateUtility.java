@@ -15,6 +15,11 @@ public class DateUtility {
 	private DateUtility() {
 	}
 
+
+	public static String currentYearLast2() {
+		int yearLast2 = DateUtility.getCurrentJalaliYear() - 1400;
+		return String.format("%02d", yearLast2);
+	}
 	public static Date subtractDay(Date date, int days) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);

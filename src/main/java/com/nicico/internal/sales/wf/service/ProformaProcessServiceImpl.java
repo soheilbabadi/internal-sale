@@ -4,8 +4,6 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInsHistoryDTO;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstance;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceStatus;
 import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
-import com.nicico.bpmsclient.model.flowable.task.FlowTaskDto;
-import com.nicico.bpmsclient.model.flowable.task.GridDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
@@ -25,7 +23,6 @@ import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.model.WorkflowModel;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +39,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -113,48 +113,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		}
 	}
 
-	@Override
-	public List<String> cancelDoungelingProcess(GridDTO gridDTO) {
-		List<String> cancelledIds = new ArrayList<>();
 
-		if (gridDTO == null || gridDTO.getData() == null) {
-			return cancelledIds;
-		}
-
-		WorkflowModel proformaWorkflow = processVariableProvider.getProformaWorkflowByTitle();
-		WorkflowModel lcWorkflow = processVariableProvider.getLcWorkflowByTitle();
-		WorkflowModel reversalWorkflow = processVariableProvider.getReversalWorkflowByTitle();
-		WorkflowModel remittanceWorkflow = processVariableProvider.getRemittanceWorkflowByTitle();
-
-		for (FlowTaskDto task : gridDTO.getData()) {
-			if (task == null || task.getProcessInstanceId() == null) continue;
-
-			cancelledIds.add(task.getProcessInstanceId());
-			var history = bpmsClientService.getProcessInstanceHistoryById(task.getProcessInstanceId());
-			String definitionKey = history.getProcessDefinitionKey();
-			String processInstanceId = task.getProcessInstanceId();
-
-			if (definitionKey.equals(proformaWorkflow.getDefinitionKey())) {
-				cancelIfOrphan(processInstanceId,
-						proformaMasterRepository.findByProcessId(processInstanceId).orElse(null));
-
-			} else if (definitionKey.equals(reversalWorkflow.getDefinitionKey())) {
-				cancelIfOrphan(processInstanceId,
-						proformaMasterRepository.findByReversalProcessId(processInstanceId).orElse(null));
-
-			} else if (definitionKey.equals(lcWorkflow.getDefinitionKey())) {
-				if (lcRepository.findByProcessId(processInstanceId).isEmpty()) {
-					bpmsClientService.cancelProcessInstance(processInstanceId);
-				}
-
-			} else if (definitionKey.equals(remittanceWorkflow.getDefinitionKey())) {
-				cancelIfOrphan(processInstanceId,
-						remittanceMasterRepository.findByProcessId(processInstanceId).orElse(null));
-			}
-		}
-
-		return cancelledIds;
-	}
 
 	@Override
 	@Transactional
@@ -165,7 +124,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 				proformaMasterRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId()).ifPresent(masterModel -> {
 					applyStatus(masterModel, WorkflowApproveStatus.CANCELED, true);
 					proformaMasterRepository.saveAndFlush(masterModel);
-					bpmsClientService.cancelProcessInstance(reviewTaskRequest.getProcessInstanceId());
+//					bpmsClientService.cancelProcessInstance(reviewTaskRequest.getProcessInstanceId());
 				});
 				return;
 			}
@@ -319,11 +278,11 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		model.setIsReversalProcessFinal(false);
 	}
 
-	private void cancelIfOrphan(String processInstanceId, Object model) {
-		if (model == null) {
-			bpmsClientService.cancelProcessInstance(processInstanceId);
-		}
-	}
+//	private void cancelIfOrphan(String processInstanceId, Object model) {
+//		if (model == null) {
+//			bpmsClientService.cancelProcessInstance(processInstanceId);
+//		}
+//	}
 
 	private StartProcessWithDataDTO buildStartProcessDTO(Map<String, Object> variables) {
 		var workflow = processVariableProvider.getProformaWorkflowByTitle();

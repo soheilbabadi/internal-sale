@@ -2,6 +2,7 @@ package com.nicico.internal.sales.remittance.service;
 
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.goods.service.GoodsService;
+import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.loading.repository.LoadingPlaceRepository;
 import com.nicico.internal.sales.pms.service.PMSRemittanceService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
@@ -37,6 +38,7 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final RemittanceProcessService remittanceProcessService;
 	private final PMSRemittanceService pmsRemittanceService;
+	private final LcRepository lcRepository;
 
 
 	@Override
@@ -85,6 +87,12 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 			errors.add("این پیش فاکتور هنوز تایید نشده است");
 			throw new InternalSaleCustomException.ValidationException(INVALID_REMITTANCE_DATA_MESSAGE, errors);
 		}
+
+		var lc=lcRepository.findByProformaNo(detailModel.getPerformaNo()).orElse(null);
+		if(lc==null) {
+			errors.add("برای این پیش فاکتور هنوز اعتبار اسنادی صادر نشده است");
+		}
+
 
 		remittanceMasterRepository.findAllByProformaNo(proformaDetail.getPerformaNo()).stream()
 				.filter(remittance -> isActiveStatus(remittance.getWorkflowApproveStatus()))

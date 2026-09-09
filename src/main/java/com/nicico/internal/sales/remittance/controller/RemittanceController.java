@@ -14,6 +14,7 @@ import com.nicico.internal.sales.remittance.service.RemittanceDataProvider;
 import com.nicico.internal.sales.remittance.service.RemittanceService;
 import com.nicico.internal.sales.remittance.service.RemittanceTaxService;
 import com.nicico.internal.sales.schedule.RemittanceScheduler;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.Arrays;
@@ -169,6 +170,24 @@ public class RemittanceController {
 	@PostMapping("/get-lot-number")
 	public ResponseEntity<String> getLotNumber(@RequestBody LotNumberRequest request) {
 		return ResponseEntity.ok(remittanceDataProvider.getLotnumber(request.getTradeId(), request.getSourceType()));
+	}
+
+	@Operation(
+			summary = "دریافت جزییات تاریخچه تسک ها",
+			description = "لیست کامل تاریخچه تسک های مربوط به حواله را شامل تمام فعالیت های انجام شده در  فرایند همراه با زمان و وضعیت هر تسک بازمی گرداند."
+	)
+	@GetMapping("/get-task-history-detail/{lcId}")
+	public ResponseEntity<?> getLcHistoryDetail(@PathVariable Long lcId) {
+		return ResponseEntity.ok(remittanceService.getHistoryDetail(lcId));
+	}
+
+	@Operation(
+			summary = "تاریخچه تسک",
+			description = "لیست کامل تاریخچه تغییرات حواله را شامل تمام ویرایش ها، به روزرسانی ها و تغییرات وضعیت به همراه زمان و کاربر انجام دهنده بازمی گرداند."
+	)
+	@GetMapping("/get-task-history/{lcId}")
+	public ResponseEntity<?> getAuditHistory(@PathVariable Long lcId) {
+		return ResponseEntity.ok(remittanceService.getUserTasksReport(lcId));
 	}
 
 }

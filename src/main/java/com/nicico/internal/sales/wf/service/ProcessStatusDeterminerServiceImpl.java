@@ -134,7 +134,8 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 
 	@Override
 	public void updateAllExtraBillAcknowledgments() {
-		List<ExtraBankBillModel> extraBankBillModels = extraBillRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+//		List<ExtraBankBillModel> extraBankBillModels = extraBillRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+		List<ExtraBankBillModel> extraBankBillModels = extraBillRepository.findAll();
 
 		for (ExtraBankBillModel bankBillModel : extraBankBillModels) {
 			if (isTerminalAcknowledgment(bankBillModel.getAcknowledgment())) {

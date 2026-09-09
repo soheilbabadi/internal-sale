@@ -29,6 +29,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 		return mapper.toDTO(repository.findById(id).orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("Workflow not found")));
 	}
 
+
 	@Override
 	public List<Map<String, String>> getAll() {
 		var list = repository.findAll();

@@ -26,8 +26,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpResponse;
@@ -102,6 +100,14 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@Transactional
 	public void sendEmailWithProformaAttachment(Long proformaMasterId) {
+
+
+		try {
+			if (isSmsSendingEnabled(EntityTypeEnum.PROFORMA))
+				smsNotificationService.preFactorEmailedSMSNotification(proformaMasterId);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
 		executeEmailSend(
 				proformaMasterId,
 				EntityTypeEnum.PROFORMA,
@@ -116,12 +122,14 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@Transactional
 	public void retrySendEmailWithProformaAttachment(Long proformaMasterId) {
-		sendEmailWithProformaAttachment(proformaMasterId);
 		try {
-			smsNotificationService.preFactorEmailedSMSNotification(proformaMasterId);
+			if (isSmsSendingEnabled(EntityTypeEnum.PROFORMA))
+				smsNotificationService.preFactorEmailedSMSNotification(proformaMasterId);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			log.error(e.getMessage(), e);
 		}
+		sendEmailWithProformaAttachment(proformaMasterId);
+
 	}
 
 	@Override
@@ -176,15 +184,16 @@ public class NotificationServiceImpl implements NotificationService {
 		}
 
 		try {
-			log.info("getting model  for {} {} {}", entityName, entityType, id);
+
 			T model = modelFetcher.apply(id);
-			log.info("validating model  for {} {} {}", entityName, entityType, id);
+
 			validateModel(model);
-			log.info("getting details model  for {} {} {}", entityName, entityType, id);
+
 			List<Long> detailIds = idExtractor.apply(model);
-			log.info("starting pdfContent  model  for {} {} {}", entityName, entityType, id);
+
 			byte[] pdfContent = convertDocumentsToPdf(detailIds, entityType);
 			Path filePath = createTempFile(fileNamePrefix, getContractNo(model), pdfContent);
+
 
 			EmailRequest emailRequest = emailBuilder.apply(model);
 			HttpResponse<String> response = mailService.sendMail(emailRequest, filePath.toString());
@@ -214,6 +223,17 @@ public class NotificationServiceImpl implements NotificationService {
 				})
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
 	}
+
+
+	private boolean isSmsSendingEnabled(EntityTypeEnum entityType) {
+		return exportNotificationConfigRepository.findByEntityType(entityType)
+				.map(config -> {
+					log.debug("Email config for {}: {}", entityType, config);
+					return config.getSendSms() != null && config.getSendSms();
+				})
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
+	}
+
 
 	private <T> void validateModel(T model) {
 		if (model == null) {

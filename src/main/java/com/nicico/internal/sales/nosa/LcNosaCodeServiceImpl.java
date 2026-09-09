@@ -1,17 +1,11 @@
 package com.nicico.internal.sales.nosa;
 
-import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
-import com.nicico.internal.sales.lc.repository.LcRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class LcNosaCodeServiceImpl implements LcNosaCodeService {
-	private static final String NOSA_CODE_PATTERN = "^%s\\d{3}$";
-	private static final String MSG_ISSUING_BANK_NOT_FOUND = "بانک گشایش کننده وجود ندارد";
-	private final LcRepository lcRepository;
-	private final IssuingBankRepository issuingBankRepository;
 	private final NosaCodeService nosaCodeService;
 
 	@Override

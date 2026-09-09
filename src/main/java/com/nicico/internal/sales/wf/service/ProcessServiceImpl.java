@@ -11,6 +11,7 @@ import com.nicico.bpmsclient.model.flowable.task.GridDTO;
 import com.nicico.bpmsclient.model.flowable.task.TaskDetail;
 import com.nicico.bpmsclient.model.flowable.task.TaskInfo;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
+import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.model.request.TaskSearchDto;
 import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.copper.core.SecurityUtil;
@@ -45,6 +46,29 @@ public class ProcessServiceImpl implements ProcessService {
 		return tasks;
 	}
 
+
+	@Override
+	public void rejectTask(String taskId){
+
+		try{
+			var taskDetail=bpmsClientService.getTaskDetail(taskId);
+			ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
+			reviewTaskRequest.setTaskId(taskId);
+			reviewTaskRequest.setProcessInstanceId(taskDetail.getProcessInstanceId());
+			reviewTaskRequest.setUserId(String.valueOf(SecurityUtil.getUserId()));
+			reviewTaskRequest.setApprove(false);
+
+			bpmsClientService.reviewTask(reviewTaskRequest);
+		}
+		catch(Exception e){
+			ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
+			reviewTaskRequest.setTaskId(taskId);
+			reviewTaskRequest.setUserId(String.valueOf(SecurityUtil.getUserId()));
+			reviewTaskRequest.setApprove(false);
+			bpmsClientService.reviewTask(reviewTaskRequest);
+		}
+
+	}
 
 	@Override
 	public GridDTO searchTaskInbox(TaskSearchDto taskSearchDto, int page, int size) {

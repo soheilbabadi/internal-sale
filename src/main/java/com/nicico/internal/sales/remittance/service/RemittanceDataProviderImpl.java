@@ -85,8 +85,8 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 	public RemittanceMasterModel getRemittanceFromProforma(RemittanceCreateDto request) {
 		RemittanceProformaDataProviderModel proformaData = remittanceProformaDataProviderRepository.findFirstByIdOrderByIdDesc(request.getTradeId())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_PROFORMA_NOT_FOUND));
-		LcModel lc = lcRepository.findById(proformaData.getLcId())
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_LC_NOT_FOUND));
+		LcModel lc = lcRepository.findByProformaNo(proformaData.getProformaNo())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERROR_LC_NOT_FOUND));
 
 		ProformaMasterModel proformaMaster = proformaMasterRepository.findById(proformaData.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_PROFORMA_NOT_FOUND));
@@ -145,8 +145,8 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		masterModel.setProcessFinal(false);
 		masterModel.setProformaMasterId(proformaMaster.getId());
 		masterModel.setProformaDetailId(proformaData.getProformaDetailId());
-		masterModel.setLcId(proformaData.getLcId());
-		masterModel.setLcNo(proformaData.getLcNo());
+		masterModel.setLcId(lc.getId());
+		masterModel.setLcNo(lc.getLcNo());
 		masterModel.setProformaNo(proformaData.getProformaNo());
 		masterModel.setProformaDate(proformaData.getProformaDate());
 		masterModel.setLcExpiryDate(lc.getLcExpiryDate());

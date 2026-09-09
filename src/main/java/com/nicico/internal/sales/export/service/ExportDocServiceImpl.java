@@ -156,7 +156,8 @@ public class ExportDocServiceImpl implements ExportDocService {
 
 	private String determineTemplatePath(ProformaDetailModel proforma) {
 		ProformaMasterModel master = findProformaMaster(proforma.getProformaMasterId());
-		boolean isApproved = master.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED;
+//		boolean isApproved = master.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED;
+		boolean isApproved = true;
 		boolean isZeroExtraBillPercent = !master.getProformaDetailModelLists().isEmpty()
 				&& master.getProformaDetailModelLists().get(0).getExtraBillOfPercent() != null
 				&& master.getProformaDetailModelLists().get(0).getExtraBillOfPercent().compareTo(BigDecimal.ZERO) == 0;

@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -172,10 +173,17 @@ public class ProcessGeneralController {
 		);
 	}
 
+	@GetMapping("/reject-task/{taskId}")
+	public ResponseEntity<?> rejectTask(@PathVariable String taskId) {
+		processService.rejectTask(taskId);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+
 	@Operation(summary = "جستجوی کارتابل", description = "جستجو در تسک های کارتابل بر اساس فیلترهای ارسالی")
 	@PostMapping("/search-task-inbox")
 	public ResponseEntity<GridDTO> searchInbox(
-			@RequestBody  TaskSearchDto taskSearchDto,
+			@RequestBody TaskSearchDto taskSearchDto,
 			@RequestParam(defaultValue = "0") Integer pageIndex,
 			@RequestParam(defaultValue = "10") Integer pageSize) {
 

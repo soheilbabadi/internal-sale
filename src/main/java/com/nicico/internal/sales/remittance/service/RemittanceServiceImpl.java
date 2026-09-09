@@ -97,7 +97,6 @@ public class RemittanceServiceImpl implements RemittanceService {
 
 	@Override
 	public RemittanceMasterDto.Info getDetailById(Long masterId) {
-		remittanceProcessService.refreshRemittanceStatus();
 		RemittanceMasterModel remittance = findRemittanceById(masterId);
 		List<RemittanceGoodItemDto.Info> remittanceDetails = remittance.getRemittanceGoodItemModels()
 				.stream()

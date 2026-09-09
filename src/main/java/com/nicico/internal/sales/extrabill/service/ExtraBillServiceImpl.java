@@ -3,8 +3,8 @@ package com.nicico.internal.sales.extrabill.service;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
-import com.nicico.copper.common.dto.search.EOperator;
 import com.nicico.copper.common.dto.search.SearchDTO;
+import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
 import com.nicico.internal.sales.broker.repository.BrokerRepository;
@@ -22,7 +22,7 @@ import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.lc.service.LcServiceHelper;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
-import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
@@ -34,7 +34,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +47,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	// ==================== CONSTANTS ====================
 	private static final String MSG_TRADE_NOT_FOUND = "آگهی عرضه وجود ندارد";
 	private static final String MSG_BANK_NOT_FOUND = "بانک یافت نشد";
+	private static final String MSG_EXTRA_BILL_NOT_FOUND = "برات با این شماره یافت نشد";
 	private static final String MSG_PROFORMA_DETAIL_NOT_FOUND = "جزئیات پیش فاکتور یافت نشد";
 	private static final String MSG_PROFORMA_MASTER_NOT_FOUND = "قرارداد فروش وجود ندارد";
 	private static final String MSG_BROKER_EMAIL_MISSING = "اطلاعات تماس ایمیل کارگزار  موجود نمی باشد.";
@@ -264,10 +268,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
 
 		markAllBillsAsReckoning(billModel.getProformaMasterId());
-		ProformaDetailModel detail = proformaDetailRepository.findById(billModel.getProformaDetailId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 		var broker = fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(detail, broker);
+		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(masterModel, broker);
 		String emailContent = generateExtraBillBrokerEmailContent(emailRequest);
 		sendExtraBillBrokerReckoningEmail(emailRequest, emailContent);
 	}
@@ -307,16 +309,14 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	/**
 	 * ساخت درخواست ایمیل برای کارگزار
 	 */
-	private LcBrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaDetailModel detail, BrokerModel broker) {
-		var proformaMaster = proformaMasterRepository.findById(detail.getProformaMasterId())
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						MSG_PROFORMA_MASTER_NOT_FOUND));
+	private LcBrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
+
 
 		this.markAllAsReckoning(proformaMaster.getId());
 
 		LcBrokerEmailRequest request = new LcBrokerEmailRequest();
 		request.setContractNo(proformaMaster.getContractNo());
-		request.setContractDate(detail.getContractDate());
+		request.setContractDate(proformaMaster.getContractDate());
 		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
 		request.setCustomerName(proformaMaster.getCustomerName());
 		request.setGoodName(proformaMaster.getGoodName());
@@ -347,10 +347,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_SALES_CONTRACT_NOT_FOUND));
 
-		ProformaDetailModel detail = extraBillRepository.getDetailByBillId(extraBillId).orElseThrow(
-				() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(detail, broker);
+		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(masterModel, broker);
 		return generateExtraBillBrokerEmailContent(emailRequest);
 	}
 
@@ -448,11 +446,11 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	public void cancel(ExtraBillCancelRequest request) {
 
 		ExtraBankBillModel bill = extraBillRepository.findById(request.getId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_EXTRA_BILL_NOT_FOUND));
 
-		List<ExtraBankBillModel> lcModelList = extraBillRepository.findAllByProformaMasterId(bill.getProformaMasterId());
+		List<ExtraBankBillModel> all = extraBillRepository.findAllByProformaMasterId(bill.getProformaMasterId());
 
-		lcModelList.forEach(model -> cancelExtraBillModel(model, request));
+		all.forEach(model -> cancelExtraBillModel(model, request));
 	}
 
 
@@ -469,7 +467,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	private String buildCancellationRecord(ExtraBillCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());
-		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
+		String userFullName = SecurityUtil.getFullName();
 		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
 
 		return String.format(
