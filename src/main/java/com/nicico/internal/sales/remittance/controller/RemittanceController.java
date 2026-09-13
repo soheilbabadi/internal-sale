@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.remittance.controller;
 
+import com.fgostar.fms.sdk.model.FmsFile;
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
@@ -120,6 +121,14 @@ public class RemittanceController {
 		return ResponseEntity.ok(fmsDocumentService.getRemittancePdfBytes(remittanceId));
 	}
 
+
+
+	@Operation(summary = "خروجی FMS حواله", description = "فایل FMS حواله را پس از تبدیل فایل Word مربوطه برمی گرداند.")
+	@GetMapping("/export-fms/{remittanceId}")
+	public ResponseEntity<FmsFile> exportProformaFms(@PathVariable long remittanceId) {
+		return ResponseEntity.ok(fmsDocumentService.getOrCreateRemittancePdf(remittanceId));
+
+	}
 
 //
 //	private ResponseEntity<byte[]> convertDocListToPdf(List<XWPFDocument> docList) {

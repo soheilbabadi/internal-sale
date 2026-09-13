@@ -80,7 +80,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		if (masterModel.getWorkflowApproveStatus() ==WorkflowApproveStatus.IN_PROGRESS)
 		{
 			return new FmsFile(UUID.randomUUID().toString(),detailId + ".pdf",PDF_CONTENT_TYPE,exportDocService.exportProformaPdf(detailId));
-
 		}
 
 		if (masterModel.getWorkflowApproveStatus() ==WorkflowApproveStatus.CANCELED || detailModel.getProformaReversalStatus()==ProformaReversalStatus.CANCELED)
@@ -109,10 +108,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 		log.info("فایل پیش فاکتور {} در FMS یافت نشد، در حال ساخت...", detailId);
 
-
-
-
-
 		byte[] pdfContent = buildSignedProformaPdf(List.of(detailModel.getId()));
 		String fileName = PROFORMA_FILE_NAME_PREFIX + detailModel.getPerformaNo() + ".pdf";
 
@@ -128,55 +123,39 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 	}
 
 	public byte[] getProformaPdfBytes(Long detailId) {
-		return exportDocService.exportProformaPdf(detailId);
-//		ProformaDetailModel detail = proformaDetailRepository.findById(detailId)
-//				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("جزئیات پیش فاکتور وجود ندارد"));
-//		if (detail.getProformaFileId() != null && !detail.getProformaFileId().isEmpty()) {
-//			log.info("منبع بایت‌های پیش فاکتور {}: دانلود از FMS (فایل از قبل ثبت شده بود). fileId={}", detailId, detail.getProformaFileId());
-//			FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
-//			FmsFile fmsFile = fmsFileService.download(fmsGroupId, detail.getProformaFileId(), credentials);
-//			return fmsFile.getContent();
-//		}
-//		if (detail.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
-//			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + detail.getPerformaNo() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
-//		}
-//
-//		log.info("منبع بایت‌های پیش فاکتور {}: fileId ثبت نشده، در حال ساخت PDF جدید...", detailId);
-//		byte[] pdfContent = buildSignedProformaPdf(List.of(detail.getId()));
-//		String fileName = PROFORMA_FILE_NAME_PREFIX + detail.getPerformaNo() + ".pdf";
-//		FmsFile fmsFile = uploadProformaToFmsAndGetFile(detailId, fileName, pdfContent);
-//		saveProformaFileIdToDetails(List.of(detail.getId()), fmsFile.getUuid());
-//		log.info("منبع بایت‌های پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, fmsFile.getUuid());
-//		return pdfContent;
+
+		return getOrCreateProformaPdf(detailId).getContent();
+//		return exportDocService.exportProformaPdf(detailId);
+
 	}
 
-//	@Override
-//	public FmsFile downloadProformaPdfFromFms(Long detailId) {
-//		ProformaDetailModel detail = proformaDetailRepository.findById(detailId)
-//				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("جزئیات پیش فاکتور وجود ندارد"));
-//		if (detail.getProformaFileId() == null || detail.getProformaFileId().isEmpty()) return null;
-//		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
-//		return fmsFileService.download(fmsGroupId, detail.getProformaFileId(), credentials);
-//	}
+	@Override
+	public FmsFile downloadProformaPdfFromFms(Long detailId) {
+		ProformaDetailModel detail = proformaDetailRepository.findById(detailId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("جزئیات پیش فاکتور وجود ندارد"));
+		if (detail.getProformaFileId() == null || detail.getProformaFileId().isEmpty()) return null;
+		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
+		return fmsFileService.download(fmsGroupId, detail.getProformaFileId(), credentials);
+	}
 
-//	@Override
-//	public FmsFile uploadRemittancePdfToFms(Long masterId) {
-//
-//		try {
-//			byte[] pdfContent = exportDocService.exportRemittancePdf(masterId);
-//			if (pdfContent == null || pdfContent.length == 0) {
-//				throw new IllegalStateException("Failed to generate Remittance PDF for ID: " + masterId);
-//			}
-//			String fileName = "remittance_" + masterId + ".pdf";
-//			FmsFile fmsFile = uploadRemittanceToFmsAndGetFile(masterId, fileName, pdfContent);
-//			saveRemittanceFileIdToMaster(masterId, fmsFile.getUuid());
-//			return fmsFile;
-//
-//		} catch (Exception ex) {
-//			log.error("خطا در آپلود فایل حواله {} در FMS: {}", masterId, ex.getMessage(), ex);
-//			return null;
-//		}
-//	}
+	@Override
+	public FmsFile uploadRemittancePdfToFms(Long masterId) {
+
+		try {
+			byte[] pdfContent = exportDocService.exportRemittancePdf(masterId);
+			if (pdfContent == null || pdfContent.length == 0) {
+				throw new IllegalStateException("Failed to generate Remittance PDF for ID: " + masterId);
+			}
+			String fileName = "remittance_" + masterId + ".pdf";
+			FmsFile fmsFile = uploadRemittanceToFmsAndGetFile(masterId, fileName, pdfContent);
+			saveRemittanceFileIdToMaster(masterId, fmsFile.getUuid());
+			return fmsFile;
+
+		} catch (Exception ex) {
+			log.error("خطا در آپلود فایل حواله {} در FMS: {}", masterId, ex.getMessage(), ex);
+			return null;
+		}
+	}
 
 
 	public FmsFile getOrCreateRemittancePdf(Long masterId) {
@@ -213,25 +192,15 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 	@Override
 	public byte[] getRemittancePdfBytes(Long masterId) {
+		return getOrCreateRemittancePdf(masterId).getContent();
+//		return exportDocService.exportRemittancePdf(masterId);
+	}
 
-		return exportDocService.exportRemittancePdf(masterId);
-//		RemittanceMasterModel master = findRemittanceMaster(masterId);
-//		if (master.getRemittanceFileId() != null && !master.getRemittanceFileId().isEmpty()) {
-//			log.info("منبع بایت‌های حواله {}: دانلود از FMS (فایل از قبل ثبت شده بود). fileId={}", masterId, master.getRemittanceFileId());
-//			FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
-//			FmsFile fmsFile = fmsFileService.download(fmsGroupId, master.getRemittanceFileId(), credentials);
-//			return fmsFile.getContent();
-//		}
-//		log.info("منبع بایت‌های حواله {}: fileId ثبت نشده، در حال ساخت PDF جدید...", masterId);
-//		byte[] pdfContent = exportDocService.exportRemittancePdf(masterId);
-//		if (pdfContent == null || pdfContent.length == 0) {
-//			throw new IllegalStateException("Failed to generate Remittance PDF for ID: " + masterId);
-//		}
-//		String fileName = "remittance_" + masterId + ".pdf";
-//		FmsFile fmsFile = uploadRemittanceToFmsAndGetFile(masterId, fileName, pdfContent);
-//		saveRemittanceFileIdToMaster(masterId, fmsFile.getUuid());
-//		log.info("منبع بایت‌های حواله {}: تازه ساخته و در FMS آپلود شد. uuid={}", masterId, fmsFile.getUuid());
-//		return pdfContent;
+	@Override
+	public boolean testConnection() {
+		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
+		fmsFileService.searchInGroup(fmsGroupId, Map.of("health-check", "true"), true, 0, 1, credentials);
+		return true;
 	}
 
 

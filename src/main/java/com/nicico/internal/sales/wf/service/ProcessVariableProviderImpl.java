@@ -230,8 +230,13 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		if (!isValidUUID(processId)) {
 			return true;
 		}
-		var processInstance = bpmsClientService.getProcessInstanceHistoryById(processId);
-		return processInstance.getStatus() != ProcessInstanceStatus.ACTIVE;
+		try {
+
+			var processInstance = bpmsClientService.getProcessInstanceHistoryById(processId);
+			return processInstance.getStatus() != ProcessInstanceStatus.ACTIVE;
+		} catch (Exception exception) {
+			return true;
+		}
 	}
 
 	private boolean isValidUUID(String processId) {
@@ -253,7 +258,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 			boolean hasFalse = processInstance.getTaskHistoryDetailList().stream().anyMatch(task -> !task.getApproved());
 			return !hasNull && !hasFalse;
 		} catch (Exception e) {
-			return false;
+			return true;
 		}
 
 

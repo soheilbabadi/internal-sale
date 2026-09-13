@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.proforma.controller;
 
+import com.fgostar.fms.sdk.model.FmsFile;
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
@@ -258,6 +259,13 @@ public class ProformaController {
 		}
 	}
 
+
+	@Operation(summary = "خروجی FMS پیش فاکتور", description = "فایل FMS پیش فاکتور را پس از تبدیل فایل Word مربوطه برمی گرداند.")
+	@GetMapping("/export-fms/{id}")
+	public ResponseEntity<FmsFile> exportProformaFms(@PathVariable long id) {
+		return ResponseEntity.ok(fmsDocumentService.getOrCreateProformaPdf(id));
+
+	}
 	// ==================== NOTIFICATIONS ====================
 
 	@Operation(summary = "ارسال ایمیل", description = "ارسال ایمیل پیش فاکتور با فایل ضمیمه")

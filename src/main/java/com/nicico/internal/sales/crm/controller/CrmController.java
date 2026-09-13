@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.crm.controller;
 
+import com.fgostar.fms.sdk.model.FmsFile;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.crm.dto.CrmApprovedCompanyDto;
 import com.nicico.internal.sales.crm.dto.LcWithProformaDto;
@@ -141,5 +142,19 @@ public class CrmController {
 	}
 
 
+	@Operation(summary = "خروجی FMS حواله", description = "فایل FMS حواله را پس از تبدیل فایل Word مربوطه برمی گرداند.")
+	@GetMapping("/remittance-export-fms/{id}")
+	public ResponseEntity<FmsFile> exportRemittanceFms(@PathVariable long id) {
+
+		return ResponseEntity.ok(fmsDocumentService.getOrCreateRemittancePdf(id));
+
+	}
+
+	@Operation(summary = "خروجی FMS پیش فاکتور", description = "فایل FMS پیش فاکتور را پس از تبدیل فایل Word مربوطه برمی گرداند.")
+	@GetMapping("/proforma-export-fms/{id}")
+	public ResponseEntity<FmsFile> exportProformaFms(@PathVariable long id) {
+		return ResponseEntity.ok(fmsDocumentService.getOrCreateProformaPdf(id));
+
+	}
 
 }

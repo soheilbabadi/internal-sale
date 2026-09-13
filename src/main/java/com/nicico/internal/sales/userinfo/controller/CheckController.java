@@ -1,6 +1,7 @@
 package com.nicico.internal.sales.userinfo.controller;
 
 import com.nicico.copper.core.SecurityUtil;
+import com.nicico.internal.sales.fms.service.FmsDocumentService;
 import com.nicico.internal.sales.userinfo.dto.UserInfoDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class CheckController {
 	private final Environment env;
 	private final JdbcTemplate jdbcTemplate;
+	private final FmsDocumentService fmsDocumentService;
 	@Value("${nicico.version}")
 	private String apiVersion;
 
@@ -48,6 +50,18 @@ public class CheckController {
 	@GetMapping("/active-profile")
 	public Map<String, Object> getVersionWithEnv() {
 		return Map.of("environment", env.getActiveProfiles());
+	}
+
+	@Operation(summary = "Test FMS connectivity")
+	@GetMapping("/fms-connection")
+	public ResponseEntity<Map<String, Object>> testFmsConnection() {
+		try {
+			fmsDocumentService.testConnection();
+			return ResponseEntity.ok(Map.of("status", "UP", "message", "FMS connection is healthy"));
+		} catch (Exception ex) {
+			return ResponseEntity.status(503)
+					.body(Map.of("status", "DOWN", "message", ex.getMessage()));
+		}
 	}
 
 	@PostMapping
