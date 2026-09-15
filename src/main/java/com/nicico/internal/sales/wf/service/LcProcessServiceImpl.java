@@ -159,6 +159,12 @@ public class LcProcessServiceImpl implements LcProcessService {
 			for (LcModel lc : lcList) {
 				lc.setAcknowledgment(lcAcknowledgmentDeterminer.determine(lc));
 
+
+
+				if (lc.getPmsLcId()!=null) {
+					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+					lc.setAcknowledgment(Acknowledgment.FINISHED);
+				}
 				ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(lc.getProcessId());
 				if (status == null) continue;
 
@@ -183,10 +189,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 						break;
 				}
 
-				if (lc.getPmsLcId()!=null) {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					lc.setAcknowledgment(Acknowledgment.FINISHED);
-				}
 
 
 			}
