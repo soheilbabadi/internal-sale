@@ -250,7 +250,7 @@
 //		Integer jalaliYear = params.jalaliYear();
 //		List<String> performaSerials = proformaSerialService.getProformaSerial(1);
 //
-//		ProformaGoodItemModel goodItem = generatePerformaGoodItem(params);
+//		ProformaGoodItemModel goodItem = generateProformaGoodItem(params);
 //		List<ProformaGoodItemModel> goodItems = List.of(goodItem);
 //
 //		// محاسبه مجموع‌های Detail
@@ -290,7 +290,7 @@
 //	/**
 //	 * تولید GoodItem
 //	 */
-//	private ProformaGoodItemModel generatePerformaGoodItem(CashSaleDetailGenerator params) {
+//	private ProformaGoodItemModel generateProformaGoodItem(CashSaleDetailGenerator params) {
 //		TradeExtractModel tradeExtract = params.tradeExtract();
 //
 //		double netWeight = params.requestDto().getNetWeight().doubleValue();

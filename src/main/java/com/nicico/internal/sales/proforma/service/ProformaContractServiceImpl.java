@@ -356,7 +356,7 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 		List<ProformaDetailModel> detailDtoList = new ArrayList<>();
 
 		for (int i = 0; i < requestDto.getParts().size(); i++) {
-			ProformaGoodItemModel goodItem = generatePerformaGoodItem(params, i);
+			ProformaGoodItemModel goodItem = generateProformaGoodItem(params, i);
 
 			// استفاده از Helper برای محاسبه مجموع های Detail
 			DetailTotals detailTotals = calculateDetailTotals(List.of(goodItem));
@@ -393,7 +393,7 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 		return new ArrayList<>(detailDtoList).stream().toList();
 	}
 
-	private ProformaGoodItemModel generatePerformaGoodItem(PerformaDetailGenerator params, int rank) {
+	private ProformaGoodItemModel generateProformaGoodItem(PerformaDetailGenerator params, int rank) {
 		TradeExtractModel tradeExtract = findTradeExtract(params.requestDto().getTradeId());
 		String description = offerTextProcess.findDescriptionByPaymentCode(tradeExtract.getPaymentCode());
 		String lot = offerTextProcess.extractLotNumber(description);

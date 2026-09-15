@@ -184,7 +184,7 @@ public class GaamBoundProformaIssueServiceImpl implements GaamBoundProformaIssue
 		List<ProformaDetailModel> detailDtoList = new ArrayList<>();
 
 		for (int i = 0; i < requestDto.getParts().size(); i++) {
-			List<ProformaGoodItemModel> goodItem = generatePerformaGoodItemList(params, i);
+			List<ProformaGoodItemModel> goodItem = generateProformaGoodItemList(params, i);
 			DetailTotals detailTotals = calculateDetailTotals(goodItem);
 			ProformaDetailModel detailModel = buildProformaDetailModel(
 					goodItem,
@@ -209,7 +209,7 @@ public class GaamBoundProformaIssueServiceImpl implements GaamBoundProformaIssue
 		return detailDtoList.stream().toList();
 	}
 
-	private List<ProformaGoodItemModel> generatePerformaGoodItemList(PerformaDetailGenerator params, int rank) {
+	private List<ProformaGoodItemModel> generateProformaGoodItemList(PerformaDetailGenerator params, int rank) {
 		var tradeExtract = proformaContractService.getTradeModel(params.requestDto().getTradeId());
 		String description = offerTextProcess.findDescriptionByPaymentCode(tradeExtract.getPaymentCode());
 		String lot = offerTextProcess.extractLotNumber(description);

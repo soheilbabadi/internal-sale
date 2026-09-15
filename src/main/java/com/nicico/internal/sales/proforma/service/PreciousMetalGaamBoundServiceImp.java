@@ -41,7 +41,7 @@ import static com.nicico.internal.sales.proforma.service.ProformaModelHelper.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PreciousMetalServiceImp implements PreciousMetalService {
+public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundService {
 
 	private static final String MSG_PROCESS_ACCESS_DENIED = "شما اجازه شروع فرایند صدور پیش فاکتور را ندارید";
 	private static final String MSG_TRADE_NOT_FOUND_DETAIL = "آگهی عرضه وجود ندارد";
@@ -61,18 +61,14 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 	private final GoodsRepository goodsRepository;
 	private final TradeExtractRepository tradeExtractRepository;
 	private final PreciousMetalRepository preciousMetalRepository;
-	private final PreciousMetalExtraBillService preciousMetalExtraBillService;
 
-	@Override
+	// ==================== PUBLIC SERVICE METHODS ====================
+
+
 	@Transactional
+	@Override
 	public String create(PreciousMetalProfomaCreateRequest requestDto) {
 		log.debug("Creating precious metal proforma for tradeId: {}", requestDto.getTradeId());
-		// Check if EXTRA_BILL_OF_EXCHANGE type, delegate to extra bill service
-		if (requestDto.getProformaIssueType() == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
-			log.debug("Delegating to PreciousMetalExtraBillService for EXTRA_BILL_OF_EXCHANGE");
-			return preciousMetalExtraBillService.create(requestDto);
-		}
-
 
 		// اعتبارسنجی دسترسی
 		if (!proformaProcessService.canStartProcess()) {
@@ -86,7 +82,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		ProformaMasterModel model = createProformaMaster(requestDto);
 
 		// شروع فرآیند
-		startWorkflowProcess(model);
+		startProformaProcess(model);
 
 		// ذخیره نهایی
 		proformaMasterRepository.saveAndFlush(model);
@@ -95,94 +91,43 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		return model.getContractNo().toString();
 	}
 
-	@Transactional
-	@Override
-	public ProformaMasterModel createProformaMaster(PreciousMetalProfomaCreateRequest requestDto) {
+
+	private ProformaMasterModel createProformaMaster(PreciousMetalProfomaCreateRequest requestDto) {
 		log.debug("Creating proforma master for precious metal");
 
-		// دریافت جزئیات قرارداد
 		ProformaModelResponse contractDetail = getContractDetail(requestDto);
 		ProformaMasterModel masterModel = contractDetail.getMasterModel();
-
-		// حذف تکراری ها و تنظیم لیست جزئیات
+		masterModel.setContractNo(requestDto.getContractNo());
 		List<ProformaDetailModel> detailList = distinctDetails(contractDetail.getDetailModels());
 		masterModel.setProformaDetailModelLists(detailList);
-
-		// ذخیره Master
-		masterModel = proformaMasterRepository.save(masterModel);
-
-
-		// ذخیره جزئیات و GoodItem ها
-		ProformaModelHelper.saveDetailAndGoodItems(detailList, masterModel.getId(), proformaDetailRepository, proformaGoodItemRepository);
-
+		masterModel = proformaMasterRepository.saveAndFlush(masterModel);
+		saveDetailAndGoodItems(masterModel.getId(), detailList, detailList.stream().flatMap(d -> d.getProformaGoodItemModels().stream()).toList());
 		log.info("Proforma master created successfully with id: {}", masterModel.getId());
 		return masterModel;
 	}
 
-	@Override
-	public ProformaModelResponse getContractDetail(PreciousMetalProfomaCreateRequest requestDto) {
+
+	private ProformaModelResponse getContractDetail(PreciousMetalProfomaCreateRequest requestDto) {
 		log.debug("Getting contract detail for precious metal, tradeId: {}", requestDto.getTradeId());
-
-		// یافتن اطلاعات
-		TradeExtractModel tradeExtract = findTradeExtract(requestDto.getTradeId());
+		TradeExtractModel tradeExtract = tradeExtractRepository.findById(requestDto.getTradeId())
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_TRADE_NOT_FOUND_DETAIL));
 		IMETradeModel tradeModel = proformaContractService.getTradeModel(tradeExtract.getPaymentCode());
-
-		// اعتبارسنجی
-		proformaValidationService.validateProformaData(requestDto);
-
-		// دریافت اطلاعات مورد نیاز
-		int jalaliYear = DateUtility.getJalaliYear(requestDto.getOrderDate());
 		GoodsModel goodsModel = proformaContractService.findGoodsModelByCommodityCode(Long.valueOf(tradeModel.getCommodityCode()));
 		SaleConditionModel saleConditionModel = proformaContractService.getSaleConditionModel(tradeExtract.getPaymentCode());
 		GoodsBucketModel goodsBucketModel = proformaContractService.getGoodBucketModel(tradeExtract.getPaymentCode());
 		CustomerModel customerModel = proformaContractService.getCustomerModel(tradeExtract.getBuyerNationalCode());
-
-		// ایجاد پارامترها
-		PreciousMetalDetailGenerator params = createDetailGenerator(
-				requestDto, tradeModel, goodsModel, jalaliYear,
-				goodsBucketModel, saleConditionModel
-		);
-
-		// تولید جزئیات
+		PreciousMetalDetailGenerator params = createDetailGenerator(requestDto, tradeModel, goodsModel, DateUtility.getJalaliYear(requestDto.getOrderDate()), goodsBucketModel, saleConditionModel);
 		List<ProformaDetailModel> detailDtoList = generatePerformaDetailList(params);
-
-		// محاسبه مجموع ها
 		Totals totals = calculateTotals(detailDtoList);
-
-		// ساخت Master
-		ProformaMasterModel masterModel = buildMasterModel(
-				tradeExtract, tradeModel, goodsModel, customerModel,
-				goodsBucketModel, requestDto, totals, params
-		);
-
-		// تنظیم روابط
+		ProformaMasterModel masterModel = buildMasterModel(tradeExtract, tradeModel, goodsModel, customerModel, goodsBucketModel, requestDto, totals, params);
 		setupFullRelationships(masterModel, detailDtoList);
 
 		log.info("Contract detail retrieved successfully");
-		return ProformaModelResponse.builder()
-				.masterModel(masterModel)
-				.detailModels(detailDtoList)
-				.build();
+		return ProformaModelResponse.builder().masterModel(masterModel).detailModels(detailDtoList).build();
 	}
 
-	@Override
-	public boolean isPreciousMetalByPaymentCode(String paymentCode) {
-		try {
-			GoodsModel good = proformaContractService.getGoodsModel(paymentCode);
-			return preciousMetalRepository.existsById(good.getId());
-		} catch (Exception e) {
-			log.warn("Error checking precious metal by paymentCode: {}", paymentCode, e);
-			return false;
-		}
-	}
-
-
-	/**
-	 * شروع فرآیند برای پیش فاکتور
-	 */
-	private void startWorkflowProcess(ProformaMasterModel model) {
-		var input=proformaProcessService.buildProformaVariablesInput(model);
-
+	private void startProformaProcess(ProformaMasterModel model) {
+		var input = proformaProcessService.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
@@ -190,24 +135,25 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		model.setIsReversalProcessFinal(false);
 	}
 
-	/**
-	 * ذخیره Detail و GoodItem ها
-	 */
-//	private void saveDetailAndGoodItems(List<ProformaDetailModel> detailModels, Long masterId) {
-//		detailModels.forEach(detail -> {
-//			detail.setProformaMasterId(masterId);
-//			proformaDetailRepository.save(detail);
-//
-//			detail.getProformaGoodItemModels().forEach(goodItem -> {
-//				goodItem.setProformaDetailId(detail.getId());
-//				proformaGoodItemRepository.save(goodItem);
-//			});
-//		});
-//	}
+	private void saveDetailAndGoodItems(Long masterId, List<ProformaDetailModel> details, List<ProformaGoodItemModel> goodItems) {
+		if (details != null && !details.isEmpty()) {
+			details.forEach(detail -> {
+				detail.setProformaMasterId(masterId);
+				proformaDetailRepository.save(detail);
 
-	/**
-	 * ایجاد DetailGenerator
-	 */
+				if (detail.getProformaGoodItemModels() != null) {
+					detail.getProformaGoodItemModels().forEach(goodItem -> {
+						goodItem.setProformaDetailId(detail.getId());
+
+						proformaGoodItemRepository.save(goodItem);
+					});
+				}
+			});
+		} else if (goodItems != null && !goodItems.isEmpty()) {
+			proformaGoodItemRepository.saveAll(goodItems);
+		}
+	}
+
 	private PreciousMetalDetailGenerator createDetailGenerator(
 			PreciousMetalProfomaCreateRequest requestDto,
 			IMETradeModel tradeModel,
@@ -230,9 +176,6 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		);
 	}
 
-	/**
-	 * ساخت MasterModel
-	 */
 	private ProformaMasterModel buildMasterModel(
 			TradeExtractModel tradeExtract,
 			IMETradeModel tradeModel,
@@ -282,19 +225,10 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 				.build();
 	}
 
-	/**
-	 * تولید لیست Detail
-	 */
 	private List<ProformaDetailModel> generatePerformaDetailList(PreciousMetalDetailGenerator params) {
 		List<String> serial = proformaSerialService.getProformaSerial(1);
-
-		// 1. تولید آیتم های کالا
 		List<ProformaGoodItemModel> goodItems = generateProformaGoodItemList(params);
-
-		// 2. محاسبه مجموع های Detail
 		DetailTotals detailTotals = calculateDetailTotals(goodItems);
-
-		// 3. ساخت DetailModel
 		ProformaDetailModel detailModel = buildProformaDetailModel(
 				goodItems,
 				params.jalaliYear(),
@@ -304,50 +238,31 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 				new Date(),
 				detailTotals,
 				SETTLEMENT_TYPE_DEFAULT,
-				params.requestDto().getProformaIssueType(),
+				ProformaIssueType.LETTER_OF_CREDIT_OPENING,
 				params.requestDto().getOrderDate(),
 				params.tradeModel().getContractDate(),
 				ProformaReversalStatus.NORMAL,
-				params.saleConditionModel().getExtraBillOfExchangePercent(),
-				BigDecimal.ZERO // مقدار موقت، بعداً محاسبه می شود
+				BigDecimal.ZERO,
+				BigDecimal.ZERO
 		);
-
-		// 4. محاسبه مبلغ اضافی و مبلغ نهایی
-		calculateAndSetExtraAmount(
-				detailModel,
-				params.requestDto().getProformaIssueType(),
-				detailTotals.totalAmount(),
-				params.saleConditionModel()
-		);
-
-		// 5. تنظیم رابطه بین GoodItem و Detail
-		goodItems.forEach(item -> item.setProformaDetailModel(detailModel));
-
+		goodItems.forEach(goodItem -> goodItem.setProformaDetailModel(detailModel));
+		calculateAndSetExtraAmount(detailModel, detailTotals.finalAmount(), params.saleConditionModel());
 		return List.of(detailModel);
 	}
 
-	/**
-	 * تولید GoodItem
-	 */
 	private List<ProformaGoodItemModel> generateProformaGoodItemList(PreciousMetalDetailGenerator params) {
 		ProformaGoodItemModel goodItem = generateProformaGoodItem(params);
 		return List.of(goodItem);
 	}
 
-	/**
-	 * تولید GoodItem تکی
-	 */
 	private ProformaGoodItemModel generateProformaGoodItem(PreciousMetalDetailGenerator params) {
-		TradeExtractModel tradeExtract = findTradeExtract(params.requestDto().getTradeId());
-
-		// استخراج اطلاعات از توضیحات
-		String rawDescription = offerTextProcess.findDescriptionByPaymentCode(tradeExtract.getPaymentCode());
+		var tradeModel = proformaContractService.getTradeModel(params.requestDto().getTradeId());
+		String rawDescription = offerTextProcess.findDescriptionByPaymentCode(tradeModel.getPaymentCode());
 		String selenium = extractSelenium(rawDescription, offerTextProcess);
 		String lot = extractLotNumber(rawDescription, offerTextProcess);
 		String cleanName = getCleanName(params.good());
 		String finalGoodName = cleanName + " " + selenium;
 
-		// محاسبات مالی
 		PreciousMetalLCCalculation calc = calculatePreciousMetalLCGoodItem(
 				params.tradeModel(),
 				params.goodsBucketModel(),
@@ -362,9 +277,24 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		return buildPreciousMetalGoodItem(calc);
 	}
 
-	/**
-	 * ساخت GoodItem از محاسبات
-	 */
+
+	private void calculateAndSetExtraAmount(ProformaDetailModel detailModel, BigDecimal totalPrice, SaleConditionModel saleConditionModel) {
+		if (saleConditionModel == null) {
+			return;
+		}
+		BigDecimal extraPercent = null;
+		extraPercent = saleConditionModel.getExtraGamCertificatePercent();
+		if (extraPercent != null && extraPercent.compareTo(BigDecimal.ZERO) > 0) {
+			// Calculate Final Price: Base * (1 + percent/100)
+			BigDecimal factor = BigDecimal.ONE.add(extraPercent.divide(HUNDRED, 10, RoundingMode.UP));
+			BigDecimal finalPrice = totalPrice.multiply(factor).setScale(2, RoundingMode.UP);
+			BigDecimal extraAmount = finalPrice.subtract(totalPrice).setScale(2, RoundingMode.UP);
+			detailModel.setFinalPrice(finalPrice);
+			detailModel.setExtraBillOfPercent(extraPercent);
+			detailModel.setExtraBillOfExchangeAmount(extraAmount);
+		}
+	}
+
 	private ProformaGoodItemModel buildPreciousMetalGoodItem(PreciousMetalLCCalculation calc) {
 		return ProformaGoodItemModel.builder()
 				.goodId(calc.goodId())
@@ -390,55 +320,5 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 				.build();
 	}
 
-	// ==================== REPOSITORY FINDER METHODS ====================
 
-	/**
-	 * یافتن TradeExtract
-	 */
-	private TradeExtractModel findTradeExtract(Long tradeId) {
-		return tradeExtractRepository.findById(tradeId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_TRADE_NOT_FOUND_DETAIL));
-	}
-
-
-	/**
-	 * محاسبه و تنظیم مبلغ اضافی بر اساس نوع پیش فاکتور
-	 */
-	private void calculateAndSetExtraAmount(
-			ProformaDetailModel detailModel,
-			ProformaIssueType issueType,
-			BigDecimal totalPrice,
-			SaleConditionModel saleConditionModel) {
-
-		// دریافت درصد اضافی
-		BigDecimal extraPercent = BigDecimal.ZERO;
-		if (issueType == ProformaIssueType.GAM_BONDS) {
-			extraPercent = saleConditionModel.getExtraGamCertificatePercent() != null ?
-					saleConditionModel.getExtraGamCertificatePercent() : BigDecimal.ZERO;
-		} else if (issueType == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
-			extraPercent = saleConditionModel.getExtraBillOfExchangePercent() != null ?
-					saleConditionModel.getExtraBillOfExchangePercent() : BigDecimal.ZERO;
-		}
-
-		// محاسبه مبلغ نهایی با همان فرمول ExportDocService: totalPrice * (1 + percent/100)
-		BigDecimal factor = BigDecimal.ONE.add(
-				extraPercent.divide(HUNDRED, 10, RoundingMode.HALF_UP)
-		);
-		BigDecimal finalPrice = totalPrice.multiply(factor).setScale(2, RoundingMode.HALF_UP);
-		BigDecimal extraAmount = finalPrice.subtract(totalPrice).setScale(2, RoundingMode.HALF_UP);
-
-		// تنظیم مقادیر
-		// برای EXTRA_BILL مقدار فیلد amount باید «مبلغ نهایی با اضافه درصد» باشد.
-		detailModel.setExtraBillOfExchangeAmount(
-				issueType == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE ? finalPrice : extraAmount
-		);
-		detailModel.setExtraBillOfPercent(extraPercent);
-		detailModel.setFinalPrice(finalPrice);
-
-		// محاسبه تعداد اوراق گام (فقط برای نوع GAM_BONDS)
-		if (issueType == ProformaIssueType.GAM_BONDS) {
-			int gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
-			detailModel.setGamCertificateCount(gamCount);
-		}
-	}
 }

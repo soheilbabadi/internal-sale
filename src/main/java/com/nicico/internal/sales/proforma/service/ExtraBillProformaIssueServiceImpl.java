@@ -221,7 +221,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 
 		for (int i = 0; i < requestDto.getParts().size(); i++) {
 			// 1. تولید آیتم های کالا
-			List<ProformaGoodItemModel> goodItem = generatePerformaGoodItemList(params, i);
+			List<ProformaGoodItemModel> goodItem = generateProformaGoodItemList(params, i);
 
 			// 2. محاسبه مجموع های Detail
 			DetailTotals detailTotals = calculateDetailTotals(goodItem);
@@ -262,7 +262,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 
 	// ==================== GOOD ITEM GENERATION ====================
 
-	private List<ProformaGoodItemModel> generatePerformaGoodItemList(PerformaDetailGenerator params, int rank) {
+	private List<ProformaGoodItemModel> generateProformaGoodItemList(PerformaDetailGenerator params, int rank) {
 		var tradeExtract = proformaContractService.getTradeModel(params.requestDto().getTradeId());
 		String description = offerTextProcess.findDescriptionByPaymentCode(tradeExtract.getPaymentCode());
 		String lot = offerTextProcess.extractLotNumber(description);

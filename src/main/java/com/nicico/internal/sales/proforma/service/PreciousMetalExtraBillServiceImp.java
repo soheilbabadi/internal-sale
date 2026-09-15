@@ -297,7 +297,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		List<String> serial = proformaSerialService.getProformaSerial(1);
 
 		// تولید GoodItems terlebih dahulu
-		List<ProformaGoodItemModel> goodItems = generatePerformaGoodItemList(params);
+		List<ProformaGoodItemModel> goodItems = generateProformaGoodItemList(params);
 
 		// محاسبه مجموع ها
 		DetailTotals detailTotals = calculateDetailTotals(goodItems);
@@ -335,19 +335,19 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	}
 
 	/**
-	 * تولید لیست GoodItem (مشابه ExtraBillProformaIssueServiceImpl.generatePerformaGoodItemList)
+	 * تولید لیست GoodItem (مشابه ExtraBillProformaIssueServiceImpl.generateProformaGoodItemList)
 	 */
-	private List<ProformaGoodItemModel> generatePerformaGoodItemList(PreciousMetalDetailGenerator params) {
+	private List<ProformaGoodItemModel> generateProformaGoodItemList(PreciousMetalDetailGenerator params) {
 		// در حال حاضر فقط یک GoodItem برای فلزات گرانبها تولید می شود
-		ProformaGoodItemModel goodItem = generatePerformaGoodItem(params);
+		ProformaGoodItemModel goodItem = generateProformaGoodItem(params);
 		return List.of(goodItem);
 	}
 
 	/**
 	 * تولید تکی GoodItem با استفاده از ویژگی های فیزیکی (وزن، عیار، قیمت)
-	 * مشابه ExtraBillProformaIssueServiceImpl.generatePerformaGoodItemList اما مخصوص فلزات گرانبها
+	 * مشابه ExtraBillProformaIssueServiceImpl.generateProformaGoodItemList اما مخصوص فلزات گرانبها
 	 */
-	private ProformaGoodItemModel generatePerformaGoodItem(PreciousMetalDetailGenerator params) {
+	private ProformaGoodItemModel generateProformaGoodItem(PreciousMetalDetailGenerator params) {
 		var tradeModel = proformaContractService.getTradeModel(params.requestDto().getTradeId());
 
 		// استخراج اطلاعات از توضیحات
