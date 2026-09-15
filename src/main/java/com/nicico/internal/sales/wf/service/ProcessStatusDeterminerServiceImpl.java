@@ -6,6 +6,8 @@ import com.nicico.copper.oauth.common.repository.OAUserDAO;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
+import com.nicico.internal.sales.gaam.model.GaamModel;
+import com.nicico.internal.sales.gaam.repository.GaamRepository;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
@@ -35,9 +37,11 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	private final ProcessService processService;
 	private final OAUserDAO oaUserDAO;
 	private final ExtraBillRepository extraBillRepository;
+	private final GaamRepository gaamRepository;
 	private final RemittanceMasterRepository remittanceMasterRepository;
 	private final LcAcknowledgmentDeterminer lcAcknowledgmentDeterminer;
 	private final ExtraBillAcknowledgmentDeterminerImpl extraBillAcknowledgmentDeterminer;
+	private final GaamAcknowledgmentDeterminerImpl gaamAcknowledgmentDeterminer;
 
 
 	@Override
@@ -81,6 +85,11 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 		return extraBillAcknowledgmentDeterminer.determine(extraBankBillModel);
 	}
 
+	@Override
+	public Acknowledgment determineAcknowledgment(GaamModel gaamModel) {
+		return gaamAcknowledgmentDeterminer.determine(gaamModel);
+	}
+
 
 	@Override
 	public ProcessInstanceHistory getProformaHistoryDetail(Long proformaMasterId) {
@@ -120,6 +129,18 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 		return getUserTaskReportOrEmpty(billModel.getProcessId());
 	}
 
+	@Override
+	public ProcessInstanceHistory getGaamHistoryDetail(Long gaamId) {
+		GaamModel gaamModel = findGaamOrThrow(gaamId);
+		return getHistoryWithResolvedAssignees(gaamModel.getProcessId());
+	}
+
+	@Override
+	public Map<String, List<UserTaskReportDTO>> getGaamSummaryReport(Long gaamId) {
+		GaamModel gaamModel = findGaamOrThrow(gaamId);
+		return getUserTaskReportOrEmpty(gaamModel.getProcessId());
+	}
+
 	private LcModel findLcOrThrow(Long lcId) {
 		return lcRepository.findById(lcId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
@@ -128,6 +149,11 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 
 	private ExtraBankBillModel findExtraBillOrThrow(Long extraBillId) {
 		return extraBillRepository.findById(extraBillId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
+	}
+
+	private GaamModel findGaamOrThrow(Long gaamId) {
+		return gaamRepository.findById(gaamId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
 	}
 
@@ -150,6 +176,28 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 					extraBillRepository.saveAndFlush(bankBillModel);
 				} catch (ObjectOptimisticLockingFailureException ex) {
 					log.debug("Skipping concurrent extra-bill acknowledgment update for id={}", bankBillModel.getId(), ex);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void updateAllGaamAcknowledgments() {
+		List<GaamModel> gaamModels = gaamRepository.findAll();
+
+		for (GaamModel gaamModel : gaamModels) {
+			if (isTerminalAcknowledgment(gaamModel.getAcknowledgment())) {
+				continue;
+			}
+
+			Acknowledgment determined = determineAcknowledgment(gaamModel);
+
+			if (gaamModel.getAcknowledgment() != determined) {
+				gaamModel.setAcknowledgment(determined);
+				try {
+					gaamRepository.saveAndFlush(gaamModel);
+				} catch (ObjectOptimisticLockingFailureException ex) {
+					log.debug("Skipping concurrent GAAM acknowledgment update for id={}", gaamModel.getId(), ex);
 				}
 			}
 		}

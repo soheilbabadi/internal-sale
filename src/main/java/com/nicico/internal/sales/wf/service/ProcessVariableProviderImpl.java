@@ -203,7 +203,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	public Map<String, String> getExtraBillUserAccess() {
 		var workflow = getExtraBillWorkflowByTitle();
 		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("BillDraftRegistration", "BillSettleSure", "BillRemitSure", "BillFinalCheck"));
+		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("GaamDraftRegistration", "GaamSettleSure", "GaamRemitSure", "GaamFinalCheck"));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());

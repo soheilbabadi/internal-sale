@@ -268,10 +268,10 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
 
 		markAllBillsAsReckoning(billModel.getProformaMasterId());
-		var broker = fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(masterModel, broker);
-		String emailContent = generateExtraBillBrokerEmailContent(emailRequest);
-		sendExtraBillBrokerReckoningEmail(emailRequest, emailContent);
+		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
+		LcBrokerEmailRequest emailRequest = lcServiceHelper.buildExtraBillBrokerEmailRequest(masterModel, broker);
+		String emailContent = lcServiceHelper.generateExtraBillBrokerEmailContent(emailRequest);
+		lcServiceHelper.sendExtraBillBrokerReckoningEmail(emailRequest, emailContent);
 	}
 
 	/**
@@ -348,8 +348,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 						MSG_SALES_CONTRACT_NOT_FOUND));
 
 		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(masterModel, broker);
-		return generateExtraBillBrokerEmailContent(emailRequest);
+		LcBrokerEmailRequest emailRequest = lcServiceHelper.buildExtraBillBrokerEmailRequest(masterModel, broker);
+		return lcServiceHelper.generateExtraBillBrokerEmailContent(emailRequest);
 	}
 
 	@Override
@@ -459,8 +459,8 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		model.setCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
 
-		String cancellationRecord = buildCancellationRecord(request);
-		appendCancellationRecord(model, cancellationRecord);
+		String cancellationRecord = lcServiceHelper.buildExtraBillCancellationRecord(request);
+		lcServiceHelper.appendExtraBillCancellationRecord(model, cancellationRecord);
 
 		extraBillRepository.save(model);
 	}
