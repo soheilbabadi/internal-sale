@@ -53,6 +53,7 @@ public class ProformaServiceImpl implements ProformaService {
 	private final ProformaValidationService proformaValidationService;
 	private final OfferTextProcess offerTextProcess;
 	private final ExtraBillProformaIssueService extraBillProformaIssueService;
+	private final GaamBoundProformaIssueService gaamBoundProformaIssueService;
 	private final BpmsClientService bpmsClientService;
 
 	// ==================== CREATE ====================
@@ -77,7 +78,7 @@ public class ProformaServiceImpl implements ProformaService {
 		}
 
 		if (requestDto.getProformaIssueType() == ProformaIssueType.GAM_BONDS) {
-			return extraBillProformaIssueService.create(requestDto);
+			return gaamBoundProformaIssueService.create(requestDto);
 		}
 
 
