@@ -2,8 +2,6 @@ package com.nicico.internal.sales.fms.service;
 
 import com.fgostar.fms.sdk.FmsFileService;
 import com.fgostar.fms.sdk.auth.FmsCredentials;
-import com.fgostar.fms.sdk.dto.FileDto;
-import com.fgostar.fms.sdk.model.FilePage;
 import com.fgostar.fms.sdk.model.FmsFile;
 import com.fgostar.fms.sdk.model.UploadRequest;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
@@ -91,38 +89,35 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 
 
-		Map<String, Object> searchTags = Map.of(
-				PROFORMA_TAG_TYPE,
-				PROFORMA_TAG_TYPE_VALUE,
-				PROFORMA_TAG_ID,
-				detailId,
-				PROFORMA_TAG_ID_CLASS,
-				PROFORMA_TAG_ID_CLASS_VALUE
-		);
-
-		FilePage page = fmsFileService.searchInGroup(fmsGroupId, searchTags, true, 0, 1, credentials);
-		if (!page.isEmpty()) {
-			FileDto existing = page.getFiles().get(0);
-			log.info("منبع فایل پیش فاکتور {}: FMS (از قبل موجود بود). uuid={}", detailId, existing.getUuid());
-			return fmsFileService.download(fmsGroupId, existing.getUuid(), credentials);
-		}
+//		Map<String, Object> searchTags = Map.of(
+//				PROFORMA_TAG_TYPE,
+//				PROFORMA_TAG_TYPE_VALUE,
+//				PROFORMA_TAG_ID,
+//				detailId,
+//				PROFORMA_TAG_ID_CLASS,
+//				PROFORMA_TAG_ID_CLASS_VALUE
+//		);
+//
+//		FilePage page = fmsFileService.searchInGroup(fmsGroupId, searchTags, true, 0, 1, credentials);
+//		if (!page.isEmpty()) {
+//			FileDto existing = page.getFiles().get(0);
+//			log.info("منبع فایل پیش فاکتور {}: FMS (از قبل موجود بود). uuid={}", detailId, existing.getUuid());
+//			return fmsFileService.download(fmsGroupId, existing.getUuid(), credentials);
+//		}
 
 		log.info("فایل پیش فاکتور {} در FMS یافت نشد، در حال ساخت...", detailId);
 
 		byte[] pdfContent = buildSignedProformaPdf(List.of(detailModel.getId()));
 		String fileName = PROFORMA_FILE_NAME_PREFIX + detailModel.getPerformaNo() + ".pdf";
 
-		if (detailModel.getProformaMasterModel().getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED && detailModel.getProformaFileId() == null) {
 			String uuid = uploadProformaToFms(detailId, fileName, pdfContent, credentials);
 			saveProformaFileIdToDetails(List.of(detailId), uuid);
 			log.info("منبع فایل پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, uuid);
 			return new FmsFile(uuid, fileName, PDF_CONTENT_TYPE, pdfContent);
-		}
 
 
 
-		log.info("فایل پیش فاکتور {} ساخته شد اما به دلیل وضعیت غیر ACCEPTED ذخیره نشد.", detailId);
-		return new FmsFile(UUID.randomUUID().toString(), fileName, PDF_CONTENT_TYPE, pdfContent);
+//		return new FmsFile(UUID.randomUUID().toString(), fileName, PDF_CONTENT_TYPE, pdfContent);
 	}
 
 	public byte[] getProformaPdfBytes(Long detailId) {
@@ -179,22 +174,22 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		}
 
 
-		Map<String, Object> searchTags = Map.of(
-				REMITTANCE_TAG_TYPE,
-				REMITTANCE_TAG_TYPE_VALUE,
-				REMITTANCE_TAG_ID,
-				masterId,
-				REMITTANCE_TAG_ID_CLASS,
-				REMITTANCE_TAG_ID_CLASS_VALUE
-		);
-
-		FilePage page = fmsFileService.searchInGroup(fmsGroupId, searchTags, true, 0, 1, credentials);
-
-		if (!page.isEmpty()) {
-			FileDto existing = page.getFiles().get(0);
-			log.info("منبع فایل حواله {}: FMS (از قبل موجود بود). uuid={}", masterId, existing.getUuid());
-			return fmsFileService.download(fmsGroupId, existing.getUuid(), credentials);
-		}
+//		Map<String, Object> searchTags = Map.of(
+//				REMITTANCE_TAG_TYPE,
+//				REMITTANCE_TAG_TYPE_VALUE,
+//				REMITTANCE_TAG_ID,
+//				masterId,
+//				REMITTANCE_TAG_ID_CLASS,
+//				REMITTANCE_TAG_ID_CLASS_VALUE
+//		);
+//
+//		FilePage page = fmsFileService.searchInGroup(fmsGroupId, searchTags, true, 0, 1, credentials);
+//
+//		if (!page.isEmpty()) {
+//			FileDto existing = page.getFiles().get(0);
+//			log.info("منبع فایل حواله {}: FMS (از قبل موجود بود). uuid={}", masterId, existing.getUuid());
+//			return fmsFileService.download(fmsGroupId, existing.getUuid(), credentials);
+//		}
 
 		log.info("فایل حواله {} در FMS یافت نشد، در حال ساخت...", masterId);
 
