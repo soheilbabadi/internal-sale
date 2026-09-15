@@ -141,7 +141,7 @@ public class GaamController {
 	)
 
 	@GetMapping("/audit-history/{extraBillId}")
-	public ResponseEntity<List<ProformaBankBillAuditDto>> getAuditHistory(@PathVariable Long extraBillId) {
+	public ResponseEntity<?> getAuditHistory(@PathVariable Long extraBillId) {
 		return ResponseEntity.ok(service.getAuditHistory(extraBillId));
 	}
 

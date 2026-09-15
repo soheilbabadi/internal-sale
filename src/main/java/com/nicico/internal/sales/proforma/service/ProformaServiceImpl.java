@@ -18,7 +18,6 @@ import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
-import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -269,7 +268,7 @@ public class ProformaServiceImpl implements ProformaService {
 		saveReversalDetails(responseModel, id);
 
 		// شروع فرآیند برگشت
-		startReversalWorkflow(model, responseModel, id);
+		startReversalWorkflow(model);
 
 		proformaMasterRepository.saveAndFlush(model);
 
@@ -317,7 +316,7 @@ public class ProformaServiceImpl implements ProformaService {
 	 * شروع فرآیند کاری برای پیش فاکتور
 	 */
 	private void startWorkflowProcess(ProformaMasterModel model) {
-		ProformaVariablesInput input = buildProformaVariablesInput(model);
+		var input=proformaProcessService.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 
 		model.setProcessId(process.getId());
@@ -327,20 +326,8 @@ public class ProformaServiceImpl implements ProformaService {
 	/**
 	 * شروع فرآیند کاری برای برگشت
 	 */
-	private void startReversalWorkflow(
-			ProformaMasterModel model,
-			ProformaModelResponse responseModel,
-			Long id) {
-
-		ProformaVariablesInput input = ProformaVariablesInput.builder()
-				.contractDate(responseModel.getDetailModels().get(0).getContractDate())
-				.proformaMasterId(id)
-				.goodId(model.getGoodId())
-				.contractNo(String.valueOf(model.getContractNo()))
-				.customerName(model.getCustomerName())
-				.goodName(model.getGoodName())
-				.commission(model.getCommissionPercentage())
-				.build();
+	private void startReversalWorkflow(			ProformaMasterModel model) {
+		var input=proformaProcessService.buildProformaVariablesInput(model);
 
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());
@@ -350,17 +337,7 @@ public class ProformaServiceImpl implements ProformaService {
 	/**
 	 * ساخت ورودی فرآیند
 	 */
-	private ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model) {
-		return ProformaVariablesInput.builder()
-				.contractDate(model.getProformaDetailModelLists().get(0).getContractDate())
-				.proformaMasterId(model.getId())
-				.goodId(model.getGoodId())
-				.contractNo(String.valueOf(model.getContractNo()))
-				.customerName(model.getCustomerName())
-				.goodName(model.getGoodName())
-				.commission(model.getCommissionPercentage())
-				.build();
-	}
+
 
 	/**
 	 * ذخیره Detail و GoodItem ها

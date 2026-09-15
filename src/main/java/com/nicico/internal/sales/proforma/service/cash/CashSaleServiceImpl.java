@@ -26,7 +26,6 @@ import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 import com.nicico.internal.sales.trade.model.TradeExtractModel;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
-import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -499,16 +498,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 	}
 
 	private void startProformaProcess(ProformaMasterModel model) {
-		ProformaVariablesInput input = ProformaVariablesInput.builder()
-				.contractDate(model.getProformaDetailModelLists().get(0).getContractDate())
-				.proformaMasterId(model.getId())
-				.goodId(model.getGoodId())
-				.contractNo(String.valueOf(model.getContractNo()))
-				.customerName(model.getCustomerName())
-				.goodName(model.getGoodName())
-				.commission(model.getCommissionPercentage())
-				.build();
-
+		var input=proformaProcessService.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);

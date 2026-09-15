@@ -126,13 +126,13 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
 			if (!reviewTaskRequest.getApprove()) {
-				proformaMasterRepository.findByReversalProcessId(reviewTaskRequest.getProcessInstanceId()).ifPresent(masterModel -> {
+				proformaMasterRepository.findByReversalProcessId(reviewTaskRequest.getProcessInstanceId())
+						.ifPresent(masterModel -> {
 					masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 					masterModel.setReversalProcessId(REVERSAL_PROCESS_ID_DEFAULT);
 					masterModel.setIsReversalProcessFinal(false);
 					updateDetailStatuses(masterModel, ProformaReversalStatus.CANCELED);
 					proformaMasterRepository.saveAndFlush(masterModel);
-//					bpmsClientService.cancelProcessInstance(reviewTaskRequest.getProcessInstanceId());
 				});
 			}
 		} catch (Exception ex) {
@@ -156,7 +156,8 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 	public void refreshReversalProformaStatus() {
 		if (!canStartProcess()) return;
 		try {
-			List<ProformaMasterModel> masterModelList = proformaMasterRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.REVERSAL));
+			List<ProformaMasterModel> masterModelList = proformaMasterRepository.findAllByWorkflowApproveStatusIn(
+					List.of(WorkflowApproveStatus.REVERSAL));
 			for (ProformaMasterModel masterModel : masterModelList) {
 				String reversalId = masterModel.getReversalProcessId();
 				if (Boolean.TRUE.equals(masterModel.getIsReversalProcessFinal()) || reversalId == null || REVERSAL_PROCESS_ID_DEFAULT.equals(reversalId))

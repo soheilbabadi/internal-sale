@@ -128,6 +128,9 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		variables.put("customerName", input.getCustomerName());
 		variables.put("contractNo", input.getContractNo());
 		variables.put("commission", input.getCommission());
+		variables.put("issuerName", SecurityUtil.getFirstName() + " " + SecurityUtil.getLastName());
+		variables.put("issuerId", SecurityUtil.getUserId());
+
 		variables.putAll(userAccess);
 		Map<String, Object> wrapped = new HashMap<>(variables);
 		wrapped.put("INSTANCE_DETAILS", variables);
@@ -235,7 +238,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 			var processInstance = bpmsClientService.getProcessInstanceHistoryById(processId);
 			return processInstance.getStatus() != ProcessInstanceStatus.ACTIVE;
 		} catch (Exception exception) {
-			return true;
+			return false;
 		}
 	}
 
@@ -258,7 +261,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 			boolean hasFalse = processInstance.getTaskHistoryDetailList().stream().anyMatch(task -> !task.getApproved());
 			return !hasNull && !hasFalse;
 		} catch (Exception e) {
-			return true;
+			return false;
 		}
 
 

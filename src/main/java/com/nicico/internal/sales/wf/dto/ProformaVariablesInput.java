@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.wf.dto;
 
+import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,4 +23,5 @@ public class ProformaVariablesInput implements Serializable {
 	private String customerName;
 	private String contractNo;
 	private Double commission;
+	private ProformaIssueType issueSource;
 }

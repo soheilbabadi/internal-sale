@@ -275,11 +275,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		model.setIsReversalProcessFinal(false);
 	}
 
-//	private void cancelIfOrphan(String processInstanceId, Object model) {
-//		if (model == null) {
-//			bpmsClientService.cancelProcessInstance(processInstanceId);
-//		}
-//	}
+
 
 	private StartProcessWithDataDTO buildStartProcessDTO(Map<String, Object> variables) {
 		var workflow = processVariableProvider.getProformaWorkflowByTitle();
@@ -289,16 +285,19 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		return dataDTO;
 	}
 
-	private ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel masterModel) {
+	@Override
+	public ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model) {
 		ProformaVariablesInput input = new ProformaVariablesInput();
-		var detailList = masterModel.getProformaDetailModelLists();
-		input.setProformaMasterId(masterModel.getId());
+		var detailList = model.getProformaDetailModelLists();
+		input.setProformaMasterId(model.getId());
 		input.setContractDate(detailList.get(0).getContractDate());
-		input.setGoodId(masterModel.getGoodId());
-		input.setGoodName(masterModel.getGoodName());
-		input.setCustomerName(masterModel.getCustomerName());
-		input.setContractNo(String.valueOf(masterModel.getContractNo()));
-		input.setCommission(masterModel.getCommissionPercentage());
+		input.setGoodId(model.getGoodId());
+		input.setGoodName(model.getGoodName());
+		input.setCustomerName(model.getCustomerName());
+		input.setContractNo(String.valueOf(model.getContractNo()));
+		input.setCommission(model.getCommissionPercentage());
+		input.setIssueSource(model.getProformaIssueType());
+
 		return input;
 	}
 

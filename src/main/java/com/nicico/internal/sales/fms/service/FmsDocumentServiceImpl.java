@@ -70,26 +70,27 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 
 	public FmsFile getOrCreateProformaPdf(Long detailId) {
-
+		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
 		ProformaDetailModel detailModel = proformaDetailRepository.findById(detailId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERR_PROFORMA_NOT_FOUND));
 
-		ProformaMasterModel masterModel=proformaMasterRepository.findById(detailModel.getProformaMasterId())
+		ProformaMasterModel masterModel = proformaMasterRepository.findById(detailModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERR_PROFORMA_NOT_FOUND));
 
-		if (masterModel.getWorkflowApproveStatus() ==WorkflowApproveStatus.IN_PROGRESS)
-		{
-			return new FmsFile(UUID.randomUUID().toString(),detailId + ".pdf",PDF_CONTENT_TYPE,exportDocService.exportProformaPdf(detailId));
+		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
+			return new FmsFile(UUID.randomUUID().toString(), detailId + ".pdf", PDF_CONTENT_TYPE, exportDocService.exportProformaPdf(detailId));
 		}
-
-		if (masterModel.getWorkflowApproveStatus() ==WorkflowApproveStatus.CANCELED || detailModel.getProformaReversalStatus()==ProformaReversalStatus.CANCELED)
-		{
+		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED || detailModel.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
 			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + detailModel.getPerformaNo() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
 
 		}
 
+		if (detailModel.getProformaMasterModel().getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED && detailModel.getProformaFileId() != null) {
+			return fmsFileService.download(fmsGroupId, detailModel.getProformaFileId(), credentials);
+		}
 
-		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
+
+
 		Map<String, Object> searchTags = Map.of(
 				PROFORMA_TAG_TYPE,
 				PROFORMA_TAG_TYPE_VALUE,
@@ -111,12 +112,14 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		byte[] pdfContent = buildSignedProformaPdf(List.of(detailModel.getId()));
 		String fileName = PROFORMA_FILE_NAME_PREFIX + detailModel.getPerformaNo() + ".pdf";
 
-		if (detailModel.getProformaMasterModel().getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED) {
+		if (detailModel.getProformaMasterModel().getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED && detailModel.getProformaFileId() == null) {
 			String uuid = uploadProformaToFms(detailId, fileName, pdfContent, credentials);
 			saveProformaFileIdToDetails(List.of(detailId), uuid);
 			log.info("منبع فایل پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, uuid);
 			return new FmsFile(uuid, fileName, PDF_CONTENT_TYPE, pdfContent);
 		}
+
+
 
 		log.info("فایل پیش فاکتور {} ساخته شد اما به دلیل وضعیت غیر ACCEPTED ذخیره نشد.", detailId);
 		return new FmsFile(UUID.randomUUID().toString(), fileName, PDF_CONTENT_TYPE, pdfContent);
@@ -160,6 +163,22 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 	public FmsFile getOrCreateRemittancePdf(Long masterId) {
 		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
+		var masterModel = remittanceMasterRepository.findById(masterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("اطلاعات حواله وجود ندارد"));
+
+		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
+			return new FmsFile(UUID.randomUUID().toString(), masterModel + ".pdf", PDF_CONTENT_TYPE, exportDocService.exportRemittancePdf(masterId));
+		}
+		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED ) {
+			throw new InternalSaleCustomException.ValidationException("حواله با شناسه " + masterModel.getId() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
+
+		}
+
+		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED && masterModel.getRemittanceFileId() != null) {
+			return fmsFileService.download(fmsGroupId, masterModel.getRemittanceFileId(), credentials);
+		}
+
+
 		Map<String, Object> searchTags = Map.of(
 				REMITTANCE_TAG_TYPE,
 				REMITTANCE_TAG_TYPE_VALUE,
@@ -230,7 +249,7 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 	private String uploadProformaToFms(Long detailId, String fileName, byte[] pdfContent, FmsCredentials credentials) {
 
-				UploadRequest uploadRequest = UploadRequest.of(fmsGroupId, fileName, pdfContent)
+		UploadRequest uploadRequest = UploadRequest.of(fmsGroupId, fileName, pdfContent)
 				.contentType(PDF_CONTENT_TYPE)
 				.tag(PROFORMA_TAG_TYPE, PROFORMA_TAG_TYPE_VALUE)
 				.tag(PROFORMA_TAG_ID, detailId)

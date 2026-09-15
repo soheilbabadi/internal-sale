@@ -11,6 +11,7 @@ import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import java.io.Serial;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Audited
@@ -150,6 +151,22 @@ public class GaamModel extends BaseClassModel {
 	@Column(name = "C_CANCELLATION_REASON", length = 50)
 	@Enumerated(EnumType.STRING)
 	private LcCancellationReason cancellationReason;
+
+	@Schema(description = "تعداد اوراق گام")
+	@Column(name = "N_GAM_CERTIFICATE_COUNT", nullable = false)
+	@Builder.Default
+	private Integer gamCertificateCount = 0;
+
+
+	@Schema(description = "مبلغ اضافه شده به مبلغ کل")
+	@Column(name = "N_EXTRA_BILL_OF_AMOUNT", nullable = false, precision = 10, scale = 2)
+	@Builder.Default
+	private BigDecimal extraBillOfExchangeAmount = BigDecimal.ZERO;
+
+	@Schema(description = "درصد اضافه شده به مبلغ کل")
+	@Column(name = "N_EXTRA_BILL_OF_PERCENT", nullable = false, precision = 10, scale = 2)
+	@Builder.Default
+	private BigDecimal extraBillOfPercent = BigDecimal.ZERO;
 
 
 }

@@ -21,6 +21,7 @@ public class LcAcknowledgmentDeterminerImpl implements LcAcknowledgmentDetermine
 
 	private final ProcessService processService;
 	private final BpmsClientService bpmsClientService;
+	private final ProcessVariableProvider processVariableProvider;
 
 
 
@@ -30,6 +31,7 @@ public class LcAcknowledgmentDeterminerImpl implements LcAcknowledgmentDetermine
 		if (report.isEmpty()) {
 			return Acknowledgment.UNKNOWN;
 		}
+
 
 		List<UserTaskReportDTO> allActivities = report.values().stream()
 				.filter(Objects::nonNull)

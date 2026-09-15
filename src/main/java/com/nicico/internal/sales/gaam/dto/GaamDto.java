@@ -6,14 +6,12 @@ import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.Column;
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @AllArgsConstructor
@@ -26,7 +24,7 @@ public class GaamDto implements Serializable {
 
 	// ==================== فیلدهای شناسه ====================
 
-	@Schema(description = "شناسه برات", example = "1")
+	@Schema(description = "شناسه اوراق گام", example = "1")
 	private Long id;
 
 	@Schema(description = "شناسه جزئیات پیش فاکتور", example = "52")
@@ -44,7 +42,7 @@ public class GaamDto implements Serializable {
 	// ==================== فیلدهای بانکی ====================
 	@Column(name = "N_ISSUER_BANK_ID")
 	private Long issuerBankId;
-	@Schema(description = "نام بانک صادر کننده برات", example = "بانک ملی ایران")
+	@Schema(description = "نام بانک صادر کننده اوراق گام", example = "بانک ملی ایران")
 	private String issuerBankName;
 
 	@Schema(description = "کد شعبه", example = "1234")
@@ -62,29 +60,29 @@ public class GaamDto implements Serializable {
 	@Schema(description = "شناسه بانک عامل", example = "2011")
 	private Long agentBankId;
 
-	// ==================== فیلدهای برات الکترونیک ====================
+	// ==================== فیلدهای اوراق گام الکترونیک ====================
 
 	@Schema(description = "کد تفصیلی حسابداری", example = "123-456-789")
 	private String nosaCode;
 
-	@Schema(description = "کد سپام (شماره برات)", example = "1234-5678-9012-3456")
+	@Schema(description = "کد سپام (شماره اوراق گام)", example = "1234-5678-9012-3456")
 	private String sepamCode;
 
 	@Schema(description = "شناسه خزانه داری کل کشور", example = "1234-5678-9012-3456")
 	private String treasuryId;
 
-	@Schema(description = "تاریخ صدور برات", example = "1404-01-15")
+	@Schema(description = "تاریخ صدور اوراق گام", example = "1404-01-15")
 	private Date issueDate;
 
-	@Schema(description = "تاریخ سررسید برات", example = "1404-03-15")
+	@Schema(description = "تاریخ سررسید اوراق گام", example = "1404-03-15")
 	private Date dueDate;
 
 	// ==================== فیلدهای فایل ====================
 
-	@Schema(description = "شناسه فایل پیوست برات الکترونیک (PDF)", example = "file-123-456")
+	@Schema(description = "شناسه فایل پیوست اوراق گام الکترونیک (PDF)", example = "file-123-456")
 	private String extraBillFileId;
 
-	@Schema(description = "شناسه فایل اصلاحیه برات الکترونیک", example = "file-789-012")
+	@Schema(description = "شناسه فایل اصلاحیه اوراق گام الکترونیک", example = "file-789-012")
 	private String dispatchAttachmentId;
 
 	// ==================== فیلدهای فرآیندی ====================
@@ -98,7 +96,7 @@ public class GaamDto implements Serializable {
 	@Schema(description = "کد فرایند ابطال", example = "5e2b7f8c9d4a6b1e3f7c8d9a0b1e2c3d")
 	private String reversalProcessId;
 
-	@Schema(description = "شناسه برات در سیستم PMS", example = "PMS-123456")
+	@Schema(description = "شناسه اوراق گام در سیستم PMS", example = "PMS-123456")
 	private String pmsBillId;
 
 	// ==================== فیلدهای تاییدیه ====================
@@ -114,11 +112,22 @@ public class GaamDto implements Serializable {
 
 	// ==================== فیلدهای ابطال ====================
 
-	@Schema(description = "تاریخ ابطال برات", example = "1404-02-01")
+	@Schema(description = "تاریخ ابطال اوراق گام", example = "1404-02-01")
 	private Date cancelDate;
 
-	@Schema(description = "دلیل ابطال برات")
+	@Schema(description = "دلیل ابطال اوراق گام")
 	private LcCancellationReason cancellationReason;
+
+
+	@Schema(description = "تعداد اوراق گام")
+	private Integer gamCertificateCount = 0;
+
+
+	@Schema(description = "مبلغ اضافه شده به مبلغ کل")
+	private BigDecimal extraBillOfExchangeAmount = BigDecimal.ZERO;
+
+	@Schema(description = "درصد اضافه شده به مبلغ کل")
+	private BigDecimal extraBillOfPercent = BigDecimal.ZERO;
 
 	// ==================== Inner Classes ====================
 

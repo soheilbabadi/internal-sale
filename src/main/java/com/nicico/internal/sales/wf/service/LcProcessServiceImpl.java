@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.wf.service;
 
+import com.nicico.bpmsclient.model.flowable.process.ProcessInsHistoryDTO;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstance;
 import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.service.BpmsClientService;
@@ -119,7 +120,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 				return;
 			}
 
-			if (processVariableProvider.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId())) {
+			if (processVariableProvider.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId()) ) {
 				for (LcModel lc : lcList) {
 					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 					lc.setAcknowledgment(Acknowledgment.FINISHED);
@@ -127,7 +128,16 @@ public class LcProcessServiceImpl implements LcProcessService {
 				lcRepository.saveAllAndFlush(lcList);
 				return;
 			}
+
+
+
 			for (LcModel lc : lcList) {
+
+				if (lc.getPmsLcId()!=null) {
+					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+					lc.setAcknowledgment(Acknowledgment.FINISHED);
+				}
+
 				lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
 				lc.setAcknowledgment(lcAcknowledgmentDeterminer.determine(lc));
 			}
@@ -148,6 +158,37 @@ public class LcProcessServiceImpl implements LcProcessService {
 			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
 			for (LcModel lc : lcList) {
 				lc.setAcknowledgment(lcAcknowledgmentDeterminer.determine(lc));
+
+				ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(lc.getProcessId());
+				if (status == null) continue;
+
+				switch (status.getStatus()) {
+					case ACTIVE:
+						lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+
+						break;
+
+					case CANCELED:
+						lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+						break;
+
+					case FINISHED:
+						boolean accepted = processVariableProvider.isProcessAcceptedFinally(lc.getProcessId());
+						if(accepted) {
+							lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+						}
+						else {
+							lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+						}
+						break;
+				}
+
+				if (lc.getPmsLcId()!=null) {
+					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+					lc.setAcknowledgment(Acknowledgment.FINISHED);
+				}
+
+
 			}
 			lcRepository.saveAll(lcList);
 

@@ -1,8 +1,8 @@
 package com.nicico.internal.sales.gaam.mapper;
 
 
-import com.nicico.internal.sales.extrabill.model.GaamModel;
 import com.nicico.internal.sales.gaam.dto.GaamDto;
+import com.nicico.internal.sales.gaam.model.GaamModel;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
