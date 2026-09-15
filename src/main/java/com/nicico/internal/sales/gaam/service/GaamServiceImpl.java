@@ -281,78 +281,15 @@ public class GaamServiceImpl implements GaamService {
 		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
 
-		markAllBillsAsReckoning(billModel.getProformaMasterId());
+		lcServiceHelper.markAllGaamAsReckoning(billModel.getProformaMasterId());
 		ProformaDetailModel detail = proformaDetailRepository.findById(billModel.getProformaDetailId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-		var broker = fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(detail, broker);
-		String emailContent = generateExtraBillBrokerEmailContent(emailRequest);
-		sendExtraBillBrokerReckoningEmail(emailRequest, emailContent);
+		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
+		LcBrokerEmailRequest emailRequest = lcServiceHelper.buildGaamBrokerEmailRequest(detail, broker);
+		String emailContent = lcServiceHelper.generateGaamBrokerEmailContent(emailRequest);
+		lcServiceHelper.sendGaamBrokerReckoningEmail(emailRequest, emailContent);
 	}
 
-	/**
-	 * علامت گذاری تمام برات های مرتبط با یک قرارداد به عنوان تسویه شده
-	 */
-	private void markAllBillsAsReckoning(Long proformaMasterId) {
-		List<GaamModel> billItems = gaamRepository.findAllByProformaMasterId(proformaMasterId);
-
-		if (billItems == null || billItems.isEmpty()) {
-			log.warn("No extra bill items found for proformaMasterId: {}", proformaMasterId);
-			return;
-		}
-
-		for (GaamModel billItem : billItems) {
-			if (!billItem.isReckoningSend()) {
-				Date newReckoningSendDate = new Date();
-				billItem.setReckoningSend(true);
-				billItem.setReckoningSendDate(newReckoningSendDate);
-				billItem.setAcknowledgment(Acknowledgment.RECKONING);
-				gaamRepository.save(billItem);
-			}
-		}
-	}
-
-	/**
-	 * دریافت کارگزار مربوط به معامله
-	 */
-	private BrokerModel fetchBrokerForTrade(Long tradeId) {
-		var sellerBrokerCode = imeTradeRepository.findSellerBrokerCodeById(tradeId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_TRADE_NOT_FOUND));
-		return brokerRepository.findById(sellerBrokerCode)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BROKER_EMAIL_MISSING));
-	}
-
-	/**
-	 * ساخت درخواست ایمیل برای کارگزار
-	 */
-	private LcBrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaDetailModel detail, BrokerModel broker) {
-		var proformaMaster = proformaMasterRepository.findById(detail.getProformaMasterId())
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						MSG_PROFORMA_MASTER_NOT_FOUND));
-
-		this.markAllAsReckoning(proformaMaster.getId());
-
-		LcBrokerEmailRequest request = new LcBrokerEmailRequest();
-		request.setContractNo(proformaMaster.getContractNo());
-		request.setContractDate(detail.getContractDate());
-		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
-		request.setCustomerName(proformaMaster.getCustomerName());
-		request.setGoodName(proformaMaster.getGoodName());
-		request.setBrokerName(broker.getName());
-		request.setBrokerEmail(broker.getEmail());
-
-		return request;
-	}
-
-	/**
-	 * تولید محتوای ایمیل برای کارگزار
-	 */
-	private String generateExtraBillBrokerEmailContent(LcBrokerEmailRequest dto) {
-		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
-				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
-				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
-				" جهت تسویه مورد تایید می باشد";
-	}
 
 
 	@Override
@@ -369,8 +306,8 @@ public class GaamServiceImpl implements GaamService {
 		ProformaDetailModel detail = gaamRepository.getDetailByBillId(extraBillId).orElseThrow(
 				() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(detail, broker);
-		return generateExtraBillBrokerEmailContent(emailRequest);
+		LcBrokerEmailRequest emailRequest = lcServiceHelper.buildGaamBrokerEmailRequest(detail, broker);
+		return lcServiceHelper.generateGaamBrokerEmailContent(emailRequest);
 	}
 
 
@@ -387,15 +324,6 @@ public class GaamServiceImpl implements GaamService {
 	public ProcessInstanceHistory getHistoryDetail(Long extraBillId) {
 		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
 		return processStatusDeterminerService.getProformaBankBillHistoryDetail(extraBillId);
-	}
-
-	/**
-	 * ارسال ایمیل تسویه به کارگزار
-	 */
-	private void sendExtraBillBrokerReckoningEmail(LcBrokerEmailRequest emailRequest, String emailContent) {
-		log.info("Generated Extra Bill broker reckoning email content for broker: {} - Content: {}",
-				emailRequest.getBrokerName(), emailContent);
-		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
 	}
 
 
@@ -488,39 +416,12 @@ public class GaamServiceImpl implements GaamService {
 		model.setCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
 
-		String cancellationRecord = buildCancellationRecord(request);
-		appendCancellationRecord(model, cancellationRecord);
+		String cancellationRecord = lcServiceHelper.buildGaamCancellationRecord(request);
+		lcServiceHelper.appendGaamCancellationRecord(model, cancellationRecord);
 
 		gaamRepository.save(model);
 	}
 
-	private String buildCancellationRecord(ExtraBillCancelRequest request) {
-		String timestamp = DateUtility.getJalaliDate(new Date());
-		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
-		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
-
-		return String.format(
-				"""
-						سابقه ابطال اوراق گام
-						**************************
-						تاریخ و زمان ابطال: %s
-						نام کاربری اقدام کننده: %s
-						دلیل ابطال: %s
-						توضیحات تکمیلی: %s
-						وضعیت: ابطال شده
-						**************************""",
-				timestamp, userFullName, LcCancellationReason.BUYER_WITHDRAWAL, notes
-		);
-	}
-
-	private void appendCancellationRecord(GaamModel model, String cancellationRecord) {
-		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
-		if (!existingDesc.isEmpty()) {
-			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
-		} else {
-			model.setDescription(cancellationRecord);
-		}
-	}
 
 
 }

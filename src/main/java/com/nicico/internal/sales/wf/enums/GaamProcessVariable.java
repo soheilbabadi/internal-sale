@@ -5,10 +5,10 @@ import lombok.Getter;
 @Getter
 public enum GaamProcessVariable {
 
-	BillDraftRegistration("ثبت برات الکترونیک"),
-	BillSettleSure("بررسی جهت تایید تسویه"),
-	BillRemitSure("ثبت اطلاعات برات و تایید حواله"),
-	BillFinalCheck("مشاهده تاریخچه و بررسی نهایی");
+	GaamDraftRegistration("ثبت اوراق گام"),
+	GaamSettleSure("بررسی جهت تایید تسویه"),
+	GaamRemitSure("ثبت اطلاعات اوراق گام و تایید حواله"),
+	GaamFinalCheck("مشاهده تاریخچه و بررسی نهایی");
 
 	private final String value;
 

@@ -59,6 +59,8 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	private final BrokerRepository brokerRepository;
 	private final IMETradeRepository imeTradeRepository;
 	private final LcNosaCodeService lcNosaCodeService;
+	private final com.nicico.internal.sales.gaam.repository.GaamRepository gaamRepository;
+	private final com.nicico.internal.sales.extrabill.repository.ExtraBillRepository extraBillRepository;
 
 	@Override
 	public ProformaDetailModel findProformaDetail(Long proformaId) {
@@ -324,6 +326,198 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 
 	@Override
 	public void appendCancellationRecord(LcModel model, String cancellationRecord) {
+		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
+		if (!existingDesc.isEmpty()) {
+			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
+		} else {
+			model.setDescription(cancellationRecord);
+		}
+	}
+
+	@Override
+	public com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
+		markAllAsReckoning(proformaMaster.getId());
+
+		com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest request = new com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest();
+		request.setContractNo(proformaMaster.getContractNo());
+		request.setContractDate(proformaMaster.getContractDate());
+		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
+		request.setCustomerName(proformaMaster.getCustomerName());
+		request.setGoodName(proformaMaster.getGoodName());
+		request.setBrokerName(broker.getName());
+		request.setBrokerEmail(broker.getEmail());
+
+		return request;
+	}
+
+	@Override
+	public String generateExtraBillBrokerEmailContent(com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest dto) {
+		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
+				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
+				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
+				" جهت تسویه مورد تایید می باشد";
+	}
+
+	@Override
+	public String generateExtraBillBrokerEmailContent(long extraBillId) {
+		throw new UnsupportedOperationException("This method requires ExtraBillRepository and should be called from ExtraBillService");
+	}
+
+	@Override
+	public void sendExtraBillBrokerReckoningEmail(com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest emailRequest, String emailContent) {
+		log.info("Generated Extra Bill broker reckoning email content for broker: {} - Content: {}",
+				emailRequest.getBrokerName(), emailContent);
+		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
+	}
+
+	@Override
+	public void markAllAsReckoning(Long proformaMasterId) {
+		List<com.nicico.internal.sales.extrabill.model.ExtraBankBillModel> billModels = 
+				extraBillRepository.findAllByProformaMasterId(proformaMasterId);
+
+		if (billModels == null || billModels.isEmpty()) {
+			log.warn("No ExtraBill items found for proformaMasterId: {}", proformaMasterId);
+			return;
+		}
+
+
+		for (com.nicico.internal.sales.extrabill.model.ExtraBankBillModel item : billModels) {
+			boolean oldReckoningSend = item.isReckoningSend();
+			if (!oldReckoningSend) {
+				Date newReckoningSendDate = new Date();
+				item.setReckoningSend(true);
+				item.setReckoningSendDate(newReckoningSendDate);
+				item.setAcknowledgment(Acknowledgment.RECKONING);
+
+			}
+		}
+	}
+
+	@Override
+	public String buildExtraBillCancellationRecord(com.nicico.internal.sales.extrabill.dto.ExtraBillCancelRequest request) {
+		String timestamp = DateUtility.getJalaliDate(new Date());
+		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
+		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
+
+		return String.format(
+				"""
+						سابقه ابطال برات الکترونیک
+						**************************
+						تاریخ و زمان ابطال: %s
+						نام کاربری اقدام کننده: %s
+						دلیل ابطال: %s
+						توضیحات تکمیلی: %s
+						وضعیت: ابطال شده
+						**************************""",
+				timestamp, userFullName, com.nicico.internal.sales.lc.enums.LcCancellationReason.BUYER_WITHDRAWAL, notes
+		);
+	}
+
+	@Override
+	public void appendExtraBillCancellationRecord(com.nicico.internal.sales.extrabill.model.ExtraBankBillModel model, String cancellationRecord) {
+		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
+		if (!existingDesc.isEmpty()) {
+			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
+		} else {
+			model.setDescription(cancellationRecord);
+		}
+	}
+
+	@Override
+	public com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest buildGaamBrokerEmailRequest(
+			com.nicico.internal.sales.proforma.model.ProformaDetailModel detail, BrokerModel broker) {
+		markAllGaamAsReckoning(detail.getProformaMasterId());
+
+		com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest request = new com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest();
+		request.setContractNo(detail.getProformaMasterId() != null ? 
+				proformaMasterRepository.findById(detail.getProformaMasterId())
+						.map(com.nicico.internal.sales.proforma.model.ProformaMasterModel::getContractNo)
+						.orElse("-") : "-");
+		request.setContractDate(detail.getContractDate());
+		request.setQuantity(detail.getProformaMasterId() != null ? 
+				proformaMasterRepository.findById(detail.getProformaMasterId())
+						.map(m -> m.getTotalQuantity().longValue())
+						.orElse(0L) : 0L);
+		request.setCustomerName(detail.getProformaMasterId() != null ? 
+				proformaMasterRepository.findById(detail.getProformaMasterId())
+						.map(com.nicico.internal.sales.proforma.model.ProformaMasterModel::getCustomerName)
+						.orElse("-") : "-");
+		request.setGoodName(detail.getProformaMasterId() != null ? 
+				proformaMasterRepository.findById(detail.getProformaMasterId())
+						.map(com.nicico.internal.sales.proforma.model.ProformaMasterModel::getGoodName)
+						.orElse("-") : "-");
+		request.setBrokerName(broker.getName());
+		request.setBrokerEmail(broker.getEmail());
+
+		return request;
+	}
+
+	@Override
+	public String generateGaamBrokerEmailContent(com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest dto) {
+		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
+				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
+				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
+				" جهت تسویه مورد تایید می باشد";
+	}
+
+	@Override
+	public String generateGaamBrokerEmailContent(long gaamId) {
+		throw new UnsupportedOperationException("This method requires GaamRepository and should be called from GaamService");
+	}
+
+	@Override
+	public void sendGaamBrokerReckoningEmail(com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest emailRequest, String emailContent) {
+		log.info("Generated GAAM broker reckoning email content for broker: {} - Content: {}",
+				emailRequest.getBrokerName(), emailContent);
+		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
+	}
+
+	@Override
+	public void markAllGaamAsReckoning(Long proformaMasterId) {
+		List<com.nicico.internal.sales.gaam.model.GaamModel> billModels = 
+				gaamRepository.findAllByProformaMasterId(proformaMasterId);
+
+		if (billModels == null || billModels.isEmpty()) {
+			log.warn("No GAAM items found for proformaMasterId: {}", proformaMasterId);
+			return;
+		}
+
+
+		for (com.nicico.internal.sales.gaam.model.GaamModel item : billModels) {
+			boolean oldReckoningSend = item.isReckoningSend();
+			if (!oldReckoningSend) {
+				Date newReckoningSendDate = new Date();
+				item.setReckoningSend(true);
+				item.setReckoningSendDate(newReckoningSendDate);
+				item.setAcknowledgment(Acknowledgment.RECKONING);
+
+			}
+		}
+
+	}
+
+	@Override
+	public String buildGaamCancellationRecord(com.nicico.internal.sales.gaam.dto.GaamCancelRequest request) {
+		String timestamp = DateUtility.getJalaliDate(new Date());
+		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
+		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
+
+		return String.format(
+				"""
+							سابقه ابطال اوراق گام
+							**************************
+							تاریخ و زمان ابطال: %s
+							نام کاربری اقدام کننده: %s
+							دلیل ابطال: %s
+							توضیحات تکمیلی: %s
+							وضعیت: ابطال شده
+							**************************""",
+				timestamp, userFullName, com.nicico.internal.sales.lc.enums.LcCancellationReason.BUYER_WITHDRAWAL, notes
+		);
+	}
+
+	@Override
+	public void appendGaamCancellationRecord(com.nicico.internal.sales.gaam.model.GaamModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {
 			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
