@@ -39,8 +39,7 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	private final ExtraBillRepository extraBillRepository;
 	private final GaamRepository gaamRepository;
 	private final RemittanceMasterRepository remittanceMasterRepository;
-	private final LcAcknowledgmentDeterminer lcAcknowledgmentDeterminer;
-	private final ExtraBillAcknowledgmentDeterminerImpl extraBillAcknowledgmentDeterminer;
+	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
 
 
 	@Override
@@ -75,13 +74,13 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 
 	@Override
 	public Acknowledgment determineAcknowledgment(LcModel lcModel) {
-		return lcAcknowledgmentDeterminer.determine(lcModel);
+		return acknowledgmentDeterminer.determine(lcModel);
 	}
 
 
 	@Override
 	public Acknowledgment determineAcknowledgment(ExtraBankBillModel extraBankBillModel) {
-		return extraBillAcknowledgmentDeterminer.determine(extraBankBillModel);
+		return acknowledgmentDeterminer.determine(extraBankBillModel);
 	}
 
 

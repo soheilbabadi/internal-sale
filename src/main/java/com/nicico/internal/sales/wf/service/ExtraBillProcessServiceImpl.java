@@ -53,7 +53,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final ProcessVariableProvider processVariableProvider;
 	private final ExtraBillRepository extraBillRepository;
 	private final LcRepository lcRepository;
-	private final ExtraBillAcknowledgmentDeterminer extraBillAcknowledgmentDeterminer;
+	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
 	private final ObjectProvider<ExtraBillServiceImpl> self; // lazy handle to the proxy
 	private final ProcessUserAccessRepository processUserAccessRepository;
 
@@ -208,7 +208,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		bills.forEach(bill -> {
 			bill.setAcknowledgment(bill.getAcknowledgment() == Acknowledgment.RECKONING
 					? Acknowledgment.REMITTANCE
-					: extraBillAcknowledgmentDeterminer.determine(bill));
+					: acknowledgmentDeterminer.determine(bill));
 
 			if (acceptedFinally) {
 				bill.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
@@ -259,7 +259,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		ExtraBankBillModel master = extraBillRepository.findById(masterId)
 				.orElseThrow(() -> new EntityNotFoundException("ExtraBankBillModel not found: " + masterId));
 
-		Acknowledgment determined = extraBillAcknowledgmentDeterminer.determine(master);
+		Acknowledgment determined = acknowledgmentDeterminer.determine(master);
 		if (master.getAcknowledgment() != determined) {
 			master.setAcknowledgment(determined);
 		}

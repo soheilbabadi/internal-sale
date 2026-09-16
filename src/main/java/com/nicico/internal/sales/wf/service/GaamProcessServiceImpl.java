@@ -49,7 +49,7 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 	private final ExtraBillRepository extraBillRepository;
 
 	private final LcRepository lcRepository;
-	private final GaamAcknowledgmentDeterminer gaamAcknowledgmentDeterminer;
+	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
 
 
 	@Override
@@ -125,16 +125,46 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 
 		List<GaamModel> gaamModels = new ArrayList<>();
 		for (ProformaDetailModel detailModel : proformaMaster.getProformaDetailModelLists()) {
-			GaamModel gaamModel = new GaamModel();
-			gaamModel.setProcessId(processInstance.getId());
-			gaamModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-			gaamModel.setReversalProcessId(PROCESS_ID_PLACEHOLDER);
-			gaamModel.setReckoningSend(false);
-			gaamModel.setProformaMasterId(proformaMaster.getId());
-			gaamModel.setProformaDetailId(detailModel.getId());
-			gaamModel.setAcknowledgment(Acknowledgment.RECKONING);
-			gaamModel.setTradeId(proformaMaster.getTradeId());
-			gaamModel.setContractNo(proformaMaster.getContractNo());
+			GaamModel gaamModel = GaamModel.builder()
+					.processId(processInstance.getId())
+					.workflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS)
+					.reversalProcessId(PROCESS_ID_PLACEHOLDER)
+					.isReckoningSend(false)
+					.proformaMasterId(proformaMaster.getId())
+					.proformaDetailId(detailModel.getId())
+					.acknowledgment(Acknowledgment.RECKONING)
+					.tradeId(proformaMaster.getTradeId())
+					.contractNo(proformaMaster.getContractNo())
+					// Bank and branch information - to be filled from external source or left null for now
+					.issuerBankName(null)
+					.issuerBankId(null)
+					.branchCode(null)
+					.branchName(null)
+					.paymentCity(null)
+					.agentBankName(null)
+					.agentBankId(null)
+					// File IDs - to be filled when documents are uploaded
+					.extraBillFileId(null)
+					.dispatchAttachmentId(null)
+					// Codes - to be filled from external source or left null for now
+					.nosaCode(null)
+					.sepamCode(null)
+					.treasuryId(null)
+					// Dates - to be filled when GAAM is issued
+					.issueDate(null)
+					.dueDate(null)
+					// PMS Bill ID - to be filled from external source
+					.pmsBillId(null)
+					// Cancellation fields - to be filled if GAAM is canceled
+					.cancelDate(null)
+					.cancellationReason(null)
+					// Certificate count and extra bill amounts from detail model
+					.gamCertificateCount(detailModel.getGamCertificateCount() != null ? detailModel.getGamCertificateCount() : 0)
+					.extraBillOfExchangeAmount(detailModel.getExtraBillOfExchangeAmount() != null ? detailModel.getExtraBillOfExchangeAmount() : java.math.BigDecimal.ZERO)
+					.extraBillOfPercent(detailModel.getExtraBillOfPercent() != null ? detailModel.getExtraBillOfPercent() : java.math.BigDecimal.ZERO)
+					// Reckoning send date - null initially
+					.reckoningSendDate(null)
+					.build();
 			gaamModels.add(gaamModel);
 		}
 
@@ -202,7 +232,7 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 					gaam.setAcknowledgment(Acknowledgment.REMITTANCE);
 
 				else {
-					gaam.setAcknowledgment(gaamAcknowledgmentDeterminer.determine(gaam));
+					gaam.setAcknowledgment(acknowledgmentDeterminer.determine(gaam));
 				}
 				if (gaam.getAcknowledgment() == Acknowledgment.FINISHED) {
 					gaam.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
