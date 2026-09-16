@@ -3,13 +3,7 @@ package com.nicico.internal.sales.gaam.service;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.internal.sales.extrabill.dto.ExtraBillCancelRequest;
-import com.nicico.internal.sales.extrabill.dto.ProformaBankBillFileUpdateDto;
-import com.nicico.internal.sales.extrabill.dto.ProformaBankBillRequest;
-import com.nicico.internal.sales.extrabill.dto.UpdateExtraBillRequest;
-import com.nicico.internal.sales.gaam.dto.GaamAuditDto;
-import com.nicico.internal.sales.gaam.dto.GaamDto;
-import com.nicico.internal.sales.gaam.dto.GaamReportDto;
+import com.nicico.internal.sales.gaam.dto.*;
 import com.nicico.internal.sales.gaam.model.GaamModel;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,37 +16,41 @@ public interface GaamService {
 	SearchDTO.SearchRs<GaamReportDto.Info> searchReport(SearchDTO.SearchRq request);
 
 	@Transactional
-	List<GaamDto.Info> saveAll(
-			List<ProformaBankBillRequest> requests);
+	List<GaamDto.Info> saveAll(	List<GaamRequest> requests);
+
+
 
 	@Transactional
-	GaamDto.Info save(ProformaBankBillRequest request);
+	GaamDto.Info save(GaamRequest request);
 
 	List<GaamDto.Info> getByMasterId(Long proformaMasterId);
 
+	
 	@Transactional
-	GaamDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto);
-
-	@Transactional
-	void sendReckoningEmail(Long extraBillId);
-
-	String generateExtraBillBrokerEmailContent(long extraBillId);
-
-	Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId);
-
-	ProcessInstanceHistory getHistoryDetail(Long extraBillId);
+	GaamDto.Info updateGaamFiles(GaamFileUpdateDto updateDto);
 
 	@Transactional
-	GaamDto.Info updateExtraBill(UpdateExtraBillRequest updateExtraBillRequest);
+	void sendReckoningEmail(Long gaamId);
+
+	String generateGaamBrokerEmailContent(long gaamId);
+
+	Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long gaamID);
+
+	ProcessInstanceHistory getHistoryDetail(Long gaamId);
+
+	@Transactional
+	GaamDto.Info update(UpdateGaamRequest updateGaamRequest);
+
+	
 
 	@Transactional(readOnly = true)
-	List<GaamAuditDto> getAuditHistory(Long extraBillId);
+	List<GaamAuditDto> getAuditHistory(Long gaamID);
 
 	SearchDTO.SearchRs<GaamReportDto.Info> findReadyReckoning(SearchDTO.SearchRq request);
 
 	void markAllAsReckoning(Long proformaMasterId);
 
-	void cancel(ExtraBillCancelRequest request);
+	void cancel(GaamCancelRequest request);
 
-	void cancelExtraBillModel(GaamModel model, ExtraBillCancelRequest request);
+	void cancelGaamModel(GaamModel model, GaamCancelRequest request);
 }

@@ -5,17 +5,13 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
+import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
 import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.extrabill.dto.ExtraBillCancelRequest;
-import com.nicico.internal.sales.extrabill.dto.ProformaBankBillFileUpdateDto;
-import com.nicico.internal.sales.extrabill.dto.ProformaBankBillRequest;
-import com.nicico.internal.sales.extrabill.dto.UpdateExtraBillRequest;
-import com.nicico.internal.sales.gaam.dto.GaamAuditDto;
-import com.nicico.internal.sales.gaam.dto.GaamDto;
-import com.nicico.internal.sales.gaam.dto.GaamReportDto;
+import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
+import com.nicico.internal.sales.gaam.dto.*;
 import com.nicico.internal.sales.gaam.mapper.GaamMapper;
 import com.nicico.internal.sales.gaam.mapper.GaamReportMapper;
 import com.nicico.internal.sales.gaam.mapper.GaamRevokingMapper;
@@ -25,13 +21,14 @@ import com.nicico.internal.sales.gaam.repository.GaamReadyRevokingRepository;
 import com.nicico.internal.sales.gaam.repository.GaamReportRepository;
 import com.nicico.internal.sales.gaam.repository.GaamRepository;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
-import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
+import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
-import com.nicico.internal.sales.lc.service.LcServiceHelper;
+import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
@@ -82,17 +79,19 @@ public class GaamServiceImpl implements GaamService {
 	private final GaamReportRepository gaamReportRepository;
 	private final GaamReportMapper gaamReportMapper;
 	private final ProformaMasterRepository proformaMasterRepository;
-	private final BrokerRepository brokerRepository;
-	private final IMETradeRepository imeTradeRepository;
-	private final NotificationService notificationService;
 	private final GaamAuditRepository auditRepository;
 	private final GaamReadyRevokingRepository gaamReadyRevokingRepository;
 	private final GaamRevokingMapper gaamRevokingMapper;
+	private final NotificationService notificationService;
 
 	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
-	private final LcServiceHelper lcServiceHelper;
+	private static final String ERROR_TRADE_NOT_FOUND = "کالای مورد نظر وجود ندارد";
 
+	private final LcRepository lcRepository;
+	private final BrokerRepository brokerRepository;
+	private final IMETradeRepository imeTradeRepository;
+	private final ExtraBillRepository extraBillRepository;
 	// ==================== PROFORMA CREATION ====================
 
 	// ==================== BANK BILL CRUD ====================
@@ -112,21 +111,16 @@ public class GaamServiceImpl implements GaamService {
 
 	@Transactional
 	@Override
-	public List<GaamDto.Info> saveAll(
-			List<ProformaBankBillRequest> requests) {
-
+	public List<GaamDto.Info> saveAll(List<GaamRequest> requests) {
 		log.debug("Saving {} extra bills", requests.size());
-
 		if (requests.isEmpty()) return Collections.emptyList();
-
-
 		List<GaamModel> models = requests.stream().map(this::prepareExtraBankBill).toList();
 		List<GaamModel> savedModels = gaamRepository.saveAllAndFlush(models);
 		return savedModels.stream().map(gaamMapper::toDTO).toList();
 	}
 
-	private GaamModel prepareExtraBankBill(ProformaBankBillRequest request) {
-		validateProformaBankBillRequest(request);
+	private GaamModel prepareExtraBankBill(GaamRequest request) {
+		ValidateGaamRequest(request);
 		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId()).orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		try {
@@ -158,11 +152,11 @@ public class GaamServiceImpl implements GaamService {
 
 	@Transactional
 	@Override
-	public GaamDto.Info save(ProformaBankBillRequest request) {
+	public GaamDto.Info save(GaamRequest request) {
 		log.debug("Saving extra bill for detailId: {}", request.getProformaDetailId());
 
 		// Validate mandatory fields
-		validateProformaBankBillRequest(request);
+		ValidateGaamRequest(request);
 
 		// اعتبارسنجی و یافتن موجودیت ها
 		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId())
@@ -216,8 +210,8 @@ public class GaamServiceImpl implements GaamService {
 	/**
 	 * Validates the ProformaBankBillRequest for mandatory fields
 	 */
-	private void validateProformaBankBillRequest(ProformaBankBillRequest request) {
-		//processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+	private void ValidateGaamRequest(GaamRequest request) {
+
 
 		if (request.getIssuerBankId() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_ISSUER_BANK_ID_REQUIRED);
@@ -252,7 +246,7 @@ public class GaamServiceImpl implements GaamService {
 
 	@Transactional
 	@Override
-	public GaamDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto) {
+	public GaamDto.Info updateGaamFiles(GaamFileUpdateDto updateDto) {
 		// یافتن برات بر اساس شناسه
 		GaamModel bill = gaamRepository.findById(updateDto.getId())
 				.orElseThrow(() -> new RuntimeException("برات با شناسه " + updateDto.getId() + " یافت نشد"));
@@ -273,63 +267,143 @@ public class GaamServiceImpl implements GaamService {
 
 	@Transactional
 	@Override
-	public void sendReckoningEmail(Long extraBillId) {
+	public void sendReckoningEmail(Long gaamId) {
 
-		GaamModel billModel = gaamRepository.findById(extraBillId)
+		GaamModel billModel = gaamRepository.findById(gaamId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
 
-		lcServiceHelper.markAllGaamAsReckoning(billModel.getProformaMasterId());
+		markAllGaamAsReckoning(billModel.getProformaMasterId());
 		ProformaDetailModel detail = proformaDetailRepository.findById(billModel.getProformaDetailId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = lcServiceHelper.buildGaamBrokerEmailRequest(detail, broker);
-		String emailContent = lcServiceHelper.generateGaamBrokerEmailContent(emailRequest);
-		lcServiceHelper.sendGaamBrokerReckoningEmail(emailRequest, emailContent);
+		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		BrokerEmailRequest emailRequest = buildGaamBrokerEmailRequest(detail);
+		String emailContent = generateGaamBrokerEmailContent(gaamId);
+		sendGaamBrokerReckoningEmail(emailRequest, emailContent);
+	}
+
+	
+
+	public void sendGaamBrokerReckoningEmail(BrokerEmailRequest emailRequest, String emailContent) {
+		log.info("Generated GAAM broker reckoning email content for broker: {} - Content: {}",
+				emailRequest.getBrokerName(), emailContent);
+		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
+	}
+
+	
+	public BrokerEmailRequest buildGaamBrokerEmailRequest(ProformaDetailModel detail) {
+		
+		markAllGaamAsReckoning(detail.getProformaMasterId());
+
+
+		var masterModel = proformaMasterRepository.findById(detail.getProformaMasterId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
+		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		
+		BrokerEmailRequest request = new BrokerEmailRequest();
+		
+		request.setContractNo(proformaMasterRepository.findById(detail.getProformaMasterId())
+				.map(ProformaMasterModel::getContractNo).get());
+
+		request.setContractDate(detail.getContractDate());
+		request.setQuantity(
+				proformaMasterRepository.findById(detail.getProformaMasterId())
+						.map(m -> m.getTotalQuantity().longValue())
+						.get());
+
+		request.setCustomerName(
+				proformaMasterRepository.findById(detail.getProformaMasterId())
+						.map(ProformaMasterModel::getCustomerName)
+						.get());
+		request.setGoodName(
+				proformaMasterRepository.findById(detail.getProformaMasterId())
+						.map(ProformaMasterModel::getGoodName)
+						.get());
+		request.setBrokerName(broker.getName());
+		request.setBrokerEmail(broker.getEmail());
+
+		return request;
+	}
+
+	public BrokerModel fetchBrokerForTrade(Long tradeId) {
+		var sellerBrokerCode = imeTradeRepository.findSellerBrokerCodeById(tradeId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						ERROR_TRADE_NOT_FOUND));
+		return brokerRepository.findById(sellerBrokerCode)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						MSG_BROKER_EMAIL_MISSING));
 	}
 
 
+	public void markAllGaamAsReckoning(Long proformaMasterId) {
+		List<com.nicico.internal.sales.gaam.model.GaamModel> billModels =
+				gaamRepository.findAllByProformaMasterId(proformaMasterId);
+
+		if (billModels == null || billModels.isEmpty()) {
+			log.warn("No GAAM items found for proformaMasterId: {}", proformaMasterId);
+			return;
+		}
+
+
+		for (com.nicico.internal.sales.gaam.model.GaamModel item : billModels) {
+			boolean oldReckoningSend = item.isReckoningSend();
+			if (!oldReckoningSend) {
+				Date newReckoningSendDate = new Date();
+				item.setReckoningSend(true);
+				item.setReckoningSendDate(newReckoningSendDate);
+				item.setAcknowledgment(Acknowledgment.RECKONING);
+
+			}
+		}
+
+	}
+
 
 	@Override
-	public String generateExtraBillBrokerEmailContent(long extraBillId) {
+	public String generateGaamBrokerEmailContent(long gaamId) {
 
-
-		GaamModel billModel = gaamRepository.findById(extraBillId)
+		GaamModel billModel = gaamRepository.findById(gaamId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
 		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_SALES_CONTRACT_NOT_FOUND));
 
-		ProformaDetailModel detail = gaamRepository.getDetailByBillId(extraBillId).orElseThrow(
+		ProformaDetailModel detail = gaamRepository.getDetailByBillId(gaamId).orElseThrow(
 				() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = lcServiceHelper.buildGaamBrokerEmailRequest(detail, broker);
-		return lcServiceHelper.generateGaamBrokerEmailContent(emailRequest);
+		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		BrokerEmailRequest dto = buildGaamBrokerEmailRequest(detail);
+
+		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
+				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
+				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
+				" جهت تسویه مورد تایید می باشد";
+	}
+
+	
+	
+
+	@Override
+	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long gaamId) {
+
+		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+		return processStatusDeterminerService.getGaamSummaryReport(gaamId);
+
 	}
 
 
 	@Override
-	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId) {
-
+	public ProcessInstanceHistory getHistoryDetail(Long gaamId) {
 		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
-		return processStatusDeterminerService.getProformaBankBillSummaryReport(extraBillId);
-
-	}
-
-
-	@Override
-	public ProcessInstanceHistory getHistoryDetail(Long extraBillId) {
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
-		return processStatusDeterminerService.getProformaBankBillHistoryDetail(extraBillId);
+		return processStatusDeterminerService.getGaamHistoryDetail(gaamId);
 	}
 
 
 	@Transactional
 	@Override
-	public GaamDto.Info updateExtraBill(UpdateExtraBillRequest updateExtraBillRequest) {
+	public GaamDto.Info update(UpdateGaamRequest updateExtraBillRequest) {
 		GaamModel bill = gaamRepository.findById(updateExtraBillRequest.getId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
@@ -349,26 +423,22 @@ public class GaamServiceImpl implements GaamService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public List<GaamAuditDto> getAuditHistory(Long extraBillId) {
-		boolean existBill = gaamRepository.existsById(extraBillId);
+	public List<GaamAuditDto> getAuditHistory(Long gaamId) {
+		boolean existBill = gaamRepository.existsById(gaamId);
 		if (!existBill) {
 			throw new InternalSaleCustomException.ValidationException(
-					"برات با شناسه " + extraBillId + " یافت نشد");
+					"برات با شناسه " + gaamId + " یافت نشد");
 		}
-		log.info("Fetching audit history for Extra Bill ID: {}", extraBillId);
-		return auditRepository.getAuditHistory(extraBillId);
+		log.info("Fetching audit history for Extra Bill ID: {}", gaamId);
+		return auditRepository.getAuditHistory(gaamId);
 	}
 
 
 	@Override
 	public SearchDTO.SearchRs<GaamReportDto.Info> findReadyReckoning(SearchDTO.SearchRq request) {
 		SearchDTO.SearchRq searchRq = request == null ? new SearchDTO.SearchRq() : request;
-		SearchDTO.CriteriaRq rootCriteria = searchRq.getCriteria();
-
-
 		return SearchUtil.search(gaamReadyRevokingRepository, searchRq, gaamRevokingMapper::toDTO);
 	}
-
 
 	@Override
 	public void markAllAsReckoning(Long proformaMasterId) {
@@ -379,8 +449,6 @@ public class GaamServiceImpl implements GaamService {
 			log.warn("No ExtraBill items found for proformaMasterId: {}", proformaMasterId);
 			return;
 		}
-
-
 		for (GaamModel item : billModels) {
 			boolean oldReckoningSend = item.isReckoningSend();
 			if (!oldReckoningSend) {
@@ -388,40 +456,61 @@ public class GaamServiceImpl implements GaamService {
 				item.setReckoningSend(true);
 				item.setReckoningSendDate(newReckoningSendDate);
 				item.setAcknowledgment(Acknowledgment.RECKONING);
-
 				gaamRepository.save(item);
 			}
-
 		}
-
 	}
 
-
-
 	@Override
-	public void cancel(ExtraBillCancelRequest request) {
+	public void cancel(GaamCancelRequest request) {
 
-		GaamModel bill = gaamRepository.findById(request.getId())
+		GaamModel gaamModel = gaamRepository.findById(request.getId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
-		List<GaamModel> lcModelList = gaamRepository.findAllByProformaMasterId(bill.getProformaMasterId());
+		List<GaamModel> lcModelList = gaamRepository.findAllByProformaMasterId(gaamModel.getProformaMasterId());
 
-		lcModelList.forEach(model -> cancelExtraBillModel(model, request));
+		lcModelList.forEach(model -> cancelGaamModel(model, request));
 	}
 
-
 	@Override
-	public void cancelExtraBillModel(GaamModel model, ExtraBillCancelRequest request) {
+	public void cancelGaamModel(GaamModel model, GaamCancelRequest request) {
+		ProformaDetailModel  detailModel=proformaDetailRepository.findById(request.getId()).get();
 		model.setCancelDate(new Date());
 		model.setCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
-
-		String cancellationRecord = lcServiceHelper.buildGaamCancellationRecord(request);
-		lcServiceHelper.appendGaamCancellationRecord(model, cancellationRecord);
+		
+		appendGaamCancellationRecord(model,buildCancellationRecord(request) );
 
 		gaamRepository.save(model);
 	}
+	
 
 
+	public void appendGaamCancellationRecord(GaamModel model, String cancellationRecord) {
+		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
+		if (!existingDesc.isEmpty()) {
+			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
+		} else {
+			model.setDescription(cancellationRecord);
+		}
+	}
+	private String buildCancellationRecord(GaamCancelRequest request) {
+		String timestamp = DateUtility.getJalaliDate(new Date());
+		String userFullName = SecurityUtil.getFullName();
+		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
+
+		return String.format(
+				"""
+						سابقه ابطال اوراق گام
+						**************************
+						تاریخ و زمان ابطال: %s
+						نام کاربری اقدام کننده: %s
+						دلیل ابطال: %s
+						توضیحات تکمیلی: %s
+						وضعیت: ابطال شده
+						**************************""",
+				timestamp, userFullName, LcCancellationReason.BUYER_WITHDRAWAL, notes
+		);
+	}
 
 }

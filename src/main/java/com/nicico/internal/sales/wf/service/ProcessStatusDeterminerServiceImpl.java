@@ -41,7 +41,6 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	private final RemittanceMasterRepository remittanceMasterRepository;
 	private final LcAcknowledgmentDeterminer lcAcknowledgmentDeterminer;
 	private final ExtraBillAcknowledgmentDeterminerImpl extraBillAcknowledgmentDeterminer;
-	private final GaamAcknowledgmentDeterminerImpl gaamAcknowledgmentDeterminer;
 
 
 	@Override
@@ -85,11 +84,6 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 		return extraBillAcknowledgmentDeterminer.determine(extraBankBillModel);
 	}
 
-	@Override
-	public Acknowledgment determineAcknowledgment(GaamModel gaamModel) {
-		return gaamAcknowledgmentDeterminer.determine(gaamModel);
-	}
-
 
 	@Override
 	public ProcessInstanceHistory getProformaHistoryDetail(Long proformaMasterId) {
@@ -112,6 +106,20 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	}
 
 	@Override
+	public ProcessInstanceHistory getGaamHistoryDetail(Long gaamId) {
+		GaamModel gaamModel = gaamRepository.findById(gaamId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
+		return getHistoryWithResolvedAssignees(gaamModel.getProcessId());
+	}
+
+	@Override
+	public Map<String, List<UserTaskReportDTO>> getGaamSummaryReport(Long gaamId) {
+		GaamModel gaamModel = gaamRepository.findById(gaamId)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
+		return getUserTaskReportOrEmpty(gaamModel.getProcessId());
+	}
+
+	@Override
 	public Map<String, List<UserTaskReportDTO>> getRemittanceSummaryReport(Long remittanceId) {
 		RemittanceMasterModel remittanceModel = findRemittanceOrThrow(remittanceId);
 		return getUserTaskReportOrEmpty(remittanceModel.getProcessId());
@@ -129,18 +137,6 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 		return getUserTaskReportOrEmpty(billModel.getProcessId());
 	}
 
-	@Override
-	public ProcessInstanceHistory getGaamHistoryDetail(Long gaamId) {
-		GaamModel gaamModel = findGaamOrThrow(gaamId);
-		return getHistoryWithResolvedAssignees(gaamModel.getProcessId());
-	}
-
-	@Override
-	public Map<String, List<UserTaskReportDTO>> getGaamSummaryReport(Long gaamId) {
-		GaamModel gaamModel = findGaamOrThrow(gaamId);
-		return getUserTaskReportOrEmpty(gaamModel.getProcessId());
-	}
-
 	private LcModel findLcOrThrow(Long lcId) {
 		return lcRepository.findById(lcId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
@@ -149,11 +145,6 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 
 	private ExtraBankBillModel findExtraBillOrThrow(Long extraBillId) {
 		return extraBillRepository.findById(extraBillId)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
-	}
-
-	private GaamModel findGaamOrThrow(Long gaamId) {
-		return gaamRepository.findById(gaamId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(RESOURCE_NOT_FOUND_MESSAGE));
 	}
 
@@ -176,28 +167,6 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 					extraBillRepository.saveAndFlush(bankBillModel);
 				} catch (ObjectOptimisticLockingFailureException ex) {
 					log.debug("Skipping concurrent extra-bill acknowledgment update for id={}", bankBillModel.getId(), ex);
-				}
-			}
-		}
-	}
-
-	@Override
-	public void updateAllGaamAcknowledgments() {
-		List<GaamModel> gaamModels = gaamRepository.findAll();
-
-		for (GaamModel gaamModel : gaamModels) {
-			if (isTerminalAcknowledgment(gaamModel.getAcknowledgment())) {
-				continue;
-			}
-
-			Acknowledgment determined = determineAcknowledgment(gaamModel);
-
-			if (gaamModel.getAcknowledgment() != determined) {
-				gaamModel.setAcknowledgment(determined);
-				try {
-					gaamRepository.saveAndFlush(gaamModel);
-				} catch (ObjectOptimisticLockingFailureException ex) {
-					log.debug("Skipping concurrent GAAM acknowledgment update for id={}", gaamModel.getId(), ex);
 				}
 			}
 		}

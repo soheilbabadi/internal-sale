@@ -21,11 +21,17 @@ public interface ProcessVariableProvider {
 
 	Map<String, Object> createRemittanceRequestVariable(RemittanceVariablesInput input);
 
+	Map<String, Object> createGaamRequestVariables(ProformaVariablesInput input);
+
+	Map<String, String> getGaamUserAccess();
+
 	Map<String, String> getProformaUserAccess();
 
 	Map<String, String> getRemittanceUserAccess();
 
 	Map<String, String> getReversalUserAccess();
+
+	WorkflowModel getGaamWorkflowByTitle();
 
 	WorkflowModel getLcWorkflowByTitle();
 

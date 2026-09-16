@@ -1,6 +1,6 @@
 package com.nicico.internal.sales.notification.service;
 
-import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
+import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 
 public interface NotificationService {
 	void sendEmailWithProformaAttachment(Long proformaMasterId);
@@ -9,7 +9,7 @@ public interface NotificationService {
 
 	void sendEmailWithEditedRemittanceAttachment(Long remittanceId);
 
-	void sendEmailForLcBroker(LcBrokerEmailRequest lcBrokerEmailRequest, String emailContent);
+	void sendEmailForLcBroker(BrokerEmailRequest brokerEmailRequest, String emailContent);
 
 
 }

@@ -6,7 +6,7 @@ import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepos
 import com.nicico.internal.sales.fms.service.FmsDocumentService;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
-import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
+import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.notification.dto.EmailRequest;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
@@ -147,7 +147,7 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
-	public void sendEmailForLcBroker(LcBrokerEmailRequest dto, String emailContent) {
+	public void sendEmailForLcBroker(BrokerEmailRequest dto, String emailContent) {
 		if (!isEmailSendingEnabled(EntityTypeEnum.LETTER_OF_CREDIT)) {
 			return;
 		}

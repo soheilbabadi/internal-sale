@@ -23,6 +23,6 @@ public abstract class BaseOrderRequest implements Serializable {
 	private ProformaIssueType proformaIssueType;
 	private Integer deadlineDays;
 	private Date orderDate;
-//	private int gamCertificateCount;
+
 
 }

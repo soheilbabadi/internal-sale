@@ -10,7 +10,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class LcBrokerEmailRequest implements Serializable {
+public class BrokerEmailRequest implements Serializable {
 	@Serial
 	private static final long serialVersionUID = -1797638256762810523L;
 	private long contractNo;

@@ -16,10 +16,9 @@ import com.nicico.internal.sales.extrabill.repository.ProformaBankBillAuditRepos
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillReportRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillRevokingRepository;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
-import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
+import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
-import com.nicico.internal.sales.lc.service.LcServiceHelper;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
@@ -83,7 +82,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
-	private final LcServiceHelper lcServiceHelper;
 
 	// ==================== PROFORMA CREATION ====================
 
@@ -268,10 +266,10 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
 
 		markAllBillsAsReckoning(billModel.getProformaMasterId());
-		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = lcServiceHelper.buildExtraBillBrokerEmailRequest(masterModel, broker);
-		String emailContent = lcServiceHelper.generateExtraBillBrokerEmailContent(emailRequest);
-		lcServiceHelper.sendExtraBillBrokerReckoningEmail(emailRequest, emailContent);
+		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		BrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(masterModel, broker);
+		String emailContent = generateExtraBillBrokerEmailContent(emailRequest);
+		sendExtraBillBrokerReckoningEmail(emailRequest, emailContent);
 	}
 
 	/**
@@ -309,12 +307,12 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	/**
 	 * ساخت درخواست ایمیل برای کارگزار
 	 */
-	private LcBrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
+	private BrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
 
 
 		this.markAllAsReckoning(proformaMaster.getId());
 
-		LcBrokerEmailRequest request = new LcBrokerEmailRequest();
+		BrokerEmailRequest request = new BrokerEmailRequest();
 		request.setContractNo(proformaMaster.getContractNo());
 		request.setContractDate(proformaMaster.getContractDate());
 		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
@@ -329,7 +327,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	/**
 	 * تولید محتوای ایمیل برای کارگزار
 	 */
-	private String generateExtraBillBrokerEmailContent(LcBrokerEmailRequest dto) {
+	private String generateExtraBillBrokerEmailContent(BrokerEmailRequest dto) {
 		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
 				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
 				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
@@ -347,9 +345,9 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_SALES_CONTRACT_NOT_FOUND));
 
-		var broker = lcServiceHelper.fetchBrokerForTrade(masterModel.getTradeId());
-		LcBrokerEmailRequest emailRequest = lcServiceHelper.buildExtraBillBrokerEmailRequest(masterModel, broker);
-		return lcServiceHelper.generateExtraBillBrokerEmailContent(emailRequest);
+		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		BrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(masterModel, broker);
+		return generateExtraBillBrokerEmailContent(emailRequest);
 	}
 
 	@Override
@@ -369,7 +367,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	/**
 	 * ارسال ایمیل تسویه به کارگزار
 	 */
-	private void sendExtraBillBrokerReckoningEmail(LcBrokerEmailRequest emailRequest, String emailContent) {
+	private void sendExtraBillBrokerReckoningEmail(BrokerEmailRequest emailRequest, String emailContent) {
 		log.info("Generated Extra Bill broker reckoning email content for broker: {} - Content: {}",
 				emailRequest.getBrokerName(), emailContent);
 		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
@@ -454,13 +452,41 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	}
 
 
+	public void appendExtraBillCancellationRecord(ExtraBankBillModel model, String cancellationRecord) {
+		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
+		if (!existingDesc.isEmpty()) {
+			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
+		} else {
+			model.setDescription(cancellationRecord);
+		}
+	}
+
+	public String buildExtraBillCancellationRecord(com.nicico.internal.sales.extrabill.dto.ExtraBillCancelRequest request) {
+		String timestamp = DateUtility.getJalaliDate(new Date());
+		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
+		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
+
+		return String.format(
+				"""
+						سابقه ابطال برات الکترونیک
+						**************************
+						تاریخ و زمان ابطال: %s
+						نام کاربری اقدام کننده: %s
+						دلیل ابطال: %s
+						توضیحات تکمیلی: %s
+						وضعیت: ابطال شده
+						**************************""",
+				timestamp, userFullName, com.nicico.internal.sales.lc.enums.LcCancellationReason.BUYER_WITHDRAWAL, notes
+		);
+	}
+
 	public void cancelExtraBillModel(ExtraBankBillModel model, ExtraBillCancelRequest request) {
 		model.setCancelDate(new Date());
 		model.setCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
 
-		String cancellationRecord = lcServiceHelper.buildExtraBillCancellationRecord(request);
-		lcServiceHelper.appendExtraBillCancellationRecord(model, cancellationRecord);
+		String cancellationRecord = buildCancellationRecord(request);
+		appendExtraBillCancellationRecord(model, cancellationRecord);
 
 		extraBillRepository.save(model);
 	}

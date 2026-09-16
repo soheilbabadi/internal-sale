@@ -3,7 +3,6 @@ package com.nicico.internal.sales.wf.service;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
-import com.nicico.internal.sales.gaam.model.GaamModel;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.model.LcModel;
 
@@ -23,8 +22,6 @@ public interface ProcessStatusDeterminerService {
 
 	Acknowledgment determineAcknowledgment(ExtraBankBillModel extraBankBillModel);
 
-	Acknowledgment determineAcknowledgment(GaamModel gaamModel);
-
 	ProcessInstanceHistory getProformaHistoryDetail(Long proformaMasterId);
 
 	Map<String, List<UserTaskReportDTO>> getProformaSummaryReport(Long proformaMasterId);
@@ -32,21 +29,18 @@ public interface ProcessStatusDeterminerService {
 
 	ProcessInstanceHistory getRemittanceHistoryDetail(Long remittanceId);
 
+	ProcessInstanceHistory getGaamHistoryDetail(Long gaamId);
+	Map<String, List<UserTaskReportDTO>> getGaamSummaryReport(Long gaamId);
+
 	Map<String, List<UserTaskReportDTO>> getRemittanceSummaryReport(Long remittanceId);
 
 	ProcessInstanceHistory getProformaBankBillHistoryDetail(Long billId);
 
 	Map<String, List<UserTaskReportDTO>> getProformaBankBillSummaryReport(Long billId);
 
-	ProcessInstanceHistory getGaamHistoryDetail(Long gaamId);
-
-	Map<String, List<UserTaskReportDTO>> getGaamSummaryReport(Long gaamId);
-
 	void updateAllLcAcknowledgments();
 
 	void updateAllExtraBillAcknowledgments();
-
-	void updateAllGaamAcknowledgments();
 
 	boolean isTerminalAcknowledgment(Acknowledgment acknowledgment);
 }

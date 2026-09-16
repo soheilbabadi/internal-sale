@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.lc.service;
 
+
 import com.nicico.internal.sales.bank.model.IssuingBankModel;
 import com.nicico.internal.sales.bank.model.TradingBankModel;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
@@ -7,8 +8,12 @@ import com.nicico.internal.sales.bank.repository.TradingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
 import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
+import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
+import com.nicico.internal.sales.gaam.dto.GaamCancelRequest;
+import com.nicico.internal.sales.gaam.repository.GaamRepository;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
-import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
+import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.lc.dto.request.LcCancelRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateAcceptedLcRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateStartedLcRequest;
@@ -33,11 +38,10 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class LcServiceHelperImpl implements LcServiceHelper {
+public class LcServiceHelperImpl   {
 	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور وجود ندارد";
 	private static final String MSG_LC_NOT_FOUND = "اعتبار اسنادی وجود ندارد";
 	private static final String MSG_TRADING_BANK_NOT_FOUND = "شعبه بانک وجود ندارد";
@@ -59,24 +63,24 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	private final BrokerRepository brokerRepository;
 	private final IMETradeRepository imeTradeRepository;
 	private final LcNosaCodeService lcNosaCodeService;
-	private final com.nicico.internal.sales.gaam.repository.GaamRepository gaamRepository;
-	private final com.nicico.internal.sales.extrabill.repository.ExtraBillRepository extraBillRepository;
+	private final GaamRepository gaamRepository;
+	private final ExtraBillRepository extraBillRepository;
 
-	@Override
+	
 	public ProformaDetailModel findProformaDetail(Long proformaId) {
 		return proformaDetailRepository.findById(proformaId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_PROFORMA_NOT_FOUND));
 	}
 
-	@Override
+	
 	public LcModel findLcModel(Long proformaId) {
 		return lcRepository.findFirstByProformaDetailIdOrderByCreatedDateDesc(proformaId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_LC_NOT_FOUND));
 	}
 
-	@Override
+	
 	public TradingBankModel findBankBranch(Long requestId, Long fallbackId) {
 		Long id = requestId != null ? requestId : fallbackId;
 		return tradingBankRepository.findById(id)
@@ -84,7 +88,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 						MSG_TRADING_BANK_NOT_FOUND));
 	}
 
-	@Override
+	
 	public IssuingBankModel findIssuingBank(Long requestId, Long fallbackId) {
 		Long id = requestId != null ? requestId : fallbackId;
 		String notFoundMsg = requestId != null
@@ -95,7 +99,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
+	
 	public BrokerModel fetchBrokerForTrade(Long tradeId) {
 		var sellerBrokerCode = imeTradeRepository.findSellerBrokerCodeById(tradeId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
@@ -105,7 +109,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 						MSG_BROKER_EMAIL_MISSING));
 	}
 
-	@Override
+	
 	public void validateAndAdjustLcDate(UpdateStartedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
 		if (lcRequest.getLcDate() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_EMPTY);
@@ -126,7 +130,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
+	
 	public void validateAndAdjustLcDate(UpdateAcceptedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
 		if (lcRequest.getLcDate() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_EMPTY);
@@ -147,7 +151,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
+	
 	public void populateLcModel(LcModel lcModel, UpdateStartedLcRequest lcRequest,
 	                            ProformaDetailModel proformaDetail, ProformaMasterModel proformaMaster,
 	                            TradingBankModel tradingBank, IssuingBankModel issuingBank, Date expireDate) {
@@ -185,7 +189,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 
 	}
 
-	@Override
+	
 	public void updateTradingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
 		if (request.getTradingBankId() != null) {
 			TradingBankModel tradingBank = tradingBankRepository.findById(request.getTradingBankId())
@@ -198,7 +202,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
+	
 	public void updateIssuingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
 		if (request.getIssuerBankId() != null) {
 			IssuingBankModel issuingBank = issuingBankRepository.findById(request.getIssuerBankId())
@@ -212,7 +216,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
+	
 	public void updateLcDetailsIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
 		if (request.getLcNo() != null) {
 			lc.setLcNo(request.getLcNo());
@@ -241,7 +245,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
+	
 	public void validateDispatchFileRequirement(LcModel lcModel, String dispatchFileId) {
 		if (Boolean.TRUE.equals(lcModel.getRequireDispatchFile()) && dispatchFileId == null) {
 			throw new InternalSaleCustomException.ValidationException(
@@ -250,14 +254,14 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
-	public LcBrokerEmailRequest buildLcBrokerEmailRequest(ProformaDetailModel detail, BrokerModel broker) {
+	
+	public BrokerEmailRequest buildLcBrokerEmailRequest(ProformaDetailModel detail, BrokerModel broker) {
 
 		var proformaMaster = proformaMasterRepository.findById(detail.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						"قرارداد فروش وجود ندارد "));
 
-		LcBrokerEmailRequest request = new LcBrokerEmailRequest();
+		BrokerEmailRequest request = new BrokerEmailRequest();
 		request.setContractNo(proformaMaster.getContractNo());
 		request.setContractDate(detail.getContractDate());
 		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
@@ -269,7 +273,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
+	
 	public void markAllLcsAsReckoning(Long proformaMasterId) {
 		List<LcModel> lcItems = lcRepository.findByMasterId(proformaMasterId);
 
@@ -292,18 +296,15 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 		lcRepository.saveAllAndFlush(lcItems);
 	}
 
-	@Override
-	public void sendLcBrokerReckoningEmail(LcBrokerEmailRequest lcBrokerEmailRequest, String emailContent) {
+	
+	public void sendLcBrokerReckoningEmail(BrokerEmailRequest brokerEmailRequest, String emailContent) {
 		log.info("Generated LC broker reckoning email content for broker: {} - Content: {}",
-				lcBrokerEmailRequest.getBrokerName(), emailContent);
-		notificationService.sendEmailForLcBroker(lcBrokerEmailRequest, emailContent);
+				brokerEmailRequest.getBrokerName(), emailContent);
+		notificationService.sendEmailForLcBroker(brokerEmailRequest, emailContent);
 	}
 
 
-
-
-
-	@Override
+	
 	public String buildCancellationRecord(LcCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());
 		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
@@ -324,7 +325,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 	}
 
 
-	@Override
+	
 	public void appendCancellationRecord(LcModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {
@@ -334,11 +335,11 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 		}
 	}
 
-	@Override
-	public com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
+	
+	public BrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
 		markAllAsReckoning(proformaMaster.getId());
 
-		com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest request = new com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest();
+		BrokerEmailRequest request = new BrokerEmailRequest();
 		request.setContractNo(proformaMaster.getContractNo());
 		request.setContractDate(proformaMaster.getContractDate());
 		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
@@ -350,29 +351,29 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 		return request;
 	}
 
-	@Override
-	public String generateExtraBillBrokerEmailContent(com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest dto) {
+	
+	public String generateExtraBillBrokerEmailContent(BrokerEmailRequest dto) {
 		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
 				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
 				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
 				" جهت تسویه مورد تایید می باشد";
 	}
 
-	@Override
+	
 	public String generateExtraBillBrokerEmailContent(long extraBillId) {
 		throw new UnsupportedOperationException("This method requires ExtraBillRepository and should be called from ExtraBillService");
 	}
 
-	@Override
-	public void sendExtraBillBrokerReckoningEmail(com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest emailRequest, String emailContent) {
+	
+	public void sendExtraBillBrokerReckoningEmail(BrokerEmailRequest emailRequest, String emailContent) {
 		log.info("Generated Extra Bill broker reckoning email content for broker: {} - Content: {}",
 				emailRequest.getBrokerName(), emailContent);
 		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
 	}
 
-	@Override
+	
 	public void markAllAsReckoning(Long proformaMasterId) {
-		List<com.nicico.internal.sales.extrabill.model.ExtraBankBillModel> billModels = 
+		List<com.nicico.internal.sales.extrabill.model.ExtraBankBillModel> billModels =
 				extraBillRepository.findAllByProformaMasterId(proformaMasterId);
 
 		if (billModels == null || billModels.isEmpty()) {
@@ -381,7 +382,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 		}
 
 
-		for (com.nicico.internal.sales.extrabill.model.ExtraBankBillModel item : billModels) {
+		for (ExtraBankBillModel item : billModels) {
 			boolean oldReckoningSend = item.isReckoningSend();
 			if (!oldReckoningSend) {
 				Date newReckoningSendDate = new Date();
@@ -393,7 +394,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 		}
 	}
 
-	@Override
+	
 	public String buildExtraBillCancellationRecord(com.nicico.internal.sales.extrabill.dto.ExtraBillCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());
 		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
@@ -413,7 +414,7 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 		);
 	}
 
-	@Override
+	
 	public void appendExtraBillCancellationRecord(com.nicico.internal.sales.extrabill.model.ExtraBankBillModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {
@@ -423,58 +424,58 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 		}
 	}
 
-	@Override
-	public com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest buildGaamBrokerEmailRequest(
+	
+	public BrokerEmailRequest buildGaamBrokerEmailRequest(
 			com.nicico.internal.sales.proforma.model.ProformaDetailModel detail, BrokerModel broker) {
 		markAllGaamAsReckoning(detail.getProformaMasterId());
 
-		com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest request = new com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest();
-		request.setContractNo(detail.getProformaMasterId() != null ? 
-				proformaMasterRepository.findById(detail.getProformaMasterId())
-						.map(com.nicico.internal.sales.proforma.model.ProformaMasterModel::getContractNo)
-						.orElse("-") : "-");
+		BrokerEmailRequest request = new BrokerEmailRequest();
+		request.setContractNo(proformaMasterRepository.findById(detail.getProformaMasterId())
+				.map(com.nicico.internal.sales.proforma.model.ProformaMasterModel::getContractNo).get());
+
 		request.setContractDate(detail.getContractDate());
-		request.setQuantity(detail.getProformaMasterId() != null ? 
+		request.setQuantity(
 				proformaMasterRepository.findById(detail.getProformaMasterId())
 						.map(m -> m.getTotalQuantity().longValue())
-						.orElse(0L) : 0L);
-		request.setCustomerName(detail.getProformaMasterId() != null ? 
+						.get());
+
+		request.setCustomerName(
 				proformaMasterRepository.findById(detail.getProformaMasterId())
 						.map(com.nicico.internal.sales.proforma.model.ProformaMasterModel::getCustomerName)
-						.orElse("-") : "-");
-		request.setGoodName(detail.getProformaMasterId() != null ? 
+						.get());
+		request.setGoodName(
 				proformaMasterRepository.findById(detail.getProformaMasterId())
 						.map(com.nicico.internal.sales.proforma.model.ProformaMasterModel::getGoodName)
-						.orElse("-") : "-");
+						.get());
 		request.setBrokerName(broker.getName());
 		request.setBrokerEmail(broker.getEmail());
 
 		return request;
 	}
 
-	@Override
-	public String generateGaamBrokerEmailContent(com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest dto) {
+	
+	public String generateGaamBrokerEmailContent(BrokerEmailRequest dto) {
 		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
 				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
 				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
 				" جهت تسویه مورد تایید می باشد";
 	}
 
-	@Override
+	
 	public String generateGaamBrokerEmailContent(long gaamId) {
 		throw new UnsupportedOperationException("This method requires GaamRepository and should be called from GaamService");
 	}
 
-	@Override
-	public void sendGaamBrokerReckoningEmail(com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest emailRequest, String emailContent) {
+	
+	public void sendGaamBrokerReckoningEmail(BrokerEmailRequest emailRequest, String emailContent) {
 		log.info("Generated GAAM broker reckoning email content for broker: {} - Content: {}",
 				emailRequest.getBrokerName(), emailContent);
 		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
 	}
 
-	@Override
+	
 	public void markAllGaamAsReckoning(Long proformaMasterId) {
-		List<com.nicico.internal.sales.gaam.model.GaamModel> billModels = 
+		List<com.nicico.internal.sales.gaam.model.GaamModel> billModels =
 				gaamRepository.findAllByProformaMasterId(proformaMasterId);
 
 		if (billModels == null || billModels.isEmpty()) {
@@ -496,27 +497,27 @@ public class LcServiceHelperImpl implements LcServiceHelper {
 
 	}
 
-	@Override
-	public String buildGaamCancellationRecord(com.nicico.internal.sales.gaam.dto.GaamCancelRequest request) {
+	
+	public String buildGaamCancellationRecord(GaamCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());
 		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
 		String notes = request.getDescription() != null ? request.getDescription() : "ندارد";
 
 		return String.format(
 				"""
-							سابقه ابطال اوراق گام
-							**************************
-							تاریخ و زمان ابطال: %s
-							نام کاربری اقدام کننده: %s
-							دلیل ابطال: %s
-							توضیحات تکمیلی: %s
-							وضعیت: ابطال شده
-							**************************""",
+						سابقه ابطال اوراق گام
+						**************************
+						تاریخ و زمان ابطال: %s
+						نام کاربری اقدام کننده: %s
+						دلیل ابطال: %s
+						توضیحات تکمیلی: %s
+						وضعیت: ابطال شده
+						**************************""",
 				timestamp, userFullName, com.nicico.internal.sales.lc.enums.LcCancellationReason.BUYER_WITHDRAWAL, notes
 		);
 	}
 
-	@Override
+	
 	public void appendGaamCancellationRecord(com.nicico.internal.sales.gaam.model.GaamModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {

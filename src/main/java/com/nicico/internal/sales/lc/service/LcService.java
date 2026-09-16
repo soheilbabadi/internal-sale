@@ -6,7 +6,7 @@ import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.lc.dto.LcAuditDto;
 import com.nicico.internal.sales.lc.dto.LcDto;
 import com.nicico.internal.sales.lc.dto.LcFilesDto;
-import com.nicico.internal.sales.lc.dto.request.LcBrokerEmailRequest;
+import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.lc.dto.request.LcCancelRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateAcceptedLcRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateStartedLcRequest;
@@ -52,7 +52,7 @@ public interface LcService {
 
 	void cancel(LcCancelRequest lcCancelRequest);
 
-	String generateLcBrokerEmailContent(LcBrokerEmailRequest dto);
+	String generateLcBrokerEmailContent(BrokerEmailRequest dto);
 
 	ProcessInstanceHistory getLcHistoryDetail(Long lcId);
 

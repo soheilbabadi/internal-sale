@@ -5,6 +5,7 @@ import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.gaam.model.GaamModel;
 import com.nicico.internal.sales.gaam.repository.GaamRepository;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
@@ -17,7 +18,6 @@ import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,24 +35,26 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور پیدا نشد";
 	private static final String PROFORMA_DUPLICATE_START = "برای این پیش فاکتور قبلا برات صادر شده است";
 	private static final String LC_ALREADY_EXISTS = "برای این پیش فاکتور اعتبار اسنادی فعال وجود دارد";
+	private static final String EXTRABILL_ALREADY_EXISTS = "برای این پیش فاکتور برات الکترونیک فعال وجود دارد";
 	private static final String ERROR_REFRESHING_STATUS = "خطا در بروز رسانی وضعیت براتها";
 	private static final String ERROR_REJECTING_GAAM = "خطا در رد کردن فرایند {}";
 	private static final String ERROR_DETECTING_STEP = "خطا در تشخیص مرحله فرایند {}";
 	private static final String ERROR_HANDLING_TASK_ACTION = "خطا در انجام عملیات تسک {}";
 	private static final String PROCESS_ID_PLACEHOLDER = "-";
-	private final ObjectProvider<GaamProcessService> self;
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
 	private final ProcessVariableProvider processVariableProvider;
 	private final GaamRepository gaamRepository;
+	private final ExtraBillRepository extraBillRepository;
+
 	private final LcRepository lcRepository;
 	private final GaamAcknowledgmentDeterminer gaamAcknowledgmentDeterminer;
 
 
 	@Override
 	@Transactional
-	public ProcessInstance startExtraBillProcess(Long masterId) {
+	public ProcessInstance startGaamProcess(Long masterId) {
 
 		validateAccess();
 		ProformaMasterModel proformaMaster = proformaMasterRepository.findById(masterId)
@@ -70,7 +72,7 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 	@Transactional
 	public ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto) {
 		try {
-			startProcessDto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
+			startProcessDto.setProcessDefinitionKey(processVariableProvider.getGaamWorkflowByTitle().getDefinitionKey());
 			return bpmsClientService.startProcessWithData(startProcessDto);
 
 		} catch (Exception ex) {
@@ -94,17 +96,31 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 			throw new InternalSaleCustomException.ValidationException(LC_ALREADY_EXISTS);
 		}
 
+
+		boolean hasActiveExtraBill = extraBillRepository.findAllByProformaMasterId(masterId)
+				.stream()
+				.anyMatch(lc -> lc.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED
+						&& lc.getWorkflowApproveStatus() != WorkflowApproveStatus.REVERSAL);
+
+		if (hasActiveExtraBill) {
+			throw new InternalSaleCustomException.ValidationException(EXTRABILL_ALREADY_EXISTS);
+		}
+
+
+
 		List<GaamModel> gaamModels = gaamRepository.findAllByProformaMasterId(masterId);
-		for (GaamModel gaam : gaamModels) {
-			if (gaam.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED) {
+		for (GaamModel item : gaamModels) {
+			if (item.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED) {
 				throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
 			}
-			if (gaam.getProcessId() != null && !gaam.getProcessId().equalsIgnoreCase(PROCESS_ID_PLACEHOLDER) && !processVariableProvider.isProcessFinished(gaam.getProcessId())) {
+			if (item.getProcessId() != null && !item.getProcessId().equalsIgnoreCase(PROCESS_ID_PLACEHOLDER) && !processVariableProvider.isProcessFinished(item.getProcessId())) {
 				throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
 			}
 		}
 	}
 
+
+	//TODO: check all values set
 	private List<GaamModel> buildGaamModels(ProformaMasterModel proformaMaster, ProcessInstance processInstance) {
 
 		List<GaamModel> gaamModels = new ArrayList<>();
@@ -128,14 +144,14 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 
 	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel proformaMaster) {
 		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
-		dto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
-		dto.setVariables(processVariableProvider.createExtraBillRequestVariables(buildExtraBillVariablesInput(proformaMaster)));
+		dto.setProcessDefinitionKey(processVariableProvider.getGaamWorkflowByTitle().getDefinitionKey());
+		dto.setVariables(processVariableProvider.createGaamRequestVariables(buildGaamVariablesInput(proformaMaster)));
 
 		return dto;
 	}
 
 
-	private ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMaster) {
+	private ProformaVariablesInput buildGaamVariablesInput(ProformaMasterModel proformaMaster) {
 		ProformaVariablesInput input = new ProformaVariablesInput();
 		input.setProformaMasterId(proformaMaster.getId());
 		input.setContractDate(proformaMaster.getContractDate());
