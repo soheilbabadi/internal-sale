@@ -202,7 +202,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 //			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
 //		}
 
-		if (!proforma.get().getReversalProcessId().equals("-")  && !processVariableProvider.isProcessAcceptedFinally(proforma.get().getReversalProcessId()))
+		if (!proforma.get().getReversalProcessId().equals("-") && !processVariableProvider.isProcessAcceptedFinally(proforma.get().getReversalProcessId()))
 			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
 
 		return errors;
@@ -241,13 +241,15 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 		}
 	}
 
-	public void validateLcStatus(Long masterId){
-		var lcList= lcRepository.findByMasterId(masterId);
+	public void validateLcStatus(Long masterId) {
+		var lcList = lcRepository.findByMasterId(masterId);
 
-		if (lcList.isEmpty()) {return;}
+		if (lcList.isEmpty()) {
+			return;
+		}
 
-		for (LcModel lcModel:lcList) {
-			if (lcModel.getWorkflowApproveStatus()==WorkflowApproveStatus.ACCEPTED || lcModel.getWorkflowApproveStatus()==WorkflowApproveStatus.IN_PROGRESS){
+		for (LcModel lcModel : lcList) {
+			if (lcModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED || lcModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
 				throw new InternalSaleCustomException.ValidationException(MSG_LC_EXISTS_NO_CANCEL);
 			}
 		}

@@ -3,8 +3,8 @@ package com.nicico.internal.sales.gaam.service;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.gaam.mapper.GaamIssueMapper;
 import com.nicico.internal.sales.gaam.dto.GaamIssueProviderDto;
+import com.nicico.internal.sales.gaam.mapper.GaamIssueMapper;
 import com.nicico.internal.sales.gaam.model.GaamIssueProviderModel;
 import com.nicico.internal.sales.gaam.repository.GaamIssueRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,6 @@ public class GaamIssueServiceImpl implements GaamIssueService {
 	private final GaamIssueRepository repository;
 
 	private final GaamIssueMapper mapper;
-
 
 
 	@Override

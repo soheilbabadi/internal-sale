@@ -10,7 +10,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -83,7 +82,6 @@ public class ProformaBankBillReportDto implements Serializable {
 	private String goodName;
 
 
-
 	private BigDecimal totalFinalAmount;
 
 	private BigDecimal totalCashAmount;
@@ -121,7 +119,6 @@ public class ProformaBankBillReportDto implements Serializable {
 
 	@Schema(description = "تاریخ قرارداد", name = "tradeContractDate", example = "1403-02-20")
 	private String tradeContractDate;
-
 
 
 	@Schema(description = "شماره پیش فاکتور")

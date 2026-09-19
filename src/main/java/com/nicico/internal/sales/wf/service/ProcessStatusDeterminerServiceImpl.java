@@ -71,7 +71,6 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	}
 
 
-
 	@Override
 	public Acknowledgment determineAcknowledgment(LcModel lcModel) {
 		return acknowledgmentDeterminer.determine(lcModel);
@@ -235,7 +234,6 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 			}
 		}
 	}
-
 
 
 }

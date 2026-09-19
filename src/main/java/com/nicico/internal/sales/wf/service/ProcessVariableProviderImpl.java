@@ -100,7 +100,6 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	}
 
 
-
 	@Override
 	public Map<String, Object> createGaamRequestVariables(ProformaVariablesInput input) {
 		return createRequestVariables(input, getGaamUserAccess());
@@ -153,12 +152,11 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	}
 
 
-
 	@Override
 	public Map<String, String> getGaamUserAccess() {
 		var workflow = getGaamWorkflowByTitle();
 		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("GaamDraftRegistration", "GaamSettleSure","GaamRemitSure","GaamFinalCheck"));
+		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("GaamDraftRegistration", "GaamSettleSure", "GaamRemitSure", "GaamFinalCheck"));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
@@ -226,16 +224,16 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	@Override
 	public ReviewTaskRequest prepareReviewTaskRequest(TaskActionDto taskActionDto) {
 
-			TaskDetail taskInfo = bpmsClientService.getTaskDetail(taskActionDto.getTaskId());
-			String action = taskActionDto.getApprove() ? "تایید" : "رد";
-			ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
-			reviewTaskRequest.setProcessInstanceId(taskInfo.getProcessInstanceId());
-			reviewTaskRequest.setUserId(SecurityUtil.getUserId().toString());
-			reviewTaskRequest.setUserName(SecurityUtil.getUsername());
-			reviewTaskRequest.setTaskId(taskActionDto.getTaskId());
-			reviewTaskRequest.setApprove(taskActionDto.getApprove());
-			reviewTaskRequest.setDescription(action + " پروسه ");
-			return reviewTaskRequest;
+		TaskDetail taskInfo = bpmsClientService.getTaskDetail(taskActionDto.getTaskId());
+		String action = taskActionDto.getApprove() ? "تایید" : "رد";
+		ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
+		reviewTaskRequest.setProcessInstanceId(taskInfo.getProcessInstanceId());
+		reviewTaskRequest.setUserId(SecurityUtil.getUserId().toString());
+		reviewTaskRequest.setUserName(SecurityUtil.getUsername());
+		reviewTaskRequest.setTaskId(taskActionDto.getTaskId());
+		reviewTaskRequest.setApprove(taskActionDto.getApprove());
+		reviewTaskRequest.setDescription(action + " پروسه ");
+		return reviewTaskRequest;
 
 
 	}

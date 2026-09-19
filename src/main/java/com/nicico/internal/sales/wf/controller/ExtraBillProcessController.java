@@ -2,7 +2,6 @@ package com.nicico.internal.sales.wf.controller;
 
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.service.ExtraBillProcessService;
-import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +53,6 @@ public class ExtraBillProcessController {
 		extraBillProcessService.refreshExtraBillStatus();
 		return ResponseEntity.ok().build();
 	}
-
 
 
 }

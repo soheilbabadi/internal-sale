@@ -120,7 +120,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 				return;
 			}
 
-			if (processVariableProvider.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId()) ) {
+			if (processVariableProvider.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId())) {
 				for (LcModel lc : lcList) {
 					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 					lc.setAcknowledgment(Acknowledgment.FINISHED);
@@ -130,10 +130,9 @@ public class LcProcessServiceImpl implements LcProcessService {
 			}
 
 
-
 			for (LcModel lc : lcList) {
 
-				if (lc.getPmsLcId()!=null) {
+				if (lc.getPmsLcId() != null) {
 					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 					lc.setAcknowledgment(Acknowledgment.FINISHED);
 				}
@@ -160,8 +159,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 				lc.setAcknowledgment(acknowledgmentDeterminer.determine(lc));
 
 
-
-				if (lc.getPmsLcId()!=null) {
+				if (lc.getPmsLcId() != null) {
 					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 					lc.setAcknowledgment(Acknowledgment.FINISHED);
 				}
@@ -180,15 +178,13 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 					case FINISHED:
 						boolean accepted = processVariableProvider.isProcessAcceptedFinally(lc.getProcessId());
-						if(accepted) {
+						if (accepted) {
 							lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-						}
-						else {
+						} else {
 							lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
 						}
 						break;
 				}
-
 
 
 			}

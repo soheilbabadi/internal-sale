@@ -18,6 +18,8 @@ import com.nicico.internal.sales.proforma.enums.*;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaGoodItemModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
+import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
+import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.proforma.service.ProformaContractService;
 import com.nicico.internal.sales.proforma.service.ProformaSerialService;
@@ -62,6 +64,8 @@ public class CashSaleServiceImpl implements CashSaleService {
 	private final ProformaValidationService proformaValidationService;
 	private final OfferTextProcess offerTextProcess;
 	private final ProformaMasterRepository proformaMasterRepository;
+	private final ProformaDetailRepository proformaDetailRepository;
+	private final ProformaGoodItemRepository proformaGoodItemRepository;
 	private final ProformaProcessService proformaProcessService;
 	private final ProformaContractService proformaContractService;
 	private final TradeExtractRepository tradeExtractRepository;
@@ -71,7 +75,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 	// ==================== PUBLIC SERVICE METHODS ====================
 
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public String create(CashSaleCreateRequest requestDto) {
 		log.debug("Creating cash sale proforma for tradeId: {}", requestDto.getTradeId());
 
@@ -83,18 +87,15 @@ public class CashSaleServiceImpl implements CashSaleService {
 		}
 
 		// تشخیص نوع کالا و ایجاد پیش فاکتور مناسب
+		// (ذخیره ی master + detail + good item داخل همین متدها انجام می شود)
 		boolean isPrecious = isPreciousMetal(requestDto.getTradeId());
 		ProformaMasterModel model = isPrecious
 				? createPreciousProformaMaster(requestDto)
 				: createRegularProformaMaster(requestDto);
 
-		// شروع فرآیند و ذخیره
+		// شروع فرآیند: عمداً بعد از ذخیره و flush شدن همه ی رکوردها انجام می شود
+		// تا اگر دیتابیس خطا داد، فرآیند بیرونی (workflow) شروع نشده باشد
 		startProformaProcess(model);
-
-		// تنظیم روابط با Helper
-		setupFullRelationships(model, model.getProformaDetailModelLists());
-
-		// ذخیره با Cascade
 		proformaMasterRepository.saveAndFlush(model);
 
 		log.info("Cash sale proforma created successfully with contractNo: {}", model.getContractNo());
@@ -106,24 +107,54 @@ public class CashSaleServiceImpl implements CashSaleService {
 	private ProformaMasterModel createRegularProformaMaster(CashSaleCreateRequest requestDto) {
 		log.debug("Creating regular proforma master");
 		ProformaModelResponse contractDetail = getRegularContractDetail(requestDto);
-		return saveProformaMaster(contractDetail);
+		return saveProformaWithDetails(contractDetail);
 	}
 
 	private ProformaMasterModel createPreciousProformaMaster(CashSaleCreateRequest requestDto) {
 		log.debug("Creating precious proforma master");
 		ProformaModelResponse contractDetail = getPreciousContractDetail(requestDto);
-		return saveProformaMaster(contractDetail);
+		return saveProformaWithDetails(contractDetail);
 	}
 
-	private ProformaMasterModel saveProformaMaster(ProformaModelResponse contractDetail) {
-		ProformaMasterModel ProformaMasterModel = contractDetail.getMasterModel();
-		List<ProformaDetailModel> detailList = distinctDetails(contractDetail.getDetailModels());
-		ProformaMasterModel.setProformaDetailModelLists(detailList);
+	/**
+	 * ذخیره ی کامل پیش فاکتور به ترتیب FK: master -> detail ها -> good item ها.
+	 * رابطه های JPA در مدل ها insertable=false هستند و FK فقط از ستون های خام
+	 * (proformaMasterId / proformaDetailId) نوشته می شود، پس این ستون ها باید
+	 * بعد از گرفتن ID والد ست شوند.
+	 */
+	private ProformaMasterModel saveProformaWithDetails(ProformaModelResponse contractDetail) {
+		ProformaMasterModel master = contractDetail.getMasterModel();
+		List<ProformaDetailModel> details = distinctDetails(contractDetail.getDetailModels());
 
-		// تنظیم روابط با Helper
-		setupFullRelationships(ProformaMasterModel, detailList);
+		// ۱) master: بعد از این خط ID از sequence گرفته شده است
+		ProformaMasterModel savedMaster = proformaMasterRepository.saveAndFlush(master);
 
-		return proformaMasterRepository.saveAndFlush(ProformaMasterModel);
+		// ۲) detail ها و ۳) good item ها
+		saveDetailsAndGoodItems(savedMaster, details);
+
+		// لیست detail ها بعد از ذخیره روی master ست می شود (مثل ProformaServiceImpl)
+		savedMaster.setProformaDetailModelLists(details);
+
+		// همه ی تغییرات به دیتابیس فرستاده شود (خطاهای constraint همین جا دیده شوند)
+		proformaMasterRepository.flush();
+		return savedMaster;
+	}
+
+	private void saveDetailsAndGoodItems(ProformaMasterModel master, List<ProformaDetailModel> details) {
+		for (ProformaDetailModel detail : details) {
+			// نسخه ی مستقل از لیست، قبل از save گرفته می شود
+			List<ProformaGoodItemModel> goodItems = new ArrayList<>(detail.getProformaGoodItemModels());
+
+			detail.setProformaMasterModel(master);
+			detail.setProformaMasterId(master.getId());
+			ProformaDetailModel savedDetail = proformaDetailRepository.save(detail);
+
+			goodItems.forEach(item -> {
+				item.setProformaDetailModel(savedDetail);
+				item.setProformaDetailId(savedDetail.getId());
+			});
+			proformaGoodItemRepository.saveAll(goodItems);
+		}
 	}
 
 	// ==================== CONTRACT DETAIL METHODS ====================
@@ -146,7 +177,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 				tradeExtract, params, totals, percentages
 		);
 
-		// تنظیم روابط با Helper
+		// اتصال رفرنس های شیء ای (ID ها بعد از ذخیره ست می شوند)
 		setupFullRelationships(masterModel, detailDtoList);
 
 		return ProformaModelResponse.builder()
@@ -157,7 +188,6 @@ public class CashSaleServiceImpl implements CashSaleService {
 
 	private ProformaModelResponse getPreciousContractDetail(CashSaleCreateRequest requestDto) {
 		TradeExtractModel tradeExtract = findTradeExtract(requestDto.getTradeId());
-		validateRequest(requestDto, tradeExtract);
 
 		CashSaleDetailGenerator params = buildDetailGenerator(requestDto, tradeExtract);
 		List<ProformaDetailModel> detailDtoList = generatePreciousPerformaDetailList(params);
@@ -170,7 +200,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 				tradeExtract, params, totals, brokerModel
 		);
 
-		// تنظیم روابط با Helper
+		// اتصال رفرنس های شیء ای (ID ها بعد از ذخیره ست می شوند)
 		setupFullRelationships(masterModel, detailDtoList);
 
 		return ProformaModelResponse.builder()
@@ -197,7 +227,8 @@ public class CashSaleServiceImpl implements CashSaleService {
 							SettlementType.UNKNOWN.name()
 					);
 
-					goodItem.forEach(item -> item.setProformaDetailModel(detailModel));
+					// item ها باید داخل لیست detail هم باشند (برای calculateTotals و ذخیره)
+					attachGoodItems(detailModel, goodItem);
 					return detailModel;
 				})
 				.collect(Collectors.toCollection(LinkedHashSet::new))
@@ -219,9 +250,17 @@ public class CashSaleServiceImpl implements CashSaleService {
 				SettlementType.CASH.name()
 		);
 
-		goodItem.setProformaDetailModel(detailModel);
+		attachGoodItems(detailModel, goodItems);
 
 		return List.of(detailModel);
+	}
+
+	/**
+	 * item ها را هم به لیست detail اضافه می کند و هم رفرنس برگشتی (item -> detail) را ست می کند.
+	 */
+	private void attachGoodItems(ProformaDetailModel detailModel, List<ProformaGoodItemModel> goodItems) {
+		goodItems.forEach(item -> item.setProformaDetailModel(detailModel));
+		detailModel.getProformaGoodItemModels().addAll(goodItems);
 	}
 
 	private ProformaDetailModel buildDetailModel(
@@ -498,7 +537,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 	}
 
 	private void startProformaProcess(ProformaMasterModel model) {
-		var input=proformaProcessService.buildProformaVariablesInput(model);
+		var input = proformaProcessService.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);

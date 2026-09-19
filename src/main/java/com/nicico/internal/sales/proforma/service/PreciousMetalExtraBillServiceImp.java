@@ -180,7 +180,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	 * شروع فرآیند برای پیش فاکتور
 	 */
 	private void startProformaProcess(ProformaMasterModel model) {
-		var input=proformaProcessService.buildProformaVariablesInput(model);
+		var input = proformaProcessService.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);

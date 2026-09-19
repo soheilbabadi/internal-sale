@@ -317,7 +317,7 @@ public class ProformaServiceImpl implements ProformaService {
 	 * شروع فرآیند کاری برای پیش فاکتور
 	 */
 	private void startWorkflowProcess(ProformaMasterModel model) {
-		var input=proformaProcessService.buildProformaVariablesInput(model);
+		var input = proformaProcessService.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 
 		model.setProcessId(process.getId());
@@ -327,8 +327,8 @@ public class ProformaServiceImpl implements ProformaService {
 	/**
 	 * شروع فرآیند کاری برای برگشت
 	 */
-	private void startReversalWorkflow(			ProformaMasterModel model) {
-		var input=proformaProcessService.buildProformaVariablesInput(model);
+	private void startReversalWorkflow(ProformaMasterModel model) {
+		var input = proformaProcessService.buildProformaVariablesInput(model);
 
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());

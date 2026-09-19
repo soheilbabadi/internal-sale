@@ -60,7 +60,5 @@ public interface LcService {
 	void updateLcAcknowledgment(Long lcId);
 
 
-
-
 	void updateAllAcknowledgments();
 }

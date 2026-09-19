@@ -29,17 +29,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GaamProcessServiceImpl implements GaamProcessService {
 
-	private static final String PROCESS_TITLE_GAAM = "GAAM";
-	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
 	private static final String ACCESS_DENIED_MESSAGE = "شما اجازه شروع فرایند برات الکترونیک را ندارید";
 	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور پیدا نشد";
 	private static final String PROFORMA_DUPLICATE_START = "برای این پیش فاکتور قبلا برات صادر شده است";
 	private static final String LC_ALREADY_EXISTS = "برای این پیش فاکتور اعتبار اسنادی فعال وجود دارد";
 	private static final String EXTRABILL_ALREADY_EXISTS = "برای این پیش فاکتور برات الکترونیک فعال وجود دارد";
-	private static final String ERROR_REFRESHING_STATUS = "خطا در بروز رسانی وضعیت براتها";
-	private static final String ERROR_REJECTING_GAAM = "خطا در رد کردن فرایند {}";
-	private static final String ERROR_DETECTING_STEP = "خطا در تشخیص مرحله فرایند {}";
-	private static final String ERROR_HANDLING_TASK_ACTION = "خطا در انجام عملیات تسک {}";
 	private static final String PROCESS_ID_PLACEHOLDER = "-";
 
 	private final ProformaMasterRepository proformaMasterRepository;
@@ -107,7 +101,6 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 		}
 
 
-
 		List<GaamModel> gaamModels = gaamRepository.findAllByProformaMasterId(masterId);
 		for (GaamModel item : gaamModels) {
 			if (item.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED) {
@@ -135,7 +128,7 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 					.acknowledgment(Acknowledgment.RECKONING)
 					.tradeId(proformaMaster.getTradeId())
 					.contractNo(proformaMaster.getContractNo())
-					// Bank and branch information - to be filled from external source or left null for now
+					// Bank and branch information
 					.issuerBankName(null)
 					.issuerBankId(null)
 					.branchCode(null)
@@ -146,14 +139,14 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 					// File IDs - to be filled when documents are uploaded
 					.extraBillFileId(null)
 					.dispatchAttachmentId(null)
-					// Codes - to be filled from external source or left null for now
+					// Codes -
 					.nosaCode(null)
 					.sepamCode(null)
 					.treasuryId(null)
-					// Dates - to be filled when GAAM is issued
+					// Dates - to be filled when GAAM issue
 					.issueDate(null)
 					.dueDate(null)
-					// PMS Bill ID - to be filled from external source
+					// PMS Bill ID - to be filled from logestic
 					.pmsBillId(null)
 					// Cancellation fields - to be filled if GAAM is canceled
 					.cancelDate(null)

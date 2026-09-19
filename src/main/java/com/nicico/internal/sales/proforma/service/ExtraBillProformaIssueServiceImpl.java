@@ -363,7 +363,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 	// ==================== WORKFLOW ====================
 
 	private void startWorkflowProcess(ProformaMasterModel model) {
-		var input=proformaProcessService.buildProformaVariablesInput(model);
+		var input = proformaProcessService.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);

@@ -8,18 +8,18 @@ import java.io.IOException;
 
 public class PasswordGrantInterceptor implements Interceptor {
 
-    private final PasswordGrantAuthenticator authManager;
+	private final PasswordGrantAuthenticator authManager;
 
-    public PasswordGrantInterceptor(PasswordGrantAuthenticator authManager) {
-        this.authManager = authManager;
-    }
+	public PasswordGrantInterceptor(PasswordGrantAuthenticator authManager) {
+		this.authManager = authManager;
+	}
 
-    @Override
-    public Response intercept(Chain chain) throws IOException {
-        Request.Builder requestBuilder = chain.request().newBuilder();
-        String token = authManager.getValidToken();
+	@Override
+	public Response intercept(Chain chain) throws IOException {
+		Request.Builder requestBuilder = chain.request().newBuilder();
+		String token = authManager.getValidToken();
 
-        requestBuilder.header("Authorization", "Bearer " + token);
-        return chain.proceed(requestBuilder.build());
-    }
+		requestBuilder.header("Authorization", "Bearer " + token);
+		return chain.proceed(requestBuilder.build());
+	}
 }

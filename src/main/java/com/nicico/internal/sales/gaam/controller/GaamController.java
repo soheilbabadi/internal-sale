@@ -7,7 +7,6 @@ import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.gaam.dto.*;
 import com.nicico.internal.sales.gaam.service.GaamIssueService;
 import com.nicico.internal.sales.gaam.service.GaamService;
-import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +29,8 @@ public class GaamController {
 
 	private final GaamService service;
 	private final GaamIssueService extraBillIssueService;
-	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
-	@Operation(summary = "جستجوی اوراق گامهای قابل صدور", description = "لیست اوراق گامها که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی گرداند.")
+	@Operation(summary = "جستجوی اوراق گامی قابل صدور", description = "لیست اوراق گام که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی گرداند.")
 	@PostMapping("/search-issuable")
 	public ResponseEntity<SearchDTO.SearchRs<GaamIssueProviderDto.Info>> searchIssuable(
 			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
@@ -43,7 +41,7 @@ public class GaamController {
 		return ResponseEntity.ok(extraBillIssueService.search(searchRq));
 	}
 
-	@Operation(summary = "جستجوی اوراق گامها", description = "اوراق گامها صادر شده را بر اساس فیلترهای ورودی جستجو کرده و نتیجه را برمی گرداند.")
+	@Operation(summary = "جستجوی اوراق گام", description = "اوراق گام صادر شده را بر اساس فیلترهای ورودی جستجو کرده و نتیجه را برمی گرداند.")
 	@PostMapping("/search")
 	public ResponseEntity<SearchDTO.SearchRs<GaamDto.Info>> search(
 			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
@@ -59,11 +57,11 @@ public class GaamController {
 			description = "با دریافت شناسه LC، محتوای ایمیل مخصوص کارگزار شامل اطلاعات کامل اعتبار اسنادی، تاریخ ها، مبالغ و شرایط را تولید و به صورت رشته متنی بازمی گرداند."
 	)
 	@GetMapping("/get-broker-email-content/{gaamId}")
-	public ResponseEntity<String> generateLcBrokerEmailContent(@PathVariable Long gaamId) {
+	public ResponseEntity<String> generateBrokerEmailContent(@PathVariable Long gaamId) {
 		return ResponseEntity.ok(service.generateGaamBrokerEmailContent(gaamId));
 	}
 
-	@Operation(summary = "تاریخچه صدور اوراق گامها", description = "گزارش تاریخچه کامل صدور اوراق گامها شامل وضعیت ها، تاریخ ها و جزئیات را برمی گرداند.")
+	@Operation(summary = "تاریخچه صدور اوراق گام", description = "گزارش تاریخچه کامل صدور اوراق گام شامل وضعیت ها، تاریخ ها و جزئیات را برمی گرداند.")
 	@PostMapping("/search-issue-history")
 	public ResponseEntity<SearchDTO.SearchRs<GaamReportDto.Info>> searchIssueHistory(
 			@RequestBody(required = false) SearchDTO.SearchRq searchRq,
@@ -74,7 +72,7 @@ public class GaamController {
 		return ResponseEntity.ok(service.searchReport(searchRq));
 	}
 
-	@Operation(summary = "دریافت اوراق گامها بر اساس شناسه قرارداد اصلی", description = "تمام اوراق گامها مرتبط با یک قرارداد پیش فاکتور اصلی (Master) را بر اساس شناسه آن برمی گرداند.")
+	@Operation(summary = "دریافت اوراق گام بر اساس شناسه قرارداد اصلی", description = "تمام اوراق گام مرتبط با یک قرارداد پیش فاکتور اصلی (Master) را بر اساس شناسه آن برمی گرداند.")
 	@GetMapping("/get-by-master/{masterId}")
 	public ResponseEntity<List<GaamDto.Info>> getByMasterId(
 			@Parameter(description = "شناسه قرارداد پیش فاکتور اصلی", required = true, example = "10")
@@ -85,8 +83,8 @@ public class GaamController {
 	@Operation(summary = "ثبت اوراق گام  جدید", description = "یک اوراق گام  جدید بر اساس اطلاعات دریافتی ایجاد و ذخیره می کند. نیاز به مجوز C_INS_GAAM دارد.")
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
 	@PostMapping("/save")
-	public ResponseEntity<GaamDto.Info> save(@RequestBody GaamRequest proformaBankBillRequest) {
-		return ResponseEntity.ok(service.save(proformaBankBillRequest));
+	public ResponseEntity<GaamDto.Info> save(@RequestBody GaamRequest gaamRequest) {
+		return ResponseEntity.ok(service.save(gaamRequest));
 	}
 
 	@Operation(
@@ -126,7 +124,7 @@ public class GaamController {
 	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
 	@PutMapping("/update")
-	public ResponseEntity<GaamDto.Info> updateExtraBill(
+	public ResponseEntity<GaamDto.Info> update(
 			@RequestBody UpdateGaamRequest updateGaamRequest) {
 		return ResponseEntity.ok(service.update(updateGaamRequest));
 	}
@@ -156,18 +154,10 @@ public class GaamController {
 			description = "تاریخچه کامل گردش کار (Workflow) یک اوراق گام شامل تاییدیه ها، ردیه ها و توضیحات را برمی گرداند."
 	)
 	@GetMapping("/history/{gaamId}")
-	public ResponseEntity<ProcessInstanceHistory> getExtraBillHistoryDetail(@PathVariable Long gaamId) {
+	public ResponseEntity<ProcessInstanceHistory> getHistoryDetail(@PathVariable Long gaamId) {
 		return ResponseEntity.ok(service.getHistoryDetail(gaamId));
 	}
 
-	@Operation(
-			summary = "تولید محتوای ایمیل کارگزار",
-			description = "محتوای HTML ایمیل فارسی برای اطلاع رسانی به کارگزار درباره جزئیات اوراق گام را تولید می کند."
-	)
-	@GetMapping("/get-broker-email-content/{gaamId}")
-	public ResponseEntity<String> generateExtraBillBrokerEmailContent(@PathVariable long gaamId) {
-		return ResponseEntity.ok(service.generateGaamBrokerEmailContent(gaamId));
-	}
 
 	@Operation(
 			summary = "دریافت گزارش وظایف کاربران",
@@ -180,7 +170,7 @@ public class GaamController {
 
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
 	@PutMapping("/cancel")
-	public ResponseEntity<?> cancelLc(@RequestBody GaamCancelRequest request) {
+	public ResponseEntity<?> cancel(@RequestBody GaamCancelRequest request) {
 		service.cancel(request);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}

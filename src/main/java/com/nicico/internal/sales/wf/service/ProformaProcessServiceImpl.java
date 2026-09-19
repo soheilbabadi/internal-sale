@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -113,9 +112,8 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	}
 
 
-
 	@Override
-	@Transactional
+	
 	public void reviewTask(ReviewTaskRequest reviewTaskRequest) {
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
@@ -162,14 +160,14 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		}
 	}
 
-	@Transactional
+	
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(true);
 		this.reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
 
-	@Transactional
+	
 	@Override
 	public void rejectTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(false);
@@ -177,7 +175,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	}
 
 	@Override
-	@Transactional
+	
 	public void refreshProformaStatus() {
 		List<ProformaMasterModel> masterModelList = proformaMasterRepository
 				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
@@ -274,7 +272,6 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		model.setIsProcessFinal(isProcessFinal);
 		model.setIsReversalProcessFinal(false);
 	}
-
 
 
 	private StartProcessWithDataDTO buildStartProcessDTO(Map<String, Object> variables) {

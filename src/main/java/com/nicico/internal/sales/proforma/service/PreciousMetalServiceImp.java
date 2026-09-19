@@ -181,7 +181,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 	 * شروع فرآیند برای پیش فاکتور
 	 */
 	private void startWorkflowProcess(ProformaMasterModel model) {
-		var input=proformaProcessService.buildProformaVariablesInput(model);
+		var input = proformaProcessService.buildProformaVariablesInput(model);
 
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());

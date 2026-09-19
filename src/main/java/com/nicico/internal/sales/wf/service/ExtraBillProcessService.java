@@ -8,8 +8,11 @@ public interface ExtraBillProcessService {
 	ProcessInstance startExtraBillProcess(Long masterId);
 
 	ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto);
+
 	void approveTask(TaskActionDto taskActionDto);
+
 	void rejectTask(TaskActionDto taskActionDto);
+
 	boolean canStartProcess();
 
 	void refreshExtraBillStatus();

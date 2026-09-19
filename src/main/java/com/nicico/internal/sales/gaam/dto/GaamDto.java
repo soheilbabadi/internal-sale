@@ -6,7 +6,10 @@ import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import io.swagger.annotations.ApiModel;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import java.io.Serial;

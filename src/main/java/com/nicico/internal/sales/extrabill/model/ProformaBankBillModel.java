@@ -104,7 +104,6 @@ public class ProformaBankBillModel extends BaseClassModel {
 //	private ProformaMasterModel tradeExtractModel;
 
 
-
 	@Schema(description = "وضعیت در فرایند", name = "workflowApproveStatus", example = "PENDING")
 	@Enumerated(EnumType.STRING)
 	@Column(name = "C_WORKFLOW_APPROVE_STATUS", length = 100)

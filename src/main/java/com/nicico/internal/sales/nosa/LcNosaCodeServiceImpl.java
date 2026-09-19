@@ -24,6 +24,6 @@ public class LcNosaCodeServiceImpl implements LcNosaCodeService {
 //		int lastNumber = Integer.parseInt(lastNosaCode.substring(prefix.length()));
 //		int newNumber = lastNumber + 1;
 //		return String.format("%s%03d", prefix, newNumber);
-	return 	nosaCodeService.generateLcNosaCode(issuerBankId);
+		return nosaCodeService.generateLcNosaCode(issuerBankId);
 	}
 }

@@ -88,7 +88,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		}
 
 
-
 //		Map<String, Object> searchTags = Map.of(
 //				PROFORMA_TAG_TYPE,
 //				PROFORMA_TAG_TYPE_VALUE,
@@ -110,11 +109,10 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		byte[] pdfContent = buildSignedProformaPdf(List.of(detailModel.getId()));
 		String fileName = PROFORMA_FILE_NAME_PREFIX + detailModel.getPerformaNo() + ".pdf";
 
-			String uuid = uploadProformaToFms(detailId, fileName, pdfContent, credentials);
-			saveProformaFileIdToDetails(List.of(detailId), uuid);
-			log.info("منبع فایل پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, uuid);
-			return new FmsFile(uuid, fileName, PDF_CONTENT_TYPE, pdfContent);
-
+		String uuid = uploadProformaToFms(detailId, fileName, pdfContent, credentials);
+		saveProformaFileIdToDetails(List.of(detailId), uuid);
+		log.info("منبع فایل پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, uuid);
+		return new FmsFile(uuid, fileName, PDF_CONTENT_TYPE, pdfContent);
 
 
 //		return new FmsFile(UUID.randomUUID().toString(), fileName, PDF_CONTENT_TYPE, pdfContent);
@@ -164,7 +162,7 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
 			return new FmsFile(UUID.randomUUID().toString(), masterModel + ".pdf", PDF_CONTENT_TYPE, exportDocService.exportRemittancePdf(masterId));
 		}
-		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED ) {
+		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED) {
 			throw new InternalSaleCustomException.ValidationException("حواله با شناسه " + masterModel.getId() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
 
 		}

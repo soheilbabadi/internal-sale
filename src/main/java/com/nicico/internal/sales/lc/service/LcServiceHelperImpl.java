@@ -41,7 +41,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class LcServiceHelperImpl   {
+public class LcServiceHelperImpl {
 	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور وجود ندارد";
 	private static final String MSG_LC_NOT_FOUND = "اعتبار اسنادی وجود ندارد";
 	private static final String MSG_TRADING_BANK_NOT_FOUND = "شعبه بانک وجود ندارد";
@@ -66,21 +66,21 @@ public class LcServiceHelperImpl   {
 	private final GaamRepository gaamRepository;
 	private final ExtraBillRepository extraBillRepository;
 
-	
+
 	public ProformaDetailModel findProformaDetail(Long proformaId) {
 		return proformaDetailRepository.findById(proformaId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_PROFORMA_NOT_FOUND));
 	}
 
-	
+
 	public LcModel findLcModel(Long proformaId) {
 		return lcRepository.findFirstByProformaDetailIdOrderByCreatedDateDesc(proformaId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_LC_NOT_FOUND));
 	}
 
-	
+
 	public TradingBankModel findBankBranch(Long requestId, Long fallbackId) {
 		Long id = requestId != null ? requestId : fallbackId;
 		return tradingBankRepository.findById(id)
@@ -88,7 +88,7 @@ public class LcServiceHelperImpl   {
 						MSG_TRADING_BANK_NOT_FOUND));
 	}
 
-	
+
 	public IssuingBankModel findIssuingBank(Long requestId, Long fallbackId) {
 		Long id = requestId != null ? requestId : fallbackId;
 		String notFoundMsg = requestId != null
@@ -99,7 +99,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public BrokerModel fetchBrokerForTrade(Long tradeId) {
 		var sellerBrokerCode = imeTradeRepository.findSellerBrokerCodeById(tradeId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
@@ -109,7 +108,7 @@ public class LcServiceHelperImpl   {
 						MSG_BROKER_EMAIL_MISSING));
 	}
 
-	
+
 	public void validateAndAdjustLcDate(UpdateStartedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
 		if (lcRequest.getLcDate() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_EMPTY);
@@ -130,7 +129,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public void validateAndAdjustLcDate(UpdateAcceptedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
 		if (lcRequest.getLcDate() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_EMPTY);
@@ -151,7 +149,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public void populateLcModel(LcModel lcModel, UpdateStartedLcRequest lcRequest,
 	                            ProformaDetailModel proformaDetail, ProformaMasterModel proformaMaster,
 	                            TradingBankModel tradingBank, IssuingBankModel issuingBank, Date expireDate) {
@@ -189,7 +186,7 @@ public class LcServiceHelperImpl   {
 
 	}
 
-	
+
 	public void updateTradingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
 		if (request.getTradingBankId() != null) {
 			TradingBankModel tradingBank = tradingBankRepository.findById(request.getTradingBankId())
@@ -202,7 +199,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public void updateIssuingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
 		if (request.getIssuerBankId() != null) {
 			IssuingBankModel issuingBank = issuingBankRepository.findById(request.getIssuerBankId())
@@ -216,7 +212,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public void updateLcDetailsIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
 		if (request.getLcNo() != null) {
 			lc.setLcNo(request.getLcNo());
@@ -245,7 +240,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public void validateDispatchFileRequirement(LcModel lcModel, String dispatchFileId) {
 		if (Boolean.TRUE.equals(lcModel.getRequireDispatchFile()) && dispatchFileId == null) {
 			throw new InternalSaleCustomException.ValidationException(
@@ -254,7 +248,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public BrokerEmailRequest buildLcBrokerEmailRequest(ProformaDetailModel detail, BrokerModel broker) {
 
 		var proformaMaster = proformaMasterRepository.findById(detail.getProformaMasterId())
@@ -273,7 +266,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public void markAllLcsAsReckoning(Long proformaMasterId) {
 		List<LcModel> lcItems = lcRepository.findByMasterId(proformaMasterId);
 
@@ -296,7 +288,7 @@ public class LcServiceHelperImpl   {
 		lcRepository.saveAllAndFlush(lcItems);
 	}
 
-	
+
 	public void sendLcBrokerReckoningEmail(BrokerEmailRequest brokerEmailRequest, String emailContent) {
 		log.info("Generated LC broker reckoning email content for broker: {} - Content: {}",
 				brokerEmailRequest.getBrokerName(), emailContent);
@@ -304,7 +296,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public String buildCancellationRecord(LcCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());
 		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
@@ -325,7 +316,6 @@ public class LcServiceHelperImpl   {
 	}
 
 
-	
 	public void appendCancellationRecord(LcModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {
@@ -335,7 +325,7 @@ public class LcServiceHelperImpl   {
 		}
 	}
 
-	
+
 	public BrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
 		markAllAsReckoning(proformaMaster.getId());
 
@@ -351,7 +341,7 @@ public class LcServiceHelperImpl   {
 		return request;
 	}
 
-	
+
 	public String generateExtraBillBrokerEmailContent(BrokerEmailRequest dto) {
 		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
 				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
@@ -359,19 +349,19 @@ public class LcServiceHelperImpl   {
 				" جهت تسویه مورد تایید می باشد";
 	}
 
-	
+
 	public String generateExtraBillBrokerEmailContent(long extraBillId) {
 		throw new UnsupportedOperationException("This method requires ExtraBillRepository and should be called from ExtraBillService");
 	}
 
-	
+
 	public void sendExtraBillBrokerReckoningEmail(BrokerEmailRequest emailRequest, String emailContent) {
 		log.info("Generated Extra Bill broker reckoning email content for broker: {} - Content: {}",
 				emailRequest.getBrokerName(), emailContent);
 		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
 	}
 
-	
+
 	public void markAllAsReckoning(Long proformaMasterId) {
 		List<com.nicico.internal.sales.extrabill.model.ExtraBankBillModel> billModels =
 				extraBillRepository.findAllByProformaMasterId(proformaMasterId);
@@ -394,7 +384,7 @@ public class LcServiceHelperImpl   {
 		}
 	}
 
-	
+
 	public String buildExtraBillCancellationRecord(com.nicico.internal.sales.extrabill.dto.ExtraBillCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());
 		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
@@ -414,7 +404,7 @@ public class LcServiceHelperImpl   {
 		);
 	}
 
-	
+
 	public void appendExtraBillCancellationRecord(com.nicico.internal.sales.extrabill.model.ExtraBankBillModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {
@@ -424,7 +414,7 @@ public class LcServiceHelperImpl   {
 		}
 	}
 
-	
+
 	public BrokerEmailRequest buildGaamBrokerEmailRequest(
 			com.nicico.internal.sales.proforma.model.ProformaDetailModel detail, BrokerModel broker) {
 		markAllGaamAsReckoning(detail.getProformaMasterId());
@@ -453,7 +443,7 @@ public class LcServiceHelperImpl   {
 		return request;
 	}
 
-	
+
 	public String generateGaamBrokerEmailContent(BrokerEmailRequest dto) {
 		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
 				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
@@ -461,19 +451,19 @@ public class LcServiceHelperImpl   {
 				" جهت تسویه مورد تایید می باشد";
 	}
 
-	
+
 	public String generateGaamBrokerEmailContent(long gaamId) {
 		throw new UnsupportedOperationException("This method requires GaamRepository and should be called from GaamService");
 	}
 
-	
+
 	public void sendGaamBrokerReckoningEmail(BrokerEmailRequest emailRequest, String emailContent) {
 		log.info("Generated GAAM broker reckoning email content for broker: {} - Content: {}",
 				emailRequest.getBrokerName(), emailContent);
 		notificationService.sendEmailForLcBroker(emailRequest, emailContent);
 	}
 
-	
+
 	public void markAllGaamAsReckoning(Long proformaMasterId) {
 		List<com.nicico.internal.sales.gaam.model.GaamModel> billModels =
 				gaamRepository.findAllByProformaMasterId(proformaMasterId);
@@ -497,7 +487,7 @@ public class LcServiceHelperImpl   {
 
 	}
 
-	
+
 	public String buildGaamCancellationRecord(GaamCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());
 		String userFullName = com.nicico.copper.core.SecurityUtil.getFullName();
@@ -517,7 +507,7 @@ public class LcServiceHelperImpl   {
 		);
 	}
 
-	
+
 	public void appendGaamCancellationRecord(com.nicico.internal.sales.gaam.model.GaamModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {

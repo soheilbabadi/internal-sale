@@ -122,7 +122,6 @@ public class RemittanceController {
 	}
 
 
-
 	@Operation(summary = "خروجی FMS حواله", description = "فایل FMS حواله را پس از تبدیل فایل Word مربوطه برمی گرداند.")
 	@GetMapping("/export-fms/{remittanceId}")
 	public ResponseEntity<FmsFile> exportProformaFms(@PathVariable long remittanceId) {

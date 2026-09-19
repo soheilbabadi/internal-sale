@@ -88,8 +88,8 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 			throw new InternalSaleCustomException.ValidationException(INVALID_REMITTANCE_DATA_MESSAGE, errors);
 		}
 
-		var lc=lcRepository.findByProformaNo(detailModel.getPerformaNo()).orElse(null);
-		if(lc==null) {
+		var lc = lcRepository.findByProformaNo(detailModel.getPerformaNo()).orElse(null);
+		if (lc == null) {
 			errors.add("برای این پیش فاکتور هنوز اعتبار اسنادی صادر نشده است");
 		}
 

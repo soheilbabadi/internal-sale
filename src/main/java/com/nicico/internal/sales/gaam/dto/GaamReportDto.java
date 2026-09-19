@@ -83,7 +83,6 @@ public class GaamReportDto implements Serializable {
 	private String goodName;
 
 
-
 	private BigDecimal totalFinalAmount;
 
 	private BigDecimal totalCashAmount;
@@ -121,7 +120,6 @@ public class GaamReportDto implements Serializable {
 
 	@Schema(description = "تاریخ قرارداد", name = "tradeContractDate", example = "1403-02-20")
 	private String tradeContractDate;
-
 
 
 	@Schema(description = "شماره پیش فاکتور")

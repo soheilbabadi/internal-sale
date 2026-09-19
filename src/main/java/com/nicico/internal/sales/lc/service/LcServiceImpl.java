@@ -87,155 +87,6 @@ public class LcServiceImpl implements LcService {
 	private final GaamRepository gaamRepository;
 	private final ExtraBillRepository extraBillRepository;
 
-	public LcModel findLcModel(Long proformaId) {
-		return lcRepository.findFirstByProformaDetailIdOrderByCreatedDateDesc(proformaId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-						MSG_LC_NOT_FOUND));
-	}
-
-	public ProformaDetailModel findProformaDetail(Long proformaId) {
-		return proformaDetailRepository.findById(proformaId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-						MSG_PROFORMA_NOT_FOUND));
-	}
-
-
-	public void validateAndAdjustLcDate(UpdateStartedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
-		if (lcRequest.getLcDate() == null) {
-			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_EMPTY);
-		}
-
-		Date lcDate = lcRequest.getLcDate();
-		Date performaDate = proformaDetail.getPerformaDate();
-		LocalDateTime lcDateTime = lcDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-		LocalDateTime performDateTime = performaDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-		LocalDate lcDatePart = lcDateTime.toLocalDate();
-		LocalDate performDatePart = performDateTime.toLocalDate();
-
-		if (lcDatePart.equals(performDatePart)) {
-			lcRequest.setLcDate(DateUtility.toDate(performDateTime.plusMinutes(1).toLocalDate()));
-		} else if (lcDate.before(performaDate)) {
-			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_BEFORE_PROFORMA);
-		}
-	}
-
-
-	public void validateAndAdjustLcDate(UpdateAcceptedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
-		if (lcRequest.getLcDate() == null) {
-			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_EMPTY);
-		}
-
-		Date lcDate = lcRequest.getLcDate();
-		Date performaDate = proformaDetail.getPerformaDate();
-		LocalDateTime lcDateTime = lcDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-		LocalDateTime performDateTime = performaDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-		LocalDate lcDatePart = lcDateTime.toLocalDate();
-		LocalDate performDatePart = performDateTime.toLocalDate();
-
-		if (lcDatePart.equals(performDatePart)) {
-			lcRequest.setLcDate(DateUtility.toDate(performDateTime.plusMinutes(1).toLocalDate()));
-		} else if (lcDate.before(performaDate)) {
-			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_BEFORE_PROFORMA);
-		}
-	}
-
-	public TradingBankModel findBankBranch(Long requestId) {
-
-		return tradingBankRepository.findById(requestId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-						MSG_TRADING_BANK_NOT_FOUND));
-	}
-
-	public IssuingBankModel findIssuingBank(Long requestId, Long fallbackId) {
-		Long id = requestId != null ? requestId : fallbackId;
-		String notFoundMsg = requestId != null
-				? MSG_ISSUING_BANK_NOT_FOUND
-				: MSG_ISSUING_BANK_NOT_FOUND_FOR_LC;
-		return issuingBankRepository.findById(id)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(notFoundMsg));
-	}
-
-	public void populateLcModel(LcModel lcModel, UpdateStartedLcRequest lcRequest,
-	                            ProformaDetailModel proformaDetail, ProformaMasterModel proformaMaster,
-	                            TradingBankModel tradingBank, IssuingBankModel issuingBank, Date expireDate) {
-
-		lcModel.setPerformaNo(proformaDetail.getPerformaNo());
-		lcModel.setPerformaDate(DateUtility.getJalaliDate(proformaDetail.getPerformaDate()));
-		lcModel.setProformaMasterId(proformaMaster.getId());
-		lcModel.setProformaDetailId(proformaDetail.getId());
-
-		// LC basic information
-		lcModel.setContractNo(proformaMaster.getContractNo());
-		lcModel.setLcNo(lcRequest.getLcNo());
-		lcModel.setLcDate(lcRequest.getLcDate());
-		lcModel.setLcExpiryDate(expireDate);
-
-		// Trading bank information
-		lcModel.setTradingBankId(tradingBank.getId());
-		lcModel.setTradingBankTitle(tradingBank.getBankTitle());
-		lcModel.setTradingBankBranchTitle(tradingBank.getBankBranchTitle());
-
-		// Issuing bank information
-		lcModel.setIssuerBankId(issuingBank.getId());
-		lcModel.setIssuerBankName(issuingBank.getBankName());
-		lcModel.setIssuerBankBranchName(issuingBank.getBranchName());
-		lcModel.setIssuerBankBranchCode(issuingBank.getBranchCode());
-		lcModel.setNosaCode(lcNosaCodeService.getNosaCode(issuingBank.getId()));
-
-		// Additional configuration
-		lcModel.setCreditExpirePeriod(proformaDetail.getCreditExpirePeriod());
-		lcModel.setDeadlineDays(proformaDetail.getDeadlineDays());
-		lcModel.setPaymentDeferral(PAYMENT_DEFERRAL_NONE);
-		lcModel.setRequireDispatchFile(lcRequest.getRequireDispatchFile());
-		lcModel.setLcAttachmentId(lcRequest.getLcAttachmentId());
-		lcModel.setAcknowledgment(Acknowledgment.RECKONING);
-
-	}
-
-	public void validateDispatchFileRequirement(LcModel lcModel, String dispatchFileId) {
-		if (Boolean.TRUE.equals(lcModel.getRequireDispatchFile()) && dispatchFileId == null) {
-			throw new InternalSaleCustomException.ValidationException(
-					MSG_LC_DISPATCH_FILE_REQUIRED);
-		}
-	}
-
-
-
-	public void updateTradingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
-		if (request.getTradingBankId() != null) {
-			TradingBankModel tradingBank = tradingBankRepository.findById(request.getTradingBankId())
-					.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-							MSG_TRADING_BANK_NOT_FOUND));
-			lc.setTradingBankTitle(tradingBank.getBankTitle());
-			lc.setTradingBankBranchTitle(tradingBank.getBankBranchTitle());
-			lc.setTradingBankId(tradingBank.getId());
-		}
-	}
-
-
-
-	public void updateIssuingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
-		if (request.getIssuerBankId() != null) {
-			IssuingBankModel issuingBank = issuingBankRepository.findById(request.getIssuerBankId())
-					.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-							MSG_ISSUING_BANK_NOT_FOUND));
-			lc.setIssuerBankName(issuingBank.getBankName());
-			lc.setIssuerBankBranchName(issuingBank.getBranchName());
-			lc.setIssuerBankBranchCode(issuingBank.getBranchCode());
-			lc.setIssuerBankId(issuingBank.getId());
-		}
-	}
-
-	public void sendLcBrokerReckoningEmail(BrokerEmailRequest brokerEmailRequest, String emailContent) {
-		log.info("Generated LC broker reckoning email content for broker: {} - Content: {}",
-				brokerEmailRequest.getBrokerName(), emailContent);
-		notificationService.sendEmailForLcBroker(brokerEmailRequest, emailContent);
-	}
-
-
-
-
-
 
 //	public void appendCancellationRecord(LcModel model, String cancellationRecord) {
 //		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
@@ -329,7 +180,6 @@ public class LcServiceImpl implements LcService {
 	}
 
 
-
 	public BrokerModel fetchBrokerForTrade(Long tradeId) {
 		var sellerBrokerCode = imeTradeRepository.findSellerBrokerCodeById(tradeId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
@@ -373,8 +223,7 @@ public class LcServiceImpl implements LcService {
 
 		validateAndAdjustLcDate(lcRequest, detailModel);
 		var tradingBank = findBankBranch(lcRequest.getTradingBankId());
-		var issuingBank = findIssuingBank(lcRequest.getIssuerBankId(), lcModel.getIssuerBankId());
-
+		var issuingBank = findIssuingBank(lcRequest.getIssuerBankId());
 
 		Date expireDate = calculateExpireDate(lcRequest);
 		populateLcModel(lcModel, lcRequest, detailModel, masterModel, tradingBank, issuingBank, expireDate);
@@ -656,5 +505,147 @@ public class LcServiceImpl implements LcService {
 	public void updateAllAcknowledgments() {
 		processStatusDeterminerService.updateAllLcAcknowledgments();
 	}
+
+
+	public LcModel findLcModel(Long proformaId) {
+		return lcRepository.findFirstByProformaDetailIdOrderByCreatedDateDesc(proformaId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						MSG_LC_NOT_FOUND));
+	}
+
+	public ProformaDetailModel findProformaDetail(Long proformaId) {
+		return proformaDetailRepository.findById(proformaId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						MSG_PROFORMA_NOT_FOUND));
+	}
+
+
+	public void validateAndAdjustLcDate(UpdateStartedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
+		if (lcRequest.getLcDate() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_EMPTY);
+		}
+
+		Date lcDate = lcRequest.getLcDate();
+		Date performaDate = proformaDetail.getPerformaDate();
+		LocalDateTime lcDateTime = lcDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+		LocalDateTime performDateTime = performaDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+		LocalDate lcDatePart = lcDateTime.toLocalDate();
+		LocalDate performDatePart = performDateTime.toLocalDate();
+
+		if (lcDatePart.equals(performDatePart)) {
+			lcRequest.setLcDate(DateUtility.toDate(performDateTime.plusMinutes(1).toLocalDate()));
+		} else if (lcDate.before(performaDate)) {
+			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_BEFORE_PROFORMA);
+		}
+	}
+
+
+	public void validateAndAdjustLcDate(UpdateAcceptedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
+		if (lcRequest.getLcDate() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_EMPTY);
+		}
+
+		Date lcDate = lcRequest.getLcDate();
+		Date performaDate = proformaDetail.getPerformaDate();
+		LocalDateTime lcDateTime = lcDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+		LocalDateTime performDateTime = performaDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+		LocalDate lcDatePart = lcDateTime.toLocalDate();
+		LocalDate performDatePart = performDateTime.toLocalDate();
+
+		if (lcDatePart.equals(performDatePart)) {
+			lcRequest.setLcDate(DateUtility.toDate(performDateTime.plusMinutes(1).toLocalDate()));
+		} else if (lcDate.before(performaDate)) {
+			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_BEFORE_PROFORMA);
+		}
+	}
+
+	public TradingBankModel findBankBranch(Long requestId) {
+
+		return tradingBankRepository.findById(requestId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						MSG_TRADING_BANK_NOT_FOUND));
+	}
+
+	private IssuingBankModel findIssuingBank(long requestId) {
+
+		return issuingBankRepository.findById(requestId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_ISSUING_BANK_NOT_FOUND));
+	}
+
+	private void populateLcModel(LcModel lcModel, UpdateStartedLcRequest lcRequest,
+	                             ProformaDetailModel proformaDetail, ProformaMasterModel proformaMaster,
+	                             TradingBankModel tradingBank, IssuingBankModel issuingBank, Date expireDate) {
+
+		lcModel.setPerformaNo(proformaDetail.getPerformaNo());
+		lcModel.setPerformaDate(DateUtility.getJalaliDate(proformaDetail.getPerformaDate()));
+		lcModel.setProformaMasterId(proformaMaster.getId());
+		lcModel.setProformaDetailId(proformaDetail.getId());
+
+		// LC basic information
+		lcModel.setContractNo(proformaMaster.getContractNo());
+		lcModel.setLcNo(lcRequest.getLcNo());
+		lcModel.setLcDate(lcRequest.getLcDate());
+		lcModel.setLcExpiryDate(expireDate);
+
+		// Trading bank information
+		lcModel.setTradingBankId(tradingBank.getId());
+		lcModel.setTradingBankTitle(tradingBank.getBankTitle());
+		lcModel.setTradingBankBranchTitle(tradingBank.getBankBranchTitle());
+
+		// Issuing bank information
+		lcModel.setIssuerBankId(issuingBank.getId());
+		lcModel.setIssuerBankName(issuingBank.getBankName());
+		lcModel.setIssuerBankBranchName(issuingBank.getBranchName());
+		lcModel.setIssuerBankBranchCode(issuingBank.getBranchCode());
+		lcModel.setNosaCode(lcNosaCodeService.getNosaCode(issuingBank.getId()));
+
+		// Additional configuration
+		lcModel.setCreditExpirePeriod(proformaDetail.getCreditExpirePeriod());
+		lcModel.setDeadlineDays(proformaDetail.getDeadlineDays());
+		lcModel.setPaymentDeferral(PAYMENT_DEFERRAL_NONE);
+		lcModel.setRequireDispatchFile(lcRequest.getRequireDispatchFile());
+		lcModel.setLcAttachmentId(lcRequest.getLcAttachmentId());
+		lcModel.setAcknowledgment(Acknowledgment.RECKONING);
+
+	}
+
+	private void validateDispatchFileRequirement(LcModel lcModel, String dispatchFileId) {
+		if (Boolean.TRUE.equals(lcModel.getRequireDispatchFile()) && dispatchFileId == null) {
+			throw new InternalSaleCustomException.ValidationException(
+					MSG_LC_DISPATCH_FILE_REQUIRED);
+		}
+	}
+
+
+	private void updateTradingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
+		if (request.getTradingBankId() != null) {
+			TradingBankModel tradingBank = tradingBankRepository.findById(request.getTradingBankId())
+					.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+							MSG_TRADING_BANK_NOT_FOUND));
+			lc.setTradingBankTitle(tradingBank.getBankTitle());
+			lc.setTradingBankBranchTitle(tradingBank.getBankBranchTitle());
+			lc.setTradingBankId(tradingBank.getId());
+		}
+	}
+
+
+	private void updateIssuingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
+		if (request.getIssuerBankId() != null) {
+			IssuingBankModel issuingBank = issuingBankRepository.findById(request.getIssuerBankId())
+					.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
+							MSG_ISSUING_BANK_NOT_FOUND));
+			lc.setIssuerBankName(issuingBank.getBankName());
+			lc.setIssuerBankBranchName(issuingBank.getBranchName());
+			lc.setIssuerBankBranchCode(issuingBank.getBranchCode());
+			lc.setIssuerBankId(issuingBank.getId());
+		}
+	}
+
+	private void sendLcBrokerReckoningEmail(BrokerEmailRequest brokerEmailRequest, String emailContent) {
+		log.info("Generated LC broker reckoning email content for broker: {} - Content: {}",
+				brokerEmailRequest.getBrokerName(), emailContent);
+		notificationService.sendEmailForLcBroker(brokerEmailRequest, emailContent);
+	}
+
 
 }

@@ -396,7 +396,7 @@ public class PMSRemittanceServiceImpl implements PMSRemittanceService {
 			CustomerModel customer = customerRepository.findById(remittanceMasterModel.getCustomerId())
 					.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 							MSG_CUSTOMER_NOT_FOUND));
-			byte[] pdfContent = fmsDocumentService.getOrCreateRemittancePdf (remittanceMasterModel.getId()).getContent();
+			byte[] pdfContent = fmsDocumentService.getOrCreateRemittancePdf(remittanceMasterModel.getId()).getContent();
 			Path filePath = createTempFile(String.valueOf(remittanceMasterModel.getContractNo()), pdfContent);
 			EmailRequest emailRequest = prepareRemittanceEmailRequest(remittanceMasterModel, customer);
 			mailService.sendMail(emailRequest, filePath.toString());

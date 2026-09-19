@@ -25,9 +25,6 @@ public class UpdateGaamRequest implements Serializable {
 	@Schema(description = "شناسه بانک صادر کننده اورق گام")
 	private Long issuerBankId;
 
-	@Schema(description = "شناسه بانک عامل", example = "2011")
-	private Long agentBankId;
-
 	// ==================== فیلدهای اورق گام الکترونیک ====================
 
 	@Schema(description = "کد تفصیلی حسابداری", example = "123-456-789")

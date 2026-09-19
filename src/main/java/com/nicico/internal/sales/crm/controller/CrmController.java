@@ -105,7 +105,6 @@ public class CrmController {
 	}
 
 
-
 	@Operation(summary = "خروجی PDF حواله", description = "فایل PDF حواله را پس از تبدیل فایل Word مربوطه برمی گرداند.")
 	@GetMapping("/remittance-export-pdf/{id}")
 	public ResponseEntity<byte[]> exportRemittancePdf(@PathVariable long id) {

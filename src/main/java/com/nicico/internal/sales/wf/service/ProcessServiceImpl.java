@@ -48,10 +48,10 @@ public class ProcessServiceImpl implements ProcessService {
 
 
 	@Override
-	public void rejectTask(String taskId){
+	public void rejectTask(String taskId) {
 
-		try{
-			var taskDetail=bpmsClientService.getTaskDetail(taskId);
+		try {
+			var taskDetail = bpmsClientService.getTaskDetail(taskId);
 			ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
 			reviewTaskRequest.setTaskId(taskId);
 			reviewTaskRequest.setProcessInstanceId(taskDetail.getProcessInstanceId());
@@ -59,8 +59,7 @@ public class ProcessServiceImpl implements ProcessService {
 			reviewTaskRequest.setApprove(false);
 
 			bpmsClientService.reviewTask(reviewTaskRequest);
-		}
-		catch(Exception e){
+		} catch (Exception e) {
 			ReviewTaskRequest reviewTaskRequest = new ReviewTaskRequest();
 			reviewTaskRequest.setTaskId(taskId);
 			reviewTaskRequest.setUserId(String.valueOf(SecurityUtil.getUserId()));

@@ -148,9 +148,6 @@ public class ExportDocServiceImpl implements ExportDocService {
 	}
 
 
-
-
-
 	private String determineTemplatePath(ProformaDetailModel proforma) {
 		ProformaMasterModel master = proformaMasterRepository.findById(proforma.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
@@ -208,7 +205,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 
 	private List<DocumentReplacement> createDocumentReplacements(Long proformaDetailId) {
 		ProformaDetailModel detailModel = findProformaDetail(proformaDetailId);
-		ProformaMasterModel masterModel= proformaMasterRepository.findById(detailModel.getProformaMasterId())
+		ProformaMasterModel masterModel = proformaMasterRepository.findById(detailModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
 		if (detailModel.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
 			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + proformaDetailId + " ابطال شده است و نمی‌توان آن را صادر کرد.");

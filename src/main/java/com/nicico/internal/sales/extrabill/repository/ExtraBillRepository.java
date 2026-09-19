@@ -2,16 +2,12 @@ package com.nicico.internal.sales.extrabill.repository;
 
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
-import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
-import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,8 +19,6 @@ public interface ExtraBillRepository extends JpaRepository<ExtraBankBillModel, L
 	List<ExtraBankBillModel> findAllByWorkflowApproveStatusIn(List<WorkflowApproveStatus> statuses);
 
 	ExtraBankBillModel findByProcessId(String processId);
-
-
 
 
 	@Query(value = "SELECT C_NOSA_CODE FROM T_INS_EXTRA_BANK_BILL WHERE N_ISSUER_BANK_ID = :bankId AND C_NOSA_CODE LIKE :prefix% ORDER BY C_NOSA_CODE DESC FETCH FIRST 1 ROWS ONLY", nativeQuery = true)

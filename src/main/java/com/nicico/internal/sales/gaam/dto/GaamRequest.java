@@ -26,7 +26,7 @@ public class GaamRequest implements Serializable {
 
 
 	@NotNull(message = "شناسه بانک صادرکننده نمی تواند خالی باشد")
-	@Schema(description = "نام بانک صادر کننده برات")
+	@Schema(description = "نام بانک")
 	private Long issuerBankId;
 
 	@NotBlank(message = "کد تفصیلی نمی تواند خالی باشد")
@@ -38,7 +38,7 @@ public class GaamRequest implements Serializable {
 	private String sepamCode;
 
 	@NotBlank(message = "شناسه خزانه داری نمی تواند خالی باشد")
-	@Schema(description = "شناسه خزانه داری")
+	@Schema(description = "کد گواهی")
 	private String treasuryId;
 
 	@NotNull(message = "تاریخ صدور برات نمی تواند خالی باشد")
@@ -53,7 +53,7 @@ public class GaamRequest implements Serializable {
 	@Schema(description = "شناسه جزئیات پیش فاکتور", name = "proformaDetailId", example = "52")
 	private Long proformaDetailId;
 
-	@Schema(description = "شناسه فایل پیوست برات")
+	@Schema(description = "شناسه فایل پیوست اوراق گام")
 	private String extraBillFileId;
 
 

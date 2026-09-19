@@ -10,21 +10,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum FinancialInstrumentType {
 
-    /**
-     * اعتبار اسنادی - Letter of Credit
-     */
-    LETTER_OF_CREDIT("107/18", "اعتبار اسنادی"),
+	/**
+	 * اعتبار اسنادی - Letter of Credit
+	 */
+	LETTER_OF_CREDIT("107/18", "اعتبار اسنادی"),
 
-    /**
-     * اوراق گام - GAM Certificate
-     */
-    GAM("108/18", "اوراق گام"),
+	/**
+	 * اوراق گام - GAM Certificate
+	 */
+	GAM("108/18", "اوراق گام"),
 
-    /**
-     * برات الکترونیکی - Electronic Promissory Note
-     */
-    ELECTRONIC_PROMISSORY_NOTE("109/18", "برات الکترونیکی");
+	/**
+	 * برات الکترونیکی - Electronic Promissory Note
+	 */
+	ELECTRONIC_PROMISSORY_NOTE("109/18", "برات الکترونیکی");
 
-    private final String mainCode;
-    private final String title;
+	private final String mainCode;
+	private final String title;
 }

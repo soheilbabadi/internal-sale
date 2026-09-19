@@ -58,7 +58,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final ProcessUserAccessRepository processUserAccessRepository;
 
 
-
 	@Override
 	@Transactional
 	public ProcessInstance startExtraBillProcess(Long masterId) {
@@ -221,11 +220,11 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	@Override
 	public boolean canStartProcess() {
 
-			var workflow = processVariableProvider.getExtraBillWorkflowByTitle();
-			return processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
-					.stream()
-					.anyMatch(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
-							&& ExtraBillProcessVariable.BillDraftRegistration.name().equalsIgnoreCase(access.getProcessVariable()));
+		var workflow = processVariableProvider.getExtraBillWorkflowByTitle();
+		return processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle())
+				.stream()
+				.anyMatch(access -> Objects.equals(access.getUserId(), SecurityUtil.getUserId())
+						&& ExtraBillProcessVariable.BillDraftRegistration.name().equalsIgnoreCase(access.getProcessVariable()));
 
 	}
 

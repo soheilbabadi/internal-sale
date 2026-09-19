@@ -30,6 +30,7 @@ public interface ProcessStatusDeterminerService {
 	ProcessInstanceHistory getRemittanceHistoryDetail(Long remittanceId);
 
 	ProcessInstanceHistory getGaamHistoryDetail(Long gaamId);
+
 	Map<String, List<UserTaskReportDTO>> getGaamSummaryReport(Long gaamId);
 
 	Map<String, List<UserTaskReportDTO>> getRemittanceSummaryReport(Long remittanceId);
