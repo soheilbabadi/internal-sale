@@ -146,7 +146,6 @@ public final class ProformaModelHelper {
 			String goodName,
 			String lotNumber) {
 
-		double vatRate = vat.doubleValue() / 100;
 		long unitPrice = Math.round(tradeModel.getUnitPrice());
 
 		double cashQuantity;
@@ -160,13 +159,13 @@ public final class ProformaModelHelper {
 
 		if (cashPercentTotal) {
 			creditPercent = 0;
-			double additionalValue = (goodsBucketModel.getCommission() + 100) / 100.0;
-			unitPriceCredit = (long) Math.ceil(unitPrice * additionalValue);
+			double additionalValue = 0.0;
+			unitPriceCredit = unitPrice;
 			cashQuantity = quantity;
 			creditQuantity = 0;
 			cashAmount = Math.round(cashQuantity * unitPrice);
 			creditAmount = 0;
-			vatCashAmount = Math.round(vatRate * cashAmount);
+			vatCashAmount = Math.round(cashAmount * vat.doubleValue() / 100.0);
 			vatCreditAmount = 0;
 		} else {
 			int cashPercent = goodsBucketModel.getCashPercentage().intValue();
@@ -177,8 +176,8 @@ public final class ProformaModelHelper {
 			unitPriceCredit = (long) Math.ceil(unitPrice * additionalValue);
 			creditAmount = Math.round(creditQuantity * unitPriceCredit);
 			cashAmount = Math.round(cashQuantity * unitPrice);
-			vatCashAmount = Math.round(vatRate * cashAmount);
-			vatCreditAmount = Math.round(vatRate * creditAmount);
+			vatCashAmount = Math.round(cashAmount * vat.doubleValue() / 100.0);
+			vatCreditAmount = Math.round(creditAmount * vat.doubleValue() / 100.0);
 		}
 
 		long vatAmount = vatCreditAmount + vatCashAmount;
