@@ -5,7 +5,7 @@ import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.crm.dto.CrmApprovedCompanyDto;
 import com.nicico.internal.sales.crm.dto.LcWithProformaDto;
 import com.nicico.internal.sales.crm.service.CrmHistoryService;
-import com.nicico.internal.sales.fms.service.FmsDocumentService;
+import com.nicico.internal.sales.export.service.FmsDocumentService;
 import com.nicico.internal.sales.history.dto.HistoryExtractMasterDto;
 import com.nicico.internal.sales.lc.dto.LcDto;
 import com.nicico.internal.sales.proforma.dto.ProformaMasterDTO;

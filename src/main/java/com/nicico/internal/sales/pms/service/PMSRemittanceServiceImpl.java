@@ -6,7 +6,7 @@ import com.nicico.internal.sales.common.properties.RabbitConfigPMSProperties;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
-import com.nicico.internal.sales.fms.service.FmsDocumentService;
+import com.nicico.internal.sales.export.service.FmsDocumentService;
 import com.nicico.internal.sales.goods.model.PmsMappingModel;
 import com.nicico.internal.sales.goods.repository.PmsMappingRepository;
 import com.nicico.internal.sales.goods.service.GoodsService;

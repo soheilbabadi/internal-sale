@@ -5,7 +5,7 @@ import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.fms.service.FmsDocumentService;
+import com.nicico.internal.sales.export.service.FmsDocumentService;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.notification.service.SmsNotificationService;
 import com.nicico.internal.sales.proforma.dto.*;

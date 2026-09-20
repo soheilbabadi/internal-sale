@@ -3,7 +3,7 @@ package com.nicico.internal.sales.notification.service;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
-import com.nicico.internal.sales.fms.service.FmsDocumentService;
+import com.nicico.internal.sales.export.service.FmsDocumentService;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
 import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;

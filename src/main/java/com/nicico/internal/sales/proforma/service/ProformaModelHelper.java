@@ -233,18 +233,16 @@ public final class ProformaModelHelper {
 		if (cashPercentTotal) {
 			cashPercentage = 100.0;
 			creditPercentage = 0.0;
-			cashQuantity = 0.0;
-			creditQuantity = netWeight;
-			cashAmount = 0;
-			vatCashAmount = 0;
+			cashQuantity = netWeight;
+			creditQuantity = 0.0;
 		} else {
 			cashPercentage = goodsBucketModel.getCashPercentage().doubleValue();
 			creditPercentage = 100.0 - cashPercentage;
 			cashQuantity = netWeight * (cashPercentage / 100.0);
 			creditQuantity = netWeight - cashQuantity;
-			cashAmount = Math.round(cashQuantity * unitPrice);
-			vatCashAmount = Math.round(vatRate * cashAmount);
 		}
+		cashAmount = Math.round(cashQuantity * unitPrice);
+		vatCashAmount = Math.round(vatRate * cashAmount);
 
 		long creditAmount = Math.round(creditQuantity * unitPrice);
 		long vatCreditAmount = Math.round(vatRate * creditAmount);

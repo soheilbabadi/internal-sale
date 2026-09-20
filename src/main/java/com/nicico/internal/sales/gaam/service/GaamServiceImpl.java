@@ -454,6 +454,7 @@ public class GaamServiceImpl implements GaamService {
 	}
 
 
+
 	public void appendGaamCancellationRecord(GaamModel model, String cancellationRecord) {
 		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
 		if (!existingDesc.isEmpty()) {

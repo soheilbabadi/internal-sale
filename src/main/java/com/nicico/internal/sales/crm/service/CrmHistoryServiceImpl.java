@@ -8,7 +8,7 @@ import com.nicico.internal.sales.crm.dto.LcViewMapper;
 import com.nicico.internal.sales.crm.dto.LcWithProformaDto;
 import com.nicico.internal.sales.crm.repository.LcViewRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.fms.service.FmsDocumentService;
+import com.nicico.internal.sales.export.service.FmsDocumentService;
 import com.nicico.internal.sales.history.dto.HistoryExtractMapper;
 import com.nicico.internal.sales.history.dto.HistoryExtractMasterDto;
 import com.nicico.internal.sales.history.repository.HistoryRepository;

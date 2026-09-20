@@ -31,7 +31,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.URI;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -216,6 +215,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 		return replacements;
 	}
 
+
 	private void addBasicReplacements(List<DocumentReplacement> replacements, ProformaDetailModel detailModel, ProformaMasterModel masterModel) {
 		try {
 			BigDecimal quantity = detailModel.getProformaGoodItemModels().get(0).getCreditQuantity();
@@ -229,9 +229,12 @@ public class ExportDocServiceImpl implements ExportDocService {
 			String proformaDate = DateUtility.getJalaliDate(detailModel.getPerformaDate());
 			String storageCost = floatFormatter.format(detailModel.getStorageCost());
 
+			// extraPercent is a percent value, e.g. 5 means 5%
 			BigDecimal extraPercent = detailModel.getExtraBillOfPercent() != null ? detailModel.getExtraBillOfPercent() : BigDecimal.ZERO;
-			BigDecimal extraAmount = detailModel.getExtraBillOfExchangeAmount() != null ? detailModel.getExtraBillOfExchangeAmount() : BigDecimal.ZERO;
-			BigDecimal finalAmountWithExtra = finalAmount.add(extraAmount);
+
+			// 5 -> 0.05 -> multiplier 1.05
+			BigDecimal extraMultiplier = BigDecimal.ONE.add(extraPercent.movePointLeft(2));
+			BigDecimal finalAmountWithExtra = finalAmount.multiply(extraMultiplier);
 
 			replacements.addAll(List.of(
 					new DocumentReplacement("BUYER_NAME", masterModel.getCustomerName()),
@@ -256,7 +259,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 					new DocumentReplacement("C_PERFORMA_NO", detailModel.getPerformaNo()),
 					new DocumentReplacement("CONTRACT_DATE", DateUtility.getJalaliDate(detailModel.getOrderDate())),
 					new DocumentReplacement("N_EXTRA_BILL_OF_PERCENT", formatter.format(extraPercent)),
-					new DocumentReplacement("N_EXTRA_BILL_OF_AMOUNT", formatter.format(extraAmount)),
+					new DocumentReplacement("N_EXTRA_BILL_OF_AMOUNT", formatter.format(finalAmountWithExtra)),
 					new DocumentReplacement("N_GAM_CERTIFICATE_COUNT", formatter.format(detailModel.getGamCertificateCount())),
 					new DocumentReplacement("N_SHIPPING_DEAD", detailModel.getShippingDeadline().toString())
 			));
@@ -265,6 +268,59 @@ public class ExportDocServiceImpl implements ExportDocService {
 			throw new InternalSaleCustomException.FileContentException(exception.getMessage());
 		}
 	}
+
+//	private void addBasicReplacements(List<DocumentReplacement> replacements, ProformaDetailModel detailModel, ProformaMasterModel masterModel) {
+//		try {
+//			BigDecimal quantity = detailModel.getProformaGoodItemModels().get(0).getCreditQuantity();
+//			BigDecimal unitPrice = detailModel.getProformaGoodItemModels().get(0).getUnitPriceCredit();
+//
+//			BigDecimal totalAmount = quantity.multiply(unitPrice);
+//			BigDecimal tax = detailModel.getProformaGoodItemModels().get(0).getVatCreditAmount();
+//			BigDecimal finalAmount = totalAmount.add(tax);
+//			String buyerAddress = TextUtility.shortenAddress(masterModel.getAddress());
+//			String contractNo = String.valueOf(masterModel.getContractNo());
+//			String proformaDate = DateUtility.getJalaliDate(detailModel.getPerformaDate());
+//			String storageCost = floatFormatter.format(detailModel.getStorageCost());
+//
+//			BigDecimal extraPercent = detailModel.getExtraBillOfPercent() != null ? detailModel.getExtraBillOfPercent() : BigDecimal.ZERO;
+//			BigDecimal extraAmount = detailModel.getExtraBillOfExchangeAmount() != null ? detailModel.getExtraBillOfExchangeAmount() : BigDecimal.ZERO;
+//
+//
+//			BigDecimal finalAmountWithExtra = finalAmount.add(extraAmount);
+//
+//
+//			replacements.addAll(List.of(
+//					new DocumentReplacement("BUYER_NAME", masterModel.getCustomerName()),
+//					new DocumentReplacement("BUYER_ADDRESS", buyerAddress),
+//					new DocumentReplacement("PHONE", masterModel.getPhone()),
+//					new DocumentReplacement("BUYER_ECONOMIC_CODE", masterModel.getEconomicCode()),
+//					new DocumentReplacement("BUYER_REGISTER_CODE", masterModel.getNationalCode()),
+//					new DocumentReplacement("CONTRACT_NO", contractNo),
+//					new DocumentReplacement("PRODUCT_NAME", detailModel.getProformaGoodItemModels().get(0).getGoodName()),
+//					new DocumentReplacement("VALUE", formatter.format(quantity)),
+//					new DocumentReplacement("UNIT_PRICE", formatter.format(unitPrice)),
+//					new DocumentReplacement("VALIDITY_DAYS", detailModel.getDeadlineDays().toString()),
+//					new DocumentReplacement("N_STORAGE_DEAD", detailModel.getStorageDeadline().toString()),
+//					new DocumentReplacement("STORAGE_COST", storageCost),
+//					new DocumentReplacement("TOTAL_CHARACTER_PRICE", numberToString(finalAmountWithExtra)),
+//					new DocumentReplacement("N_PAYMENT_DEFERRAL", detailModel.getPaymentDeferral().toString()),
+//					new DocumentReplacement("N_CREDIT_EXPIRE_PERIOD", detailModel.getCreditExpirePeriod().toString()),
+//					new DocumentReplacement("TOTAL_PRICE", formatter.format(totalAmount)),
+//					new DocumentReplacement("FINAL_PRICE", formatter.format(finalAmount)),
+//					new DocumentReplacement("TAX", formatter.format(tax)),
+//					new DocumentReplacement("C_PERFORMA_DATE", proformaDate),
+//					new DocumentReplacement("C_PERFORMA_NO", detailModel.getPerformaNo()),
+//					new DocumentReplacement("CONTRACT_DATE", DateUtility.getJalaliDate(detailModel.getOrderDate())),
+//					new DocumentReplacement("N_EXTRA_BILL_OF_PERCENT", formatter.format(extraPercent)),
+//					new DocumentReplacement("N_EXTRA_BILL_OF_AMOUNT", formatter.format(finalAmountWithExtra)),
+//					new DocumentReplacement("N_GAM_CERTIFICATE_COUNT", formatter.format(detailModel.getGamCertificateCount())),
+//					new DocumentReplacement("N_SHIPPING_DEAD", detailModel.getShippingDeadline().toString())
+//			));
+//
+//		} catch (Exception exception) {
+//			throw new InternalSaleCustomException.FileContentException(exception.getMessage());
+//		}
+//	}
 
 	private void addRemittanceBasicReplacements(List<DocumentReplacement> replacements, RemittanceMasterModel masterModel) {
 		String lcDate = DateUtility.getJalaliDate(masterModel.getLcExpiryDate());

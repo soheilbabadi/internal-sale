@@ -1,7 +1,7 @@
 package com.nicico.internal.sales.userinfo.controller;
 
 import com.nicico.copper.core.SecurityUtil;
-import com.nicico.internal.sales.fms.service.FmsDocumentService;
+import com.nicico.internal.sales.export.service.FmsDocumentService;
 import com.nicico.internal.sales.userinfo.dto.UserInfoDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
