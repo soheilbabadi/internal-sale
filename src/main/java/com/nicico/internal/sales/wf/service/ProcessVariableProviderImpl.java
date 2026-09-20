@@ -10,6 +10,12 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
+import com.nicico.internal.sales.wf.enums.ExtraBillProcessVariable;
+import com.nicico.internal.sales.wf.enums.GaamProcessVariable;
+import com.nicico.internal.sales.wf.enums.LcProcessVariable;
+import com.nicico.internal.sales.wf.enums.ProformaProcessVariable;
+import com.nicico.internal.sales.wf.enums.RemittanceProcessVariable;
+import com.nicico.internal.sales.wf.enums.ReversalProcessVariable;
 import com.nicico.internal.sales.wf.model.ProcessUserAccessModel;
 import com.nicico.internal.sales.wf.model.WorkflowModel;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
@@ -17,10 +23,12 @@ import com.nicico.internal.sales.wf.repository.WorkflowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +43,26 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	private final WorkflowRepository workflowRepository;
 	private final ProcessUserAccessRepository processUserAccessRepository;
 	private final BpmsClientService bpmsClientService;
+
+	public Map<String, String> resolveUserAccess(List<ProcessUserAccessModel> accessList, List<String> requiredVariables) {
+		return requiredVariables.stream()
+				.collect(Collectors.toMap(variable -> variable, variable -> {
+					List<ProcessUserAccessModel> matches = accessList.stream()
+							.filter(a -> a.getProcessVariable().equals(variable))
+							.toList();
+
+					String title = matches.stream()
+							.findFirst()
+							.map(ProcessUserAccessModel::getProcessVariableTitle)
+							.orElse(variable);
+
+					return matches.stream()
+							.min(Comparator.comparing(a -> !a.getUsername().equals(SecurityUtil.getUsername())))
+							.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+									"متغیر " + title + " به هیچ کاربری تخصیص نیافته است"))
+							.getUserId().toString();
+				}));
+	}
 
 
 	@Override
@@ -156,7 +184,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	public Map<String, String> getGaamUserAccess() {
 		var workflow = getGaamWorkflowByTitle();
 		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("GaamDraftRegistration", "GaamSettleSure", "GaamRemitSure", "GaamFinalCheck"));
+		var userAccess = resolveUserAccess(accessList, List.of(GaamProcessVariable.values()));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
@@ -168,7 +196,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	public Map<String, String> getProformaUserAccess() {
 		var workflow = getProformaWorkflowByTitle();
 		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("bossProforma", "Proforma"));
+		var userAccess = resolveUserAccess(accessList, List.of(ProformaProcessVariable.values()));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
@@ -179,7 +207,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	public Map<String, String> getRemittanceUserAccess() {
 		var workflow = this.getRemittanceWorkflowByTitle();
 		List<ProcessUserAccessModel> accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("RemitForge", "RemitGuardboss", "RemitGuard"));
+		var userAccess = resolveUserAccess(accessList, List.of(RemittanceProcessVariable.values()));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
@@ -190,7 +218,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	public Map<String, String> getReversalUserAccess() {
 		var workflow = getReversalWorkflowByTitle();
 		List<ProcessUserAccessModel> accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("salesExpert", "salesExpertReview", "salesManager"));
+		var userAccess = resolveUserAccess(accessList, List.of(ReversalProcessVariable.values()));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
@@ -201,7 +229,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	public Map<String, String> getLcUserAccess() {
 		var workflow = getLcWorkflowByTitle();
 		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("CreditBridge", "SettleSure", "RemitSure", "FinalCheck"));
+		var userAccess = resolveUserAccess(accessList, List.of(LcProcessVariable.values()));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
@@ -213,7 +241,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	public Map<String, String> getExtraBillUserAccess() {
 		var workflow = getExtraBillWorkflowByTitle();
 		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = ProcessUserAccessResolver.resolveUserAccess(accessList, List.of("GaamDraftRegistration", "GaamSettleSure", "GaamRemitSure", "GaamFinalCheck"));
+		var userAccess = resolveUserAccess(accessList, List.of(ExtraBillProcessVariable.values()));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
