@@ -257,11 +257,10 @@ public class GaamBoundProformaIssueServiceImpl implements GaamBoundProformaIssue
 			ProformaDetailModel detailModel,
 			BigDecimal totalPrice,
 			SaleConditionModel saleConditionModel) {
-		BigDecimal extraPercent = BigDecimal.ZERO;
-		extraPercent = saleConditionModel.getExtraGamCertificatePercent() != null ? saleConditionModel.getExtraGamCertificatePercent() : BigDecimal.ZERO;
+		BigDecimal extraPercent = saleConditionModel.getExtraGamCertificatePercent() != null ? saleConditionModel.getExtraGamCertificatePercent() : BigDecimal.ZERO;
 		BigDecimal factor = BigDecimal.ONE.add(extraPercent.divide(HUNDRED, 10, RoundingMode.HALF_UP));
 		BigDecimal finalPrice = totalPrice.multiply(factor).setScale(2, RoundingMode.HALF_UP);
-		BigDecimal extraAmount = finalPrice.subtract(totalPrice).setScale(2, RoundingMode.HALF_UP);
+		BigDecimal extraAmount = finalPrice.multiply(extraPercent).divide(HUNDRED, 2, RoundingMode.HALF_UP);
 		detailModel.setExtraBillOfExchangeAmount(extraAmount);
 		detailModel.setExtraBillOfPercent(extraPercent);
 		detailModel.setFinalPrice(finalPrice);

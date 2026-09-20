@@ -229,18 +229,9 @@ public class ExportDocServiceImpl implements ExportDocService {
 			String proformaDate = DateUtility.getJalaliDate(detailModel.getPerformaDate());
 			String storageCost = floatFormatter.format(detailModel.getStorageCost());
 
-			BigDecimal extraAmount = BigDecimal.ZERO;
-			BigDecimal extraPercent = detailModel.getExtraBillOfPercent();
-			BigDecimal finalAmountWithExtra = finalAmount;
-
-			if (extraPercent != null && extraPercent.compareTo(BigDecimal.ZERO) > 0) {
-				// Calculate: finalAmount * (1 + extraPercent/100)
-				BigDecimal factor = BigDecimal.ONE.add(
-						extraPercent.divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
-				);
-				extraAmount = finalAmount.multiply(factor);
-				finalAmountWithExtra = extraAmount; // extraAmount IS the final amount with extra
-			}
+			BigDecimal extraPercent = detailModel.getExtraBillOfPercent() != null ? detailModel.getExtraBillOfPercent() : BigDecimal.ZERO;
+			BigDecimal extraAmount = detailModel.getExtraBillOfExchangeAmount() != null ? detailModel.getExtraBillOfExchangeAmount() : BigDecimal.ZERO;
+			BigDecimal finalAmountWithExtra = finalAmount.add(extraAmount);
 
 			replacements.addAll(List.of(
 					new DocumentReplacement("BUYER_NAME", masterModel.getCustomerName()),
@@ -264,8 +255,8 @@ public class ExportDocServiceImpl implements ExportDocService {
 					new DocumentReplacement("C_PERFORMA_DATE", proformaDate),
 					new DocumentReplacement("C_PERFORMA_NO", detailModel.getPerformaNo()),
 					new DocumentReplacement("CONTRACT_DATE", DateUtility.getJalaliDate(detailModel.getOrderDate())),
-					new DocumentReplacement("N_EXTRA_BILL_OF_PERCENT", formatter.format(extraPercent != null ? extraPercent : BigDecimal.ZERO)),
-					new DocumentReplacement("N_EXTRA_BILL_OF_AMOUNT", formatter.format(finalAmountWithExtra)),
+					new DocumentReplacement("N_EXTRA_BILL_OF_PERCENT", formatter.format(extraPercent)),
+					new DocumentReplacement("N_EXTRA_BILL_OF_AMOUNT", formatter.format(extraAmount)),
 					new DocumentReplacement("N_GAM_CERTIFICATE_COUNT", formatter.format(detailModel.getGamCertificateCount())),
 					new DocumentReplacement("N_SHIPPING_DEAD", detailModel.getShippingDeadline().toString())
 			));

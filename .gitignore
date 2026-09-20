@@ -1,146 +1,49 @@
-```bash
-# Environment files
-.env
-.env.local
-*.env.*
+```
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+build/
+target/
 
-# Logs and temporary files
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.gradle/
+
+# Logs and temp files
 *.log
 *.tmp
 *.swp
+
+# Environment
+.env
+.env.local
+*.env.*
 
 # Editors
 .vscode/
 .idea/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-.coverage
-htmlcov/
-.coverage.*
-.python-version
-
-# Build and distribution artifacts
-build/
-dist/
-*.egg-info/
-.eggs/
-.svn/
- CVS/
-
-# Virtual environments
-venv/
-.venv/
-env/
-ENV/
-
-# IDE specific
-*.swp
-*.swo
-*~
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# MyPy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pytest
-.pytest_cache/
-
-# Coverage
-.coverage*
-coverage.xml
+# Coverage reports
+coverage/
 htmlcov/
+.coverage
 
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Java/Maven/Gradle
-target/
-.gradle/
-*.class
-*.jar
-*.war
-*.ear
-*.nar
-dependency-reduced-pom.xml
-
-# C/C++
-*.o
-*.obj
-*.a
-*.lib
-*.so
-*.dll
-*.dylib
-*.exe
-*.out
-*.ilk
-*.pdb
-*.gch
-*.ii
-*.vi
-*.slo
-*.lo
-*.la
-.libs/
-.deps/
-
-# Go
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.prof
-go.mod
-go.sum
-
-# Ruby
-*.gem
-*.rbc
-.rake_opts
-.bundle/
-vendor/bundle/
-Gemfile.lock
-
-# Rust
-Cargo.lock
-*.rlib
-*.so
-*.dylib
-*.dll
-target/
-
-# Scala
-*.class
-*.jar
-*.war
-*.ear
-*.nar
-dist/
-target/
-
-# Julia
-julia-*/
-.JuliaUserPrefs.jl
-
-# Zig
-zig-cache/
-zig-out/
-
-# Compression
+# Archives
 *.zip
 *.gz
 *.tar
@@ -163,14 +66,4 @@ zig-out/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-
-# Shell scripts (if not intended to be executable in version control)
-*.sh~
-
-# Backup and swap files
-*~
-.swp
-.swo
-.viminfo
-.netrwhist
 ```
