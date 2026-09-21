@@ -168,23 +168,9 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel proformaMaster) {
 		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
 		dto.setProcessDefinitionKey(processVariableProvider.getGaamWorkflowByTitle().getDefinitionKey());
-		dto.setVariables(processVariableProvider.createGaamRequestVariables(buildGaamVariablesInput(proformaMaster)));
+		dto.setVariables(processVariableProvider.createGaamRequestVariables(processVariableProvider.buildGaamVariablesInput(proformaMaster)));
 
 		return dto;
-	}
-
-
-	private ProformaVariablesInput buildGaamVariablesInput(ProformaMasterModel proformaMaster) {
-		ProformaVariablesInput input = new ProformaVariablesInput();
-		input.setProformaMasterId(proformaMaster.getId());
-		input.setContractDate(proformaMaster.getContractDate());
-		input.setGoodId(proformaMaster.getGoodId());
-		input.setGoodName(proformaMaster.getGoodName());
-		input.setCustomerName(proformaMaster.getCustomerName());
-		input.setContractNo(String.valueOf(proformaMaster.getContractNo()));
-		input.setCommission(proformaMaster.getCommissionPercentage());
-
-		return input;
 	}
 
 

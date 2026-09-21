@@ -15,6 +15,8 @@ import com.nicico.internal.sales.wf.model.ProcessUserAccessModel;
 import com.nicico.internal.sales.wf.model.WorkflowModel;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import com.nicico.internal.sales.wf.repository.WorkflowRepository;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
+import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -210,6 +212,46 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	@Override
 	public Map<String, String> getExtraBillUserAccess() {
 		return buildUserAccess(getExtraBillWorkflowByTitle(), ExtraBillProcessVariable.values());
+	}
+
+	@Override
+	public ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel masterModel) {
+		ProformaDetailModel detail = masterModel.getProformaDetailModelLists().get(0);
+		ProformaVariablesInput input = new ProformaVariablesInput();
+		input.setProformaMasterId(masterModel.getId());
+		input.setContractDate(detail.getContractDate());
+		input.setGoodId(masterModel.getGoodId());
+		input.setGoodName(masterModel.getGoodName());
+		input.setCustomerName(masterModel.getCustomerName());
+		input.setContractNo(String.valueOf(masterModel.getContractNo()));
+		input.setCommission(masterModel.getCommissionPercentage());
+		return input;
+	}
+
+	@Override
+	public ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMaster) {
+		ProformaVariablesInput input = new ProformaVariablesInput();
+		input.setProformaMasterId(proformaMaster.getId());
+		input.setContractDate(proformaMaster.getContractDate());
+		input.setGoodId(proformaMaster.getGoodId());
+		input.setGoodName(proformaMaster.getGoodName());
+		input.setCustomerName(proformaMaster.getCustomerName());
+		input.setContractNo(String.valueOf(proformaMaster.getContractNo()));
+		input.setCommission(proformaMaster.getCommissionPercentage());
+		return input;
+	}
+
+	@Override
+	public ProformaVariablesInput buildGaamVariablesInput(ProformaMasterModel proformaMaster) {
+		ProformaVariablesInput input = new ProformaVariablesInput();
+		input.setProformaMasterId(proformaMaster.getId());
+		input.setContractDate(proformaMaster.getContractDate());
+		input.setGoodId(proformaMaster.getGoodId());
+		input.setGoodName(proformaMaster.getGoodName());
+		input.setCustomerName(proformaMaster.getCustomerName());
+		input.setContractNo(String.valueOf(proformaMaster.getContractNo()));
+		input.setCommission(proformaMaster.getCommissionPercentage());
+		return input;
 	}
 
 	@Override

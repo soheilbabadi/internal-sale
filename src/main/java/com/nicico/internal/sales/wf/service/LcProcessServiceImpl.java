@@ -61,7 +61,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 		StartProcessWithDataDTO startProcessDto = new StartProcessWithDataDTO();
 		startProcessDto.setProcessDefinitionKey(processVariableProvider.getLcWorkflowByTitle().getDefinitionKey());
-		startProcessDto.setVariables(processVariableProvider.createLCRequestVariables(buildProformaVariablesInput(masterModel)));
+		startProcessDto.setVariables(processVariableProvider.createLCRequestVariables(processVariableProvider.buildProformaVariablesInput(masterModel)));
 
 		ProcessInstance instance = startProcessWithData(startProcessDto);
 
@@ -245,19 +245,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 //		};
 //	}
 
-
-	private ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel masterModel) {
-		ProformaDetailModel detail = masterModel.getProformaDetailModelLists().get(0);
-		ProformaVariablesInput input = new ProformaVariablesInput();
-		input.setProformaMasterId(masterModel.getId());
-		input.setContractDate(detail.getContractDate());
-		input.setGoodId(masterModel.getGoodId());
-		input.setGoodName(masterModel.getGoodName());
-		input.setCustomerName(masterModel.getCustomerName());
-		input.setContractNo(String.valueOf(masterModel.getContractNo()));
-		input.setCommission(masterModel.getCommissionPercentage());
-		return input;
-	}
 
 	private LcModel buildLcModel(ProcessInstance instance, ProformaMasterModel masterModel, ProformaDetailModel detail) {
 		var goodItem = proformaGoodItemRepository.findAllByProformaDetailModel(detail).get(0);

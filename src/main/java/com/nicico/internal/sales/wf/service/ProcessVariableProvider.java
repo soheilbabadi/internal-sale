@@ -5,6 +5,7 @@ import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.model.WorkflowModel;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 
 import java.util.Map;
 
@@ -45,6 +46,12 @@ public interface ProcessVariableProvider {
 
 
 	Map<String, String> getExtraBillUserAccess();
+
+	ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model);
+
+	ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMaster);
+
+	ProformaVariablesInput buildGaamVariablesInput(ProformaMasterModel proformaMaster);
 
 	ReviewTaskRequest prepareReviewTaskRequest(TaskActionDto taskActionDto);
 
