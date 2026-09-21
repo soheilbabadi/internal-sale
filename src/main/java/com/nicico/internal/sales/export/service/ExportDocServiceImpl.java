@@ -221,6 +221,10 @@ public class ExportDocServiceImpl implements ExportDocService {
 			BigDecimal quantity = detailModel.getProformaGoodItemModels().get(0).getCreditQuantity();
 			BigDecimal unitPrice = detailModel.getProformaGoodItemModels().get(0).getUnitPriceCredit();
 
+			if (masterModel.getProformaIssueType() == ProformaIssueType.CASH || masterModel.getProformaIssueType() == ProformaIssueType.FROM_CREDIT_FACILITIES) {
+				unitPrice = detailModel.getProformaGoodItemModels().get(0).getUnitPriceCash();
+			}
+
 			BigDecimal totalAmount = quantity.multiply(unitPrice);
 			BigDecimal tax = detailModel.getProformaGoodItemModels().get(0).getVatCreditAmount();
 			BigDecimal finalAmount = totalAmount.add(tax);
@@ -228,13 +232,10 @@ public class ExportDocServiceImpl implements ExportDocService {
 			String contractNo = String.valueOf(masterModel.getContractNo());
 			String proformaDate = DateUtility.getJalaliDate(detailModel.getPerformaDate());
 			String storageCost = floatFormatter.format(detailModel.getStorageCost());
-
-			// extraPercent is a percent value, e.g. 5 means 5%
 			BigDecimal extraPercent = detailModel.getExtraBillOfPercent() != null ? detailModel.getExtraBillOfPercent() : BigDecimal.ZERO;
-
-			// 5 -> 0.05 -> multiplier 1.05
 			BigDecimal extraMultiplier = BigDecimal.ONE.add(extraPercent.movePointLeft(2));
 			BigDecimal finalAmountWithExtra = finalAmount.multiply(extraMultiplier);
+
 
 			replacements.addAll(List.of(
 					new DocumentReplacement("BUYER_NAME", masterModel.getCustomerName()),

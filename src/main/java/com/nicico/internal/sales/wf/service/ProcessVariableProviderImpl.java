@@ -10,12 +10,7 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.enums.ExtraBillProcessVariable;
-import com.nicico.internal.sales.wf.enums.GaamProcessVariable;
-import com.nicico.internal.sales.wf.enums.LcProcessVariable;
-import com.nicico.internal.sales.wf.enums.ProformaProcessVariable;
-import com.nicico.internal.sales.wf.enums.RemittanceProcessVariable;
-import com.nicico.internal.sales.wf.enums.ReversalProcessVariable;
+import com.nicico.internal.sales.wf.enums.*;
 import com.nicico.internal.sales.wf.model.ProcessUserAccessModel;
 import com.nicico.internal.sales.wf.model.WorkflowModel;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
@@ -23,11 +18,7 @@ import com.nicico.internal.sales.wf.repository.WorkflowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -180,74 +171,46 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	}
 
 
-	@Override
-	public Map<String, String> getGaamUserAccess() {
-		var workflow = getGaamWorkflowByTitle();
-		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = resolveUserAccess(accessList, List.of(GaamProcessVariable.values()));
+	private <E extends Enum<E>> Map<String, String> buildUserAccess(WorkflowModel workflow, E[] variables) {
+		List<ProcessUserAccessModel> accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
+		Map<String, String> userAccess = new HashMap<>(resolveUserAccess(
+				accessList,
+				Arrays.stream(variables).map(Enum::name).toList()));
 		userAccess.put("starter", SecurityUtil.getUserId().toString());
 		userAccess.put("processName", workflow.getProcessTitle());
 		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
 		return userAccess;
 	}
 
+	@Override
+	public Map<String, String> getGaamUserAccess() {
+		return buildUserAccess(getGaamWorkflowByTitle(), GaamProcessVariable.values());
+	}
 
 	@Override
 	public Map<String, String> getProformaUserAccess() {
-		var workflow = getProformaWorkflowByTitle();
-		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = resolveUserAccess(accessList, List.of(ProformaProcessVariable.values()));
-		userAccess.put("starter", SecurityUtil.getUserId().toString());
-		userAccess.put("processName", workflow.getProcessTitle());
-		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
-		return userAccess;
+		return buildUserAccess(getProformaWorkflowByTitle(), ProformaProcessVariable.values());
 	}
 
 	@Override
 	public Map<String, String> getRemittanceUserAccess() {
-		var workflow = this.getRemittanceWorkflowByTitle();
-		List<ProcessUserAccessModel> accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = resolveUserAccess(accessList, List.of(RemittanceProcessVariable.values()));
-		userAccess.put("starter", SecurityUtil.getUserId().toString());
-		userAccess.put("processName", workflow.getProcessTitle());
-		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
-		return userAccess;
+		return buildUserAccess(getRemittanceWorkflowByTitle(), RemittanceProcessVariable.values());
 	}
 
 	@Override
 	public Map<String, String> getReversalUserAccess() {
-		var workflow = getReversalWorkflowByTitle();
-		List<ProcessUserAccessModel> accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = resolveUserAccess(accessList, List.of(ReversalProcessVariable.values()));
-		userAccess.put("starter", SecurityUtil.getUserId().toString());
-		userAccess.put("processName", workflow.getProcessTitle());
-		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
-		return userAccess;
+		return buildUserAccess(getReversalWorkflowByTitle(), ReversalProcessVariable.values());
 	}
 
 	@Override
 	public Map<String, String> getLcUserAccess() {
-		var workflow = getLcWorkflowByTitle();
-		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = resolveUserAccess(accessList, List.of(LcProcessVariable.values()));
-		userAccess.put("starter", SecurityUtil.getUserId().toString());
-		userAccess.put("processName", workflow.getProcessTitle());
-		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
-		return userAccess;
+		return buildUserAccess(getLcWorkflowByTitle(), LcProcessVariable.values());
 	}
-
 
 	@Override
 	public Map<String, String> getExtraBillUserAccess() {
-		var workflow = getExtraBillWorkflowByTitle();
-		var accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
-		var userAccess = resolveUserAccess(accessList, List.of(ExtraBillProcessVariable.values()));
-		userAccess.put("starter", SecurityUtil.getUserId().toString());
-		userAccess.put("processName", workflow.getProcessTitle());
-		userAccess.put("processLocalName", workflow.getProcessLocalTitle());
-		return userAccess;
+		return buildUserAccess(getExtraBillWorkflowByTitle(), ExtraBillProcessVariable.values());
 	}
-
 
 	@Override
 	public ReviewTaskRequest prepareReviewTaskRequest(TaskActionDto taskActionDto) {

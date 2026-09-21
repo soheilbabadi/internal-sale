@@ -210,15 +210,7 @@ public final class ProformaModelHelper {
 	}
 
 	public static PreciousGoodItemCalculation calculatePreciousGoodItem(
-			IMETradeModel tradeModel,
-			GoodsBucketModel goodsBucketModel,
-			BigDecimal vat,
-			double netWeight,
-			double totalWeight,
-			boolean cashPercentTotal,
-			Long goodId,
-			String goodName,
-			String lotNumber) {
+			IMETradeModel tradeModel, GoodsBucketModel goodsBucketModel, BigDecimal vat, double netWeight, double totalWeight, boolean cashPercentTotal, Long goodId, String goodName, String lotNumber) {
 
 		double vatRate = vat.doubleValue() / 100;
 		long unitPrice = Math.round(tradeModel.getUnitPrice());
@@ -473,7 +465,7 @@ public final class ProformaModelHelper {
 				.finalPrice(detailTotals.finalAmount())
 				.vatAmount(detailTotals.vatAmount())
 				.saleType(SaleType.EXWORKS)
-				.settlementType(settlementType)
+				.settlementType(SettlementType.UNKNOWN.name())
 				.proformaIssueType(proformaIssueType)
 				.orderDate(orderDate)
 				.contractDate(contractDate)

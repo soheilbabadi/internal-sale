@@ -284,7 +284,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 				.finalPrice(detailTotals.finalAmount())
 				.vatAmount(detailTotals.vatAmount())
 				.saleType(SaleType.EXWORKS)
-				.settlementType(settlementType)
+				.settlementType(SettlementType.UNKNOWN.name())
 				.proformaIssueType(ProformaIssueType.FROM_CREDIT_FACILITIES)
 				.orderDate(params.requestDto().getOrderDate())
 				.contractDate(params.tradeModel().getContractDate())

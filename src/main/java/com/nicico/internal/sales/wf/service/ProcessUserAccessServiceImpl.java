@@ -18,10 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -125,23 +122,5 @@ public class ProcessUserAccessServiceImpl implements ProcessUserAccessService {
 				.limit(20).map(user -> new UserDataDto(user.getId(), user.getUsername(), user.getFullName(), user.getNationalCode(), user.getStatus().name())).toList();
 	}
 
-	public Map<String, String> resolveUserAccess(List<ProcessUserAccessModel> accessList, List<String> requiredVariables) {
-		return requiredVariables.stream()
-				.collect(Collectors.toMap(variable -> variable, variable -> {
-					List<ProcessUserAccessModel> matches = accessList.stream()
-							.filter(a -> a.getProcessVariable().equals(variable))
-							.toList();
 
-					String title = matches.stream()
-							.findFirst()
-							.map(ProcessUserAccessModel::getProcessVariableTitle)
-							.orElse(variable);
-
-					return matches.stream()
-							.min(Comparator.comparing(a -> !a.getUsername().equals(SecurityUtil.getUsername())))
-							.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-									"متغیر " + title + " به هیچ کاربری تخصیص نیافته است"))
-							.getUserId().toString();
-				}));
-	}
 }
