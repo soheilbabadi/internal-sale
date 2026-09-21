@@ -19,4 +19,6 @@ public interface ExportDocService {
 	byte[] exportRemittancePdf(long remittanceId);
 
 	byte[] convertDocListToPdf(List<XWPFDocument> docList);
+
+	byte[] mergePdfs(List<byte[]> pdfDocuments);
 }

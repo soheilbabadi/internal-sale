@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ByteArrayResource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -491,5 +492,44 @@ public class ExportDocServiceImpl implements ExportDocService {
 		MultiValueMap<String, Object> requestBody = createMultipartRequestBody(docList);
 		RequestEntity<MultiValueMap<String, Object>> request = createPdfConversionRequest(requestBody);
 		return restTemplate.exchange(request, byte[].class).getBody();
+	}
+
+	@Override
+	public byte[] mergePdfs(List<byte[]> pdfDocuments) {
+		log.info("mergePdfs start, {} document(s)", pdfDocuments.size());
+
+		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
+		int fileCounter = 0;
+		for (byte[] pdfBytes : pdfDocuments) {
+			fileCounter++;
+			String fileName = fileCounter + ".pdf";
+			bodyMap.add("files", new ByteArrayResource(pdfBytes) {
+				@Override
+				public String getFilename() {
+					return fileName;
+				}
+			});
+		}
+
+		log.info("mergePdfs all documents written to memory, sending to pdf convertor");
+		bodyMap.add("merge", "true");
+
+		RequestEntity<MultiValueMap<String, Object>> request = RequestEntity
+				.post(URI.create(pdfConvertorUrl))
+				.contentType(MediaType.MULTIPART_FORM_DATA)
+				.body(bodyMap);
+
+		try {
+			log.info("mergePdfs calling pdf convertor at {}", pdfConvertorUrl);
+			byte[] response = restTemplate.exchange(request, byte[].class).getBody();
+			log.info("mergePdfs received response, {} bytes", response == null ? 0 : response.length);
+			if (response == null || response.length == 0) {
+				throw new InternalSaleCustomException.FileContentException("PDF empty response from converter");
+			}
+			return response;
+		} catch (Exception ex) {
+			log.error("Error merging PDFs: {}", ex.getMessage(), ex);
+			throw new InternalSaleCustomException.FileContentException(FILE_WRITE_ERROR_MESSAGE);
+		}
 	}
 }

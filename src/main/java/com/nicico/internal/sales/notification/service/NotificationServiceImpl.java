@@ -3,11 +3,9 @@ package com.nicico.internal.sales.notification.service;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
+import com.nicico.internal.sales.export.service.ExportDocService;
 import com.nicico.internal.sales.export.service.FmsDocumentService;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
-import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
-import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
-import com.nicico.internal.sales.notification.dto.EmailRequest;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
@@ -84,10 +82,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private final RemittanceMasterRepository remittanceMasterRepository;
 	private final SmsNotificationService smsNotificationService;
 	private final ExportNotificationConfigRepository exportNotificationConfigRepository;
-	private final RestTemplate restTemplate;
-
-	@Value("${nicico.pdf-api}")
-	private String pdfConvertorUrl;
+	private final ExportDocService exportDocService;
 
 	@Value("${nicico.bcc-address}")
 	private String bccAddress;
@@ -336,12 +331,36 @@ public class NotificationServiceImpl implements NotificationService {
 
 	// ==================== PDF CONVERSION ====================
 
+	/**
+	 * Loads documents from FMS, converts/merges them to a single PDF.
+	 * Documents are already PDFs from FMS, so just merge them if multiple.
+	 */
 	private byte[] convertDocumentsToPdf(List<Long> ids, EntityTypeEnum entityType) {
-		log.info("convertDocumentsToPdf start List<byte[]> documents");
-		List<byte[]> documents = loadDocuments(ids, entityType);
+		log.info("convertDocumentsToPdf start for {} ids", ids.size());
+		
+		String documentType = entityType == EntityTypeEnum.PROFORMA ? "پیش فاکتور" : "حواله";
+		List<byte[]> documents = ids.stream()
+				.map(id -> {
+					try {
+						byte[] pdfBytes = entityType == EntityTypeEnum.PROFORMA
+								? fmsDocumentService.getProformaPdfBytes(id)
+								: fmsDocumentService.getRemittancePdfBytes(id);
+
+						if (pdfBytes == null || pdfBytes.length == 0) {
+							log.warn("فایل خالی یا نامعتبر برای {} با شناسه: {}", documentType, id);
+							return null;
+						}
+						return pdfBytes;
+					} catch (Exception ex) {
+						log.error(formatMessage(LOG_LOADING_DOC_ERROR, documentType, id, ex.getMessage()), ex);
+						return null;
+					}
+				})
+				.filter(Objects::nonNull)
+				.toList();
 
 		if (documents.isEmpty()) {
-			log.error("convertDocumentsToPdf  documents list is empty");
+			log.error("convertDocumentsToPdf documents list is empty");
 			throw new InternalSaleCustomException.FileContentException(MSG_FILE_EMPTY_LIST);
 		}
 
@@ -350,75 +369,7 @@ public class NotificationServiceImpl implements NotificationService {
 			return documents.get(0);
 		}
 
-		// Merge multiple PDFs using the external PDF converter service
-		return mergePdfs(documents);
-	}
-
-	/**
-	 * Merges multiple PDF documents using the external PDF converter API.
-	 */
-	private byte[] mergePdfs(List<byte[]> pdfDocuments) {
-		log.info("mergePdfs start, {} document(s)", pdfDocuments.size());
-
-		MultiValueMap<String, Object> bodyMap = new LinkedMultiValueMap<>();
-		int fileCounter = 0;
-		for (byte[] pdfBytes : pdfDocuments) {
-			fileCounter++;
-			String fileName = fileCounter + PDF_EXTENSION;
-			bodyMap.add(FILES_PARAM, new ByteArrayResource(pdfBytes) {
-				@Override
-				public String getFilename() {
-					return fileName;
-				}
-			});
-		}
-
-		log.info("mergePdfs all documents written to memory, sending to pdf convertor");
-		bodyMap.add(MERGE_PARAM, TRUE);
-
-		RequestEntity<MultiValueMap<String, Object>> request = RequestEntity
-				.post(URI.create(pdfConvertorUrl))
-				.contentType(MediaType.MULTIPART_FORM_DATA)
-				.body(bodyMap);
-
-		try {
-			log.info("mergePdfs calling pdf convertor at {}", pdfConvertorUrl);
-			byte[] response = restTemplate.exchange(request, byte[].class).getBody();
-			log.info("mergePdfs received response, {} bytes", response == null ? 0 : response.length);
-			if (response == null || response.length == 0) {
-				throw new InternalSaleCustomException.FileContentException(MSG_PDF_EMPTY_RESPONSE);
-			}
-			return response;
-		} catch (Exception ex) {
-			log.error(formatMessage(LOG_PDF_CONVERT_ERROR, ex.getMessage()), ex);
-			throw new InternalSaleCustomException.FileContentException(MSG_FILE_WRITE_ERROR);
-		}
-	}
-
-	// ==================== DOCUMENT LOADING ====================
-
-	private List<byte[]> loadDocuments(List<Long> ids, EntityTypeEnum entityType) {
-		return ids.stream()
-				.map(id -> loadDocument(id, entityType))
-				.filter(Objects::nonNull)
-				.toList();
-	}
-
-	private byte[] loadDocument(Long id, EntityTypeEnum entityType) {
-		String documentType = entityType == EntityTypeEnum.PROFORMA ? "پیش فاکتور" : "حواله";
-
-		try {
-			byte[] pdfBytes = entityType == EntityTypeEnum.PROFORMA
-					? fmsDocumentService.getProformaPdfBytes(id) : fmsDocumentService.getRemittancePdfBytes(id);
-
-			if (pdfBytes == null || pdfBytes.length == 0) {
-				log.warn("فایل خالی یا نامعتبر برای {} با شناسه: {}", documentType, id);
-				return null;
-			}
-			return pdfBytes;
-		} catch (Exception ex) {
-			log.error(formatMessage(LOG_LOADING_DOC_ERROR, documentType, id, ex.getMessage()), ex);
-			return null;
-		}
+		// Merge multiple PDFs using the external PDF converter service via ExportDocService
+		return exportDocService.mergePdfs(documents);
 	}
 }

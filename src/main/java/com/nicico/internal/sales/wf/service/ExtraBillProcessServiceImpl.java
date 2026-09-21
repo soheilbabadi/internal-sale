@@ -131,23 +131,9 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel proformaMaster) {
 		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
 		dto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
-		dto.setVariables(processVariableProvider.createExtraBillRequestVariables(buildExtraBillVariablesInput(proformaMaster)));
+		dto.setVariables(processVariableProvider.createExtraBillRequestVariables(processVariableProvider.buildExtraBillVariablesInput(proformaMaster)));
 
 		return dto;
-	}
-
-
-	private ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMaster) {
-		ProformaVariablesInput input = new ProformaVariablesInput();
-		input.setProformaMasterId(proformaMaster.getId());
-		input.setContractDate(proformaMaster.getContractDate());
-		input.setGoodId(proformaMaster.getGoodId());
-		input.setGoodName(proformaMaster.getGoodName());
-		input.setCustomerName(proformaMaster.getCustomerName());
-		input.setContractNo(String.valueOf(proformaMaster.getContractNo()));
-		input.setCommission(proformaMaster.getCommissionPercentage());
-
-		return input;
 	}
 
 
