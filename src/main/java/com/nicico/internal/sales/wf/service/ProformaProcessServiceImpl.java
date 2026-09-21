@@ -176,7 +176,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 
 	@Override
 	
-	public void refreshProformaStatus() {
+	public void refreshStatus() {
 		List<ProformaMasterModel> masterModelList = proformaMasterRepository
 				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
 

@@ -5,7 +5,7 @@ import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 
 public interface GaamProcessService {
-	ProcessInstance startGaamProcess(Long masterId);
+	ProcessInstance startProcess(Long masterId);
 
 	ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto);
 
@@ -14,5 +14,9 @@ public interface GaamProcessService {
 	void rejectTask(TaskActionDto taskActionDto);
 
 	boolean canStartProcess();
+
+	void refreshStatus();
+
+	void refreshOne(Long masterId);
 
 }

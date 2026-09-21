@@ -130,7 +130,7 @@ public class CrmHistoryServiceImpl implements CrmHistoryService {
 	@Override
 	public ProformaResponseDto getProformaDetailById(long id) {
 		List<String> nationalCodes = fetchNationalCodes();
-		proformaProcessService.refreshProformaStatus();
+		proformaProcessService.refreshStatus();
 
 		ProformaMasterModel master = proformaMasterRepository.findById(id)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERR_PROFORMA_NOT_FOUND));

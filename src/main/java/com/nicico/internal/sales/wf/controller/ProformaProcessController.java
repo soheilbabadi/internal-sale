@@ -101,7 +101,7 @@ public class ProformaProcessController {
 	@Operation(summary = "بروزرسانی وضعیت پیش فاکتورها", description = "این متد به صورت دستی وضعیت تمام پیش فاکتورهای در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت پیش فاکتور و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید. این قابلیت برای رفع مشکلات همگام سازی و تصحیح وضعیت های ناهمخوان استفاده می شود.")
 	@GetMapping("/refresh-status")
 	public ResponseEntity<Void> refreshStatus() {
-		proformaProcessService.refreshProformaStatus();
+		proformaProcessService.refreshStatus();
 		return ResponseEntity.ok().build();
 	}
 }

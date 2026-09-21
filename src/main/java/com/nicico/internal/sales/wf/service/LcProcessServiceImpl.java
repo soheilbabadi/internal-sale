@@ -52,7 +52,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 			throw new InternalSaleCustomException.AccessDeniedException(MSG_ACCESS_DENIED_START_LC);
 		}
 
-		refreshLcStatus();
+		refreshStatus();
 		lcValidationService.validateStart(masterId);
 
 		ProformaMasterModel masterModel = proformaMasterRepository.findById(masterId)
@@ -152,7 +152,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 	// -------------------------------------------------------------------------
 
 	@Override
-	public void refreshLcStatus() {
+	public void refreshStatus() {
 		try {
 			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
 			for (LcModel lc : lcList) {

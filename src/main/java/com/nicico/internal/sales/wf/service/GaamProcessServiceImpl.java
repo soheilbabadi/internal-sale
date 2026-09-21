@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 
 	@Override
 	@Transactional
-	public ProcessInstance startGaamProcess(Long masterId) {
+	public ProcessInstance startProcess(Long masterId) {
 
 		validateAccess();
 		ProformaMasterModel proformaMaster = proformaMasterRepository.findById(masterId)
@@ -250,5 +251,64 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 		}
 	}
 
+
+	@Override
+	public void refreshStatus() {
+		var masterIds = gaamRepository
+				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS))
+				.stream()
+				.map(GaamModel::getId)
+				.toList();
+
+		for (Long masterId : masterIds) {
+			try {
+				refreshOne(masterId);
+			} catch (Exception ex) {
+				log.error("Error while refreshing status for gaam master id={}", masterId, ex);
+			}
+		}
+	}
+
+
+	public void refreshOne(Long masterId) {
+		GaamModel master = gaamRepository.findById(masterId)
+				.orElseThrow(() -> new EntityNotFoundException("GaamModel not found: " + masterId));
+
+		Acknowledgment determined = acknowledgmentDeterminer.determine(master);
+		if (master.getAcknowledgment() != determined) {
+			master.setAcknowledgment(determined);
+		}
+
+		if (master.getPmsBillId() != null) {
+			master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			master.setAcknowledgment(Acknowledgment.FINISHED);
+			gaamRepository.save(master);
+			return;
+		}
+		var processHistory = bpmsClientService.getProcessInstanceHistoryById(master.getProcessId());
+		switch (processHistory.getStatus()) {
+			case ACTIVE -> master.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+			case CANCELED -> {
+				master.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+				master.setAcknowledgment(Acknowledgment.CANCELED);
+			}
+			case FINISHED -> {
+				boolean acceptedFinally = processVariableProvider.isProcessAcceptedFinally(master.getProcessId());
+				if (acceptedFinally) {
+					master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+					master.setAcknowledgment(Acknowledgment.FINISHED);
+				} else {
+					master.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+					master.setAcknowledgment(Acknowledgment.CANCELED);
+				}
+			}
+			default -> {
+				master.setWorkflowApproveStatus(WorkflowApproveStatus.DRAFT);
+				master.setAcknowledgment(Acknowledgment.UNKNOWN);
+			}
+		}
+
+		gaamRepository.save(master);
+	}
 
 }
