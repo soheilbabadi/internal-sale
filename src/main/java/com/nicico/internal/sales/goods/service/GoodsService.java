@@ -16,6 +16,7 @@ public interface GoodsService {
 	List<GoodsDTO.Info> list();
 
 	GoodsDTO.Info findById(Long id);
+	GoodsDTO.Info findByCommoditySymbol(String commoditySymbol);
 
 	void delete(Long id);
 

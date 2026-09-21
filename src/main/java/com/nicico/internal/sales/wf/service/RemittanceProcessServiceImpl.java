@@ -31,7 +31,6 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 	private final RemittanceMasterRepository remittanceMasterRepository;
 	private final BpmsClientService bpmsClientService;
 	private final ProcessVariableProvider processVariableProvider;
-	private final ProcessUserAccessRepository processUserAccessRepository;
 
 	@Transactional(isolation = Isolation.READ_COMMITTED, label = "start_remittance_process")
 	@Override

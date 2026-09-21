@@ -74,9 +74,9 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		ProformaMasterModel masterModel = proformaMasterRepository.findById(detailModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERR_PROFORMA_NOT_FOUND));
 
-		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
-			return new FmsFile(UUID.randomUUID().toString(), detailId + ".pdf", PDF_CONTENT_TYPE, exportDocService.exportProformaPdf(detailId));
-		}
+//		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
+//			return new FmsFile(UUID.randomUUID().toString(), detailId + ".pdf", PDF_CONTENT_TYPE, exportDocService.exportProformaPdf(detailId));
+//		}
 		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED || detailModel.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
 			throw new InternalSaleCustomException.ValidationException("پیش فاکتور با شناسه " + detailModel.getPerformaNo() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
 

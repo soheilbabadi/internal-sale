@@ -150,8 +150,8 @@ public class ExportDocServiceImpl implements ExportDocService {
 	private String determineTemplatePath(ProformaDetailModel proforma) {
 		ProformaMasterModel master = proformaMasterRepository.findById(proforma.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
-		boolean isApproved = master.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED;
-//		boolean isApproved = true;
+//		boolean isApproved = master.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED;
+		boolean isApproved = true;
 		boolean isZeroExtraBillPercent = !master.getProformaDetailModelLists().isEmpty()
 				&& master.getProformaDetailModelLists().get(0).getExtraBillOfPercent() != null
 				&& master.getProformaDetailModelLists().get(0).getExtraBillOfPercent().compareTo(BigDecimal.ZERO) == 0;
@@ -269,59 +269,6 @@ public class ExportDocServiceImpl implements ExportDocService {
 			throw new InternalSaleCustomException.FileContentException(exception.getMessage());
 		}
 	}
-
-//	private void addBasicReplacements(List<DocumentReplacement> replacements, ProformaDetailModel detailModel, ProformaMasterModel masterModel) {
-//		try {
-//			BigDecimal quantity = detailModel.getProformaGoodItemModels().get(0).getCreditQuantity();
-//			BigDecimal unitPrice = detailModel.getProformaGoodItemModels().get(0).getUnitPriceCredit();
-//
-//			BigDecimal totalAmount = quantity.multiply(unitPrice);
-//			BigDecimal tax = detailModel.getProformaGoodItemModels().get(0).getVatCreditAmount();
-//			BigDecimal finalAmount = totalAmount.add(tax);
-//			String buyerAddress = TextUtility.shortenAddress(masterModel.getAddress());
-//			String contractNo = String.valueOf(masterModel.getContractNo());
-//			String proformaDate = DateUtility.getJalaliDate(detailModel.getPerformaDate());
-//			String storageCost = floatFormatter.format(detailModel.getStorageCost());
-//
-//			BigDecimal extraPercent = detailModel.getExtraBillOfPercent() != null ? detailModel.getExtraBillOfPercent() : BigDecimal.ZERO;
-//			BigDecimal extraAmount = detailModel.getExtraBillOfExchangeAmount() != null ? detailModel.getExtraBillOfExchangeAmount() : BigDecimal.ZERO;
-//
-//
-//			BigDecimal finalAmountWithExtra = finalAmount.add(extraAmount);
-//
-//
-//			replacements.addAll(List.of(
-//					new DocumentReplacement("BUYER_NAME", masterModel.getCustomerName()),
-//					new DocumentReplacement("BUYER_ADDRESS", buyerAddress),
-//					new DocumentReplacement("PHONE", masterModel.getPhone()),
-//					new DocumentReplacement("BUYER_ECONOMIC_CODE", masterModel.getEconomicCode()),
-//					new DocumentReplacement("BUYER_REGISTER_CODE", masterModel.getNationalCode()),
-//					new DocumentReplacement("CONTRACT_NO", contractNo),
-//					new DocumentReplacement("PRODUCT_NAME", detailModel.getProformaGoodItemModels().get(0).getGoodName()),
-//					new DocumentReplacement("VALUE", formatter.format(quantity)),
-//					new DocumentReplacement("UNIT_PRICE", formatter.format(unitPrice)),
-//					new DocumentReplacement("VALIDITY_DAYS", detailModel.getDeadlineDays().toString()),
-//					new DocumentReplacement("N_STORAGE_DEAD", detailModel.getStorageDeadline().toString()),
-//					new DocumentReplacement("STORAGE_COST", storageCost),
-//					new DocumentReplacement("TOTAL_CHARACTER_PRICE", numberToString(finalAmountWithExtra)),
-//					new DocumentReplacement("N_PAYMENT_DEFERRAL", detailModel.getPaymentDeferral().toString()),
-//					new DocumentReplacement("N_CREDIT_EXPIRE_PERIOD", detailModel.getCreditExpirePeriod().toString()),
-//					new DocumentReplacement("TOTAL_PRICE", formatter.format(totalAmount)),
-//					new DocumentReplacement("FINAL_PRICE", formatter.format(finalAmount)),
-//					new DocumentReplacement("TAX", formatter.format(tax)),
-//					new DocumentReplacement("C_PERFORMA_DATE", proformaDate),
-//					new DocumentReplacement("C_PERFORMA_NO", detailModel.getPerformaNo()),
-//					new DocumentReplacement("CONTRACT_DATE", DateUtility.getJalaliDate(detailModel.getOrderDate())),
-//					new DocumentReplacement("N_EXTRA_BILL_OF_PERCENT", formatter.format(extraPercent)),
-//					new DocumentReplacement("N_EXTRA_BILL_OF_AMOUNT", formatter.format(finalAmountWithExtra)),
-//					new DocumentReplacement("N_GAM_CERTIFICATE_COUNT", formatter.format(detailModel.getGamCertificateCount())),
-//					new DocumentReplacement("N_SHIPPING_DEAD", detailModel.getShippingDeadline().toString())
-//			));
-//
-//		} catch (Exception exception) {
-//			throw new InternalSaleCustomException.FileContentException(exception.getMessage());
-//		}
-//	}
 
 	private void addRemittanceBasicReplacements(List<DocumentReplacement> replacements, RemittanceMasterModel masterModel) {
 		String lcDate = DateUtility.getJalaliDate(masterModel.getLcExpiryDate());

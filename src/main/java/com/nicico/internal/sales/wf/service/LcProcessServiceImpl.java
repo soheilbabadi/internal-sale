@@ -30,7 +30,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LcProcessServiceImpl implements LcProcessService {
 
-	private static final String PROCESS_TITLE_LC = "LC";
 	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
 	private static final String REVERSAL_PROCESS_ID_DEFAULT = "-";
 	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور پیدا نشد";

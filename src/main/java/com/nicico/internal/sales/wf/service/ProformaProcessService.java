@@ -27,4 +27,6 @@ public interface ProformaProcessService {
 	void refreshStatus();
 
 	boolean canStartProcess();
+
+	ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model);
 }

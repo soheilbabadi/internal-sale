@@ -42,7 +42,6 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 	private final ProcessVariableProvider processVariableProvider;
 	private final GaamRepository gaamRepository;
 	private final ExtraBillRepository extraBillRepository;
-
 	private final LcRepository lcRepository;
 	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
 

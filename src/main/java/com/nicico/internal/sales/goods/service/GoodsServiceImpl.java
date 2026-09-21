@@ -59,6 +59,14 @@ public class GoodsServiceImpl implements GoodsService {
 	}
 
 	@Override
+	public GoodsDTO.Info findByCommoditySymbol(String commoditySymbol) {
+		var goodsModel = goodsRepository.findByImeCommoditySymbol(commoditySymbol)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						MSG_GOOD_NOT_FOUND));
+		return goodsMapper.toDTO(goodsModel);
+	}
+
+	@Override
 	public void delete(Long id) {
 		goodsRepository.deleteById(id);
 	}
@@ -118,9 +126,12 @@ public class GoodsServiceImpl implements GoodsService {
 		goodsRepository.deleteById(id);
 	}
 
+
+
+
 	@Override
 	public boolean isPreciousMetal(long goodId) {
-		return goodsRepository.existsById(goodId);
+		return preciousMetalRepository.existsById(goodId);
 	}
 
 	private PreciousMetalDto.Info createPreciousMetal(GoodsModel good) {

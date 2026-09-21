@@ -35,16 +35,10 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
-	private static final String PROCESS_TITLE_EXTRA_BILL = "EXTRA_BILL";
-	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
 	private static final String ACCESS_DENIED_MESSAGE = "شما اجازه شروع فرایند برات الکترونیک را ندارید";
 	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور پیدا نشد";
 	private static final String PROFORMA_DUPLICATE_START = "برای این پیش فاکتور قبلا برات صادر شده است";
 	private static final String LC_ALREADY_EXISTS = "برای این پیش فاکتور اعتبار اسنادی فعال وجود دارد";
-	private static final String ERROR_REFRESHING_STATUS = "خطا در بروز رسانی وضعیت براتها";
-	private static final String ERROR_REJECTING_EXTRA_BILL = "خطا در رد کردن فرایند {}";
-	private static final String ERROR_DETECTING_STEP = "خطا در تشخیص مرحله فرایند {}";
-	private static final String ERROR_HANDLING_TASK_ACTION = "خطا در انجام عملیات تسک {}";
 	private static final String PROCESS_ID_PLACEHOLDER = "-";
 
 
@@ -54,7 +48,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final ExtraBillRepository extraBillRepository;
 	private final LcRepository lcRepository;
 	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
-	private final ObjectProvider<ExtraBillServiceImpl> self; // lazy handle to the proxy
 	private final ProcessUserAccessRepository processUserAccessRepository;
 
 

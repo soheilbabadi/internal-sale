@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface GoodsRepository extends JpaRepository<GoodsModel, Long>, JpaSpecificationExecutor<GoodsModel> {
 	Optional<GoodsModel> findByImeCommodityId(Long commodityId);
+	Optional<GoodsModel> findByImeCommoditySymbol(String commoditySymbol);
+
 }

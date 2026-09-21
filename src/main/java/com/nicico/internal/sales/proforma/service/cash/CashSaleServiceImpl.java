@@ -7,6 +7,7 @@ import com.nicico.internal.sales.goods.model.GoodsBucketModel;
 import com.nicico.internal.sales.goods.model.GoodsModel;
 import com.nicico.internal.sales.goods.service.GoodBucketService;
 import com.nicico.internal.sales.goods.service.GoodsService;
+import com.nicico.internal.sales.goods.special.repository.PreciousMetalRepository;
 import com.nicico.internal.sales.goods.special.service.OfferTextProcess;
 import com.nicico.internal.sales.ime.trade.IMETradeModel;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
@@ -71,6 +72,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 	private final TradeExtractRepository tradeExtractRepository;
 	private final BrokerRepository brokerRepository;
 	private final GoodsService goodsService;
+	private final PreciousMetalRepository preciousMetalRepository;
 
 	// ==================== PUBLIC SERVICE METHODS ====================
 
@@ -582,8 +584,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 	private boolean isPreciousMetal(Long tradeId) {
 		try {
 			TradeExtractModel tradeExtract = findTradeExtract(tradeId);
-			GoodsModel good = proformaContractService.getGoodsModel(tradeExtract.getPaymentCode());
-			return goodsService.isPreciousMetal(good.getId());
+		return 	preciousMetalRepository.findByImeCommoditySymbol(tradeExtract.getCommoditySymbol()).isPresent();
 		} catch (Exception e) {
 			log.warn("Error checking precious metal for tradeId: {}", tradeId, e);
 			return false;

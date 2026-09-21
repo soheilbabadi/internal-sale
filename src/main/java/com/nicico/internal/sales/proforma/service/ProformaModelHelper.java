@@ -159,7 +159,6 @@ public final class ProformaModelHelper {
 
 		if (cashPercentTotal) {
 			creditPercent = 0;
-			double additionalValue = 0.0;
 			unitPriceCredit = unitPrice;
 			cashQuantity = quantity;
 			creditQuantity = 0;
