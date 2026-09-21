@@ -5,7 +5,7 @@ import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 
 public interface ExtraBillProcessService {
-	ProcessInstance startExtraBillProcess(Long masterId);
+	ProcessInstance startProcess(Long masterId);
 
 	ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto);
 
@@ -15,5 +15,5 @@ public interface ExtraBillProcessService {
 
 	boolean canStartProcess();
 
-	void refreshExtraBillStatus();
+	void refreshStatus();
 }

@@ -220,7 +220,7 @@ public class ProformaServiceImpl implements ProformaService {
 	public ProformaResponseDto getDetailById(long id) {
 		log.debug("Getting proforma detail by id: {}", id);
 
-		proformaProcessService.refreshProformaStatus();
+		proformaProcessService.refreshStatus();
 		ProformaMasterModel master = findProformaMaster(id);
 
 		return buildProformaResponseFromMaster(master, proformaMasterMapper);
@@ -254,7 +254,7 @@ public class ProformaServiceImpl implements ProformaService {
 	public String createReversal(PerformerCreateRevealRequest requestDto) {
 		log.debug("Creating reversal for masterId: {}", requestDto.getMasterId());
 
-		proformaProcessService.refreshProformaStatus();
+		proformaProcessService.refreshStatus();
 
 		// اعتبارسنجی شروع برگشت
 		proformaValidationService.canStartReversal(requestDto.getMasterId());

@@ -54,7 +54,7 @@ public class LcProcessController {
 	)
 	@GetMapping("/refresh-status")
 	public ResponseEntity<Void> refreshStatus() {
-		lcProcessService.refreshLcStatus();
+		lcProcessService.refreshStatus();
 		return ResponseEntity.ok().build();
 	}
 

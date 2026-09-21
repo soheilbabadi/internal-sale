@@ -60,7 +60,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
 	@Override
 	@Transactional
-	public ProcessInstance startExtraBillProcess(Long masterId) {
+	public ProcessInstance startProcess(Long masterId) {
 
 
 		validateAccess();
@@ -237,7 +237,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 
 
 	@Override
-	public void refreshExtraBillStatus() {
+	public void refreshStatus() {
 		var masterIds = extraBillRepository
 				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS))
 				.stream()

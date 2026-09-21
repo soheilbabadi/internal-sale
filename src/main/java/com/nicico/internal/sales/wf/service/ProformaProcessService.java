@@ -24,9 +24,7 @@ public interface ProformaProcessService {
 
 	void rejectTask(TaskActionDto taskActionDto);
 
-	void refreshProformaStatus();
+	void refreshStatus();
 
 	boolean canStartProcess();
-
-	ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model);
 }

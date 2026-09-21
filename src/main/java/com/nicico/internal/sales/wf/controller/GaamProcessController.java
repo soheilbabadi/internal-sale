@@ -1,7 +1,7 @@
 package com.nicico.internal.sales.wf.controller;
 
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.service.ExtraBillProcessService;
+import com.nicico.internal.sales.wf.service.GaamProcessService;
 import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ import javax.validation.Valid;
 @RequestMapping("/api/v1/ins/proforma/process-gaam")
 public class GaamProcessController {
 
-	private final ExtraBillProcessService extraBillProcessService;
+	private final GaamProcessService gaamProcessService;
 	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
 	@Operation(
@@ -30,21 +30,21 @@ public class GaamProcessController {
 	)
 	@PostMapping("/start-extra-bill/{masterId}")
 	public ResponseEntity<?> startExtraBillProcess(@PathVariable Long masterId) {
-		return ResponseEntity.ok(extraBillProcessService.startExtraBillProcess(masterId));
+		return ResponseEntity.ok(gaamProcessService.startProcess(masterId));
 	}
 
 	@Operation(summary = "تایید تسک", description = "این متد برای تایید یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت برات الکترونیک به روزرسانی می شود."
 	)
 	@PutMapping("/approve-task")
 	public ResponseEntity<HttpStatus> approveTask(@RequestBody @Valid TaskActionDto taskActionDto) {
-		extraBillProcessService.approveTask(taskActionDto);
+		gaamProcessService.approveTask(taskActionDto);
 		return ResponseEntity.ok().build();
 	}
 
 	@Operation(summary = "رد تسک", description = "این متد برای رد کردن یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و علت رد، عملیات رد را انجام داده و جریان کاری را به مرحله قبلی بازمی گرداند یا متوقف می کند. کاربر باید علت رد را به صورت کامل وارد نماید.")
 	@PutMapping("/reject-task")
 	public ResponseEntity<HttpStatus> rejectTask(@RequestBody @Valid TaskActionDto taskActionDto) {
-		extraBillProcessService.rejectTask(taskActionDto);
+		gaamProcessService.rejectTask(taskActionDto);
 		return ResponseEntity.ok().build();
 	}
 

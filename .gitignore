@@ -11,30 +11,28 @@
 # Dependencies
 target/
 .gradle/
-.mypy_cache/
-.pytest_cache/
-__pycache__/
 
 # Logs and temp files
 *.log
 *.tmp
-*.swp
+
+# Editors
+.vscode/
+.idea/
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-
-# Coverage
+# Coverage reports
 coverage/
 htmlcov/
-.coverage
+*.coverage
 
-# OS generated files
-.DS_Store
-Thumbs.db
+# Package manager caches
+node_modules/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
 ```

@@ -14,7 +14,7 @@ public interface LcProcessService {
 
 	void rejectTask(TaskActionDto taskActionDto);
 
-	void refreshLcStatus();
+	void refreshStatus();
 
 	boolean canStartProcess();
 

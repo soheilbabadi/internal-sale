@@ -28,7 +28,7 @@ public class ExtraBillProcessController {
 	)
 	@PostMapping("/start-extra-bill/{masterId}")
 	public ResponseEntity<?> startExtraBillProcess(@PathVariable Long masterId) {
-		return ResponseEntity.ok(extraBillProcessService.startExtraBillProcess(masterId));
+		return ResponseEntity.ok(extraBillProcessService.startProcess(masterId));
 	}
 
 	@Operation(summary = "تایید تسک", description = "این متد برای تایید یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت برات الکترونیک به روزرسانی می شود."
@@ -50,7 +50,7 @@ public class ExtraBillProcessController {
 	)
 	@GetMapping("/refresh-status")
 	public ResponseEntity<Void> refreshStatus() {
-		extraBillProcessService.refreshExtraBillStatus();
+		extraBillProcessService.refreshStatus();
 		return ResponseEntity.ok().build();
 	}
 
