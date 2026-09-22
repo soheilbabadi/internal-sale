@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.io.Serial;
 import java.io.Serializable;
@@ -21,16 +22,25 @@ public class CustomerContactDto implements Serializable {
 	private static final long serialVersionUID = -5004064808385095447L;
 	@Schema(description = "شناسه", example = "1")
 	private Long id;
+
+
 	@Schema(description = "شماره تماس", example = "021-12345678")
+	@NotBlank(message = "شماره تماس اجباری است")
 	private String phone;
+
+	@NotBlank(message = "کد پستی اجباری است")
 	@Pattern(regexp = "^\\d{10}$", message = "کد پستی باید ده رقم باشد")
 	@Schema(description = "کد پستی", example = "1234567890")
 	private String postCode;
+
 	@Schema(description = "ایمیل", example = "sb@gmail.com")
 	@Email(message = "ایمیل معتبر نیست")
+	@NotBlank(message = "ایمیل اجباری است")
 	private String email;
+
 	@Schema(description = "شماره موبایل", example = "09123456789")
 	@Pattern(regexp = "^09\\d{9}$", message = "شماره موبایل معتبر نیست")
+	@NotBlank(message = "شماره موبایل اجباری است")
 	private String mobile;
 	@Schema(description = "نام مسئول", example = "محمدرضا")
 	private String coordinator;

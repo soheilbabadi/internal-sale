@@ -36,6 +36,19 @@ public class CustomerContactServiceImpl implements CustomerContactService {
 		if (customer.getAddress() == null || customer.getEmail() == null || customer.getMobile() == null || customer.getPostCode() == null) {
 			request.setDefault(true);
 		}
+
+		if (request.getAddress() == null) {
+			throw new InternalSaleCustomException.ValidationException("آدرس اجباری است");
+		}
+		if (request.getEmail() == null) {
+			throw new InternalSaleCustomException.ValidationException("ایمیل اجباری است");
+		}
+		if (request.getMobile() == null) {
+			throw new InternalSaleCustomException.ValidationException("شماره موبایل اجباری است");
+		}
+		if (request.getPostCode() == null) {
+			throw new InternalSaleCustomException.ValidationException("کد پستی اجباری است");
+		}
 		request.setValid(true);
 		CustomerContactModel model = mapper.fromDTO(request);
 		repository.saveAndFlush(model);
@@ -72,6 +85,20 @@ public class CustomerContactServiceImpl implements CustomerContactService {
 		var customer = customerRepository.findById(request.getCustomerId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						"اطلاعات مشتری وجود ندارد"));
+
+		if (request.getAddress() == null) {
+			throw new InternalSaleCustomException.ValidationException("آدرس اجباری است");
+		}
+		if (request.getEmail() == null) {
+			throw new InternalSaleCustomException.ValidationException("ایمیل اجباری است");
+		}
+		if (request.getMobile() == null) {
+			throw new InternalSaleCustomException.ValidationException("شماره موبایل اجباری است");
+		}
+		if (request.getPostCode() == null) {
+			throw new InternalSaleCustomException.ValidationException("کد پستی اجباری است");
+		}
+
 		request.setAddress(TextUtility.reformatAddress(request.getAddress()));
 		var contactModel = repository.findById(id)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
