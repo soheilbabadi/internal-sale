@@ -21,7 +21,6 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)
 public class CustomerContactServiceImpl implements CustomerContactService {
 	private final CustomerContactRepository repository;
 	private final CustomerContactMapper mapper;
