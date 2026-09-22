@@ -1506,6 +1506,7 @@
             </column>
             <column name="c_account_number" type="VARCHAR2(100)"/>
             <column name="c_iban" type="VARCHAR2(26)"/>
+            <column name="f_issuer_bank_id" type="BIGINT"/>
         </createTable>
     </changeSet>
     <changeSet id="create-table-t-ins-trading-bank-aud" author="soheil">
@@ -1533,6 +1534,7 @@
             <column name="c_branch_code" type="VARCHAR2(255)"/>
             <column name="c_account_number" type="VARCHAR2(100)"/>
             <column name="c_iban" type="VARCHAR2(26)"/>
+            <column name="f_issuer_bank_id" type="BIGINT"/>
         </createTable>
     </changeSet>
     <changeSet id="create-table-t-ins-workflow" author="soheil">

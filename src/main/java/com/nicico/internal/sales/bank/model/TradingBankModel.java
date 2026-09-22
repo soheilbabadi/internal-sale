@@ -48,9 +48,12 @@ public class TradingBankModel extends BaseClassModel {
 	@NotAudited
 	@Formula("(lpad(C_BRANCH_CODE,10,'0'))")
 	private String fixedBranchCode;
+	@Schema(name = "شناسه بانک صادرکننده")
+	@Column(name = "F_ISSUER_BANK_ID")
+	private Long issuerBankId;
 	@NotAudited
 	@OneToOne(targetEntity = IssuingBankModel.class, fetch = FetchType.LAZY)
-	@JoinColumn(name = "C_BRANCH_CODE", referencedColumnName = "C_BRANCH_CODE", insertable = false, updatable = false)
+	@JoinColumn(name = "F_ISSUER_BANK_ID", referencedColumnName = "ID", insertable = false, updatable = false)
 	@EqualsAndHashCode.Exclude
 	private IssuingBankModel issuingBankModel;
 }
