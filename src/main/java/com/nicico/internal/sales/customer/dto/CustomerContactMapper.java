@@ -1,6 +1,6 @@
-package com.nicico.internal.sales.ins.customer.dto;
+package com.nicico.internal.sales.customer.dto;
 
-import com.nicico.internal.sales.ins.customer.model.CustomerContactModel;
+import com.nicico.internal.sales.customer.model.CustomerContactModel;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

@@ -1,4 +1,4 @@
-package com.nicico.internal.sales.ins.customer.dto;
+package com.nicico.internal.sales.customer.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.v3.oas.annotations.media.Schema;

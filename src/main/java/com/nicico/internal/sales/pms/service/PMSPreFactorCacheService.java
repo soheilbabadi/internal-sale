@@ -1,8 +1,8 @@
 package com.nicico.internal.sales.pms.service;
 
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.ins.customer.model.CustomerModel;
-import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
+import com.nicico.internal.sales.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.pms.repository.PMSCustomerRepository;
 import com.nicico.internal.sales.proforma.model.ProformaGoodItemModel;
 import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;

@@ -1,10 +1,10 @@
-package com.nicico.internal.sales.ins.customer.controller;
+package com.nicico.internal.sales.customer.controller;
 
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.internal.sales.ins.customer.dto.CustomerDTO;
-import com.nicico.internal.sales.ins.customer.service.CustomerService;
+import com.nicico.internal.sales.customer.dto.CustomerDTO;
+import com.nicico.internal.sales.customer.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.util.Arrays;
 import org.springframework.http.HttpStatus;
@@ -57,7 +57,7 @@ public class CustomerController {
 
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_CUSTOMER')")
 	@PutMapping("/import-trade")
-	public ResponseEntity<HttpStatus> findSimilar() {
+	public ResponseEntity<HttpStatus> importTrade() {
 		service.importTradeData();
 		return new ResponseEntity<>(HttpStatus.OK);
 	}

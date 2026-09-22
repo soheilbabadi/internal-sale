@@ -1,7 +1,7 @@
 package com.nicico.internal.sales.ime.trade;
 
 import com.nicico.internal.sales.goods.dto.CommodityProjection;
-import com.nicico.internal.sales.ins.customer.dto.BuyerProjection;
+import com.nicico.internal.sales.customer.dto.BuyerProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;

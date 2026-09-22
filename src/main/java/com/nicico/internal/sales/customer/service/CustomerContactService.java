@@ -1,7 +1,7 @@
-package com.nicico.internal.sales.ins.customer.service;
+package com.nicico.internal.sales.customer.service;
 
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.internal.sales.ins.customer.dto.CustomerContactDto;
+import com.nicico.internal.sales.customer.dto.CustomerContactDto;
 
 public interface CustomerContactService {
 	CustomerContactDto.Create save(CustomerContactDto.Create request);

@@ -1,6 +1,6 @@
-package com.nicico.internal.sales.ins.customer.repository;
+package com.nicico.internal.sales.customer.repository;
 
-import com.nicico.internal.sales.ins.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

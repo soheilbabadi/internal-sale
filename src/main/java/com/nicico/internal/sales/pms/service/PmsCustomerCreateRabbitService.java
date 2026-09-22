@@ -1,6 +1,6 @@
 package com.nicico.internal.sales.pms.service;
 
-import com.nicico.internal.sales.ins.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.pms.dto.PMSCreateCustomerDto;
 
 public interface PmsCustomerCreateRabbitService {

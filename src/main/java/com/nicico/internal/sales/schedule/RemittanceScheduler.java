@@ -1,6 +1,6 @@
 package com.nicico.internal.sales.schedule;
 
-import com.nicico.internal.sales.ins.customer.service.CustomerService;
+import com.nicico.internal.sales.customer.service.CustomerService;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.pms.service.PMSLcService;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;

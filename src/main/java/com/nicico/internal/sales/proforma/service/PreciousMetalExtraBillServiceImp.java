@@ -7,7 +7,7 @@ import com.nicico.internal.sales.goods.repository.GoodsRepository;
 import com.nicico.internal.sales.goods.special.repository.PreciousMetalRepository;
 import com.nicico.internal.sales.goods.special.service.OfferTextProcess;
 import com.nicico.internal.sales.ime.trade.IMETradeModel;
-import com.nicico.internal.sales.ins.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.proforma.dto.PreciousMetalDetailGenerator;
 import com.nicico.internal.sales.proforma.dto.PreciousMetalProfomaCreateRequest;
 import com.nicico.internal.sales.proforma.dto.ProformaModelResponse;

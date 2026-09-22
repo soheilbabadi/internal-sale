@@ -3,7 +3,7 @@ package com.nicico.internal.sales.proforma.service;
 import com.nicico.internal.sales.goods.model.GoodsBucketModel;
 import com.nicico.internal.sales.goods.model.GoodsModel;
 import com.nicico.internal.sales.ime.trade.IMETradeModel;
-import com.nicico.internal.sales.ins.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.proforma.dto.PerfomaCreateRequest;
 import com.nicico.internal.sales.proforma.dto.PerformerCreateRevealRequest;
 import com.nicico.internal.sales.proforma.dto.ProformaCreationContext;

@@ -1,14 +1,14 @@
-package com.nicico.internal.sales.ins.customer.service;
+package com.nicico.internal.sales.customer.service;
 
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.ins.customer.dto.CustomerContactDto;
-import com.nicico.internal.sales.ins.customer.dto.CustomerContactMapper;
-import com.nicico.internal.sales.ins.customer.model.CustomerContactModel;
-import com.nicico.internal.sales.ins.customer.repository.CustomerContactRepository;
-import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
+import com.nicico.internal.sales.customer.dto.CustomerContactDto;
+import com.nicico.internal.sales.customer.dto.CustomerContactMapper;
+import com.nicico.internal.sales.customer.model.CustomerContactModel;
+import com.nicico.internal.sales.customer.repository.CustomerContactRepository;
+import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.util.TextUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -36,18 +36,7 @@ public class CustomerContactServiceImpl implements CustomerContactService {
 			request.setDefault(true);
 		}
 
-		if (request.getAddress() == null) {
-			throw new InternalSaleCustomException.ValidationException("آدرس اجباری است");
-		}
-		if (request.getEmail() == null) {
-			throw new InternalSaleCustomException.ValidationException("ایمیل اجباری است");
-		}
-		if (request.getMobile() == null) {
-			throw new InternalSaleCustomException.ValidationException("شماره موبایل اجباری است");
-		}
-		if (request.getPostCode() == null) {
-			throw new InternalSaleCustomException.ValidationException("کد پستی اجباری است");
-		}
+
 		request.setValid(true);
 		CustomerContactModel model = mapper.fromDTO(request);
 		repository.saveAndFlush(model);

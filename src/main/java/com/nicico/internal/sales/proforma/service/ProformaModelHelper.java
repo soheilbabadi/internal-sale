@@ -4,7 +4,7 @@ import com.nicico.internal.sales.goods.model.GoodsBucketModel;
 import com.nicico.internal.sales.goods.model.GoodsModel;
 import com.nicico.internal.sales.goods.special.service.OfferTextProcess;
 import com.nicico.internal.sales.ime.trade.IMETradeModel;
-import com.nicico.internal.sales.ins.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.proforma.dto.ProformaDetailDto;
 import com.nicico.internal.sales.proforma.dto.ProformaGoodItemDto;
 import com.nicico.internal.sales.proforma.dto.ProformaMasterMapper;

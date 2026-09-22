@@ -1,10 +1,10 @@
-package com.nicico.internal.sales.ins.customer.controller;
+package com.nicico.internal.sales.customer.controller;
 
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.internal.sales.ins.customer.dto.CustomerContactDto;
-import com.nicico.internal.sales.ins.customer.service.CustomerContactService;
+import com.nicico.internal.sales.customer.dto.CustomerContactDto;
+import com.nicico.internal.sales.customer.service.CustomerContactService;
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.util.Arrays;
 import org.springframework.http.HttpStatus;
@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @RequiredArgsConstructor
 @RestController

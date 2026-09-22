@@ -1,4 +1,4 @@
-package com.nicico.internal.sales.ins.customer.dto;
+package com.nicico.internal.sales.customer.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

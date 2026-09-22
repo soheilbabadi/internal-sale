@@ -1,4 +1,4 @@
-package com.nicico.internal.sales.ins.customer.model;
+package com.nicico.internal.sales.customer.model;
 
 import com.nicico.internal.sales.config.BaseClassModel;
 import lombok.AllArgsConstructor;

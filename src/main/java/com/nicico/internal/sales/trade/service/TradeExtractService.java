@@ -2,7 +2,7 @@ package com.nicico.internal.sales.trade.service;
 
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.goods.dto.TradeCommodityDTO;
-import com.nicico.internal.sales.ins.customer.dto.TradeBuyerDTO;
+import com.nicico.internal.sales.customer.dto.TradeBuyerDTO;
 import com.nicico.internal.sales.trade.dto.BuyerInfoDto;
 import com.nicico.internal.sales.trade.dto.TradeExtractDto;
 

@@ -8,7 +8,7 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
 import com.nicico.internal.sales.goods.service.GoodsService;
-import com.nicico.internal.sales.ins.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.pms.dto.PMSPreFactorDto;
 import com.nicico.internal.sales.pms.model.PMSCustomerModel;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;

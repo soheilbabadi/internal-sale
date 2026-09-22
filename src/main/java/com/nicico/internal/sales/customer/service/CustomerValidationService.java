@@ -1,7 +1,7 @@
-package com.nicico.internal.sales.ins.customer.service;
+package com.nicico.internal.sales.customer.service;
 
-import com.nicico.internal.sales.ins.customer.dto.CustomerContactDto;
-import com.nicico.internal.sales.ins.customer.dto.CustomerDTO;
+import com.nicico.internal.sales.customer.dto.CustomerContactDto;
+import com.nicico.internal.sales.customer.dto.CustomerDTO;
 
 import java.util.List;
 
