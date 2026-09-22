@@ -48,4 +48,9 @@ public class TradingBankModel extends BaseClassModel {
 	@NotAudited
 	@Formula("(lpad(C_BRANCH_CODE,10,'0'))")
 	private String fixedBranchCode;
+	@NotAudited
+	@OneToOne(targetEntity = IssuingBankModel.class, fetch = FetchType.LAZY)
+	@JoinColumn(name = "C_BRANCH_CODE", referencedColumnName = "C_BRANCH_CODE", insertable = false, updatable = false)
+	@EqualsAndHashCode.Exclude
+	private IssuingBankModel issuingBankModel;
 }
