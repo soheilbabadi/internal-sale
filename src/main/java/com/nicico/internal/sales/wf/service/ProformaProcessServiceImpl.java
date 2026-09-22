@@ -76,6 +76,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	private final LcRepository lcRepository;
 	private final RemittanceMasterRepository remittanceMasterRepository;
 
+
 	@Value("${nicico.bcc-address}")
 	private String bccAddress;
 
@@ -99,7 +100,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 			ProformaMasterModel masterModel = proformaMasterRepository.findById(proformaMasterId)
 					.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_PROFORMA_NOT_FOUND));
 
-			ProformaVariablesInput input = buildProformaVariablesInput(masterModel);
+			ProformaVariablesInput input = processVariableProvider.buildProformaVariablesInput(masterModel);
 			Map<String, Object> variables = processVariableProvider.createProformaRequestVariables(input);
 			StartProcessWithDataDTO dataDTO = buildStartProcessDTO(variables);
 			return this.startProcessWithData(dataDTO);
@@ -282,21 +283,21 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		return dataDTO;
 	}
 
-	@Override
-	public ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model) {
-		ProformaVariablesInput input = new ProformaVariablesInput();
-		var detailList = model.getProformaDetailModelLists();
-		input.setProformaMasterId(model.getId());
-		input.setContractDate(detailList.get(0).getContractDate());
-		input.setGoodId(model.getGoodId());
-		input.setGoodName(model.getGoodName());
-		input.setCustomerName(model.getCustomerName());
-		input.setContractNo(String.valueOf(model.getContractNo()));
-		input.setCommission(model.getCommissionPercentage());
-		input.setIssueSource(model.getProformaIssueType());
-
-		return input;
-	}
+//	@Override
+//	public ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model) {
+//		ProformaVariablesInput input = new ProformaVariablesInput();
+//		var detailList = model.getProformaDetailModelLists();
+//		input.setProformaMasterId(model.getId());
+//		input.setContractDate(detailList.get(0).getContractDate());
+//		input.setGoodId(model.getGoodId());
+//		input.setGoodName(model.getGoodName());
+//		input.setCustomerName(model.getCustomerName());
+//		input.setContractNo(String.valueOf(model.getContractNo()));
+//		input.setCommission(model.getCommissionPercentage());
+//		input.setIssueSource(model.getProformaIssueType());
+//
+//		return input;
+//	}
 
 	private void sendEmailWithProformaAttachment(Long proformaMasterId) {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.PROFORMA)

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@PreAuthorize("@secUtil.hasAuthority('R_INS_EXTRA_BILL')")
+@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -82,17 +82,17 @@ public class ExtraBillController {
 		return ResponseEntity.ok(service.getByMasterId(masterId));
 	}
 
-	@Operation(summary = "ثبت برات  جدید", description = "یک برات  جدید بر اساس اطلاعات دریافتی ایجاد و ذخیره می کند. نیاز به مجوز C_INS_EXTRA_BILL دارد.")
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+	@Operation(summary = "ثبت برات  جدید", description = "یک برات  جدید بر اساس اطلاعات دریافتی ایجاد و ذخیره می کند. نیاز به مجوز C_INS_LC دارد.")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PostMapping("/save")
 	public ResponseEntity<ProformaBankBillDto.Info> save(@RequestBody ProformaBankBillRequest proformaBankBillRequest) {
 		return ResponseEntity.ok(service.save(proformaBankBillRequest));
 	}
 
 	@Operation(
-			summary = "ثبت برات های جدید", description = "برات های دریافتی را ثبت و ذخیره می کند. نیاز به مجوز C_INS_EXTRA_BILL دارد."
+			summary = "ثبت برات های جدید", description = "برات های دریافتی را ثبت و ذخیره می کند. نیاز به مجوز C_INS_LC دارد."
 	)
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PostMapping("/save-all")
 	public ResponseEntity<List<ProformaBankBillDto.Info>> saveAll(@RequestBody List<ProformaBankBillRequest> requests) {
 		return ResponseEntity.ok(service.saveAll(requests));
@@ -102,7 +102,7 @@ public class ExtraBillController {
 			summary = "بروزرسانی فایل های پیوست برات",
 			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
 	)
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PutMapping("/update-files")
 	public ResponseEntity<ProformaBankBillDto.Info> updateBillFiles(
 			@RequestBody ProformaBankBillFileUpdateDto updateDto) {
@@ -125,7 +125,7 @@ public class ExtraBillController {
 			summary = "بروزرسانی اطلاعات برات",
 			description = "اطلاعات بانکی و الکترونیکی برات را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
 	)
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PutMapping("/update")
 	public ResponseEntity<ProformaBankBillDto.Info> updateExtraBill(
 			@RequestBody UpdateExtraBillRequest updateExtraBillRequest) {
@@ -179,7 +179,7 @@ public class ExtraBillController {
 		return ResponseEntity.ok(service.getUserTasksReport(extraBillId));
 	}
 
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PutMapping("/cancel-extrabill")
 	public ResponseEntity<?> cancelLc(@RequestBody ExtraBillCancelRequest request) {
 		service.cancel(request);

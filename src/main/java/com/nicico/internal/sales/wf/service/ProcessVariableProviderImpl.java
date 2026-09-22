@@ -7,6 +7,8 @@ import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
+import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
@@ -227,6 +229,29 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		input.setCommission(masterModel.getCommissionPercentage());
 		return input;
 	}
+
+
+	@Override
+	public RemittanceVariablesInput buildRemittanceVariablesInput(RemittanceMasterModel masterModel) {
+		RemittanceVariablesInput input = new RemittanceVariablesInput();
+		input.setRemittanceMasterId(masterModel.getId());
+		input.setContractDate(DateUtility.getJalaliDate(masterModel.getContractDate()));
+		input.setRemittanceDate(masterModel.getRemittanceDate());
+		input.setGoodId(masterModel.getGoodId());
+		input.setGoodName(masterModel.getGoodName());
+		input.setCustomerName(masterModel.getCustomerName());
+		input.setContractNo(String.valueOf(masterModel.getContractNo()));
+		input.setRemittanceNumber(masterModel.getRemittanceNumber());
+		input.setIssuerId(masterModel.getIssuerId());
+		input.setIssuerName(masterModel.getIssuerName());
+
+		return input;
+	}
+
+
+
+
+
 
 	@Override
 	public ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMaster) {

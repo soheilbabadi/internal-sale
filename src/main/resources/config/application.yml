@@ -72,6 +72,8 @@ nicico:
   password: password
   server:
     url: https://apps.nicico.com
+#  security:
+#    sysPassword: password
   fms:
     base-url: http://fms.internal:8080
     group-id: internal-sales
@@ -169,3 +171,23 @@ rabbitmq:
           name: internal.sales.customer
           retry-routing-key: retry-customer
           routing-key: customer
+
+#accounting:
+#  api:
+#    base-url: http://devapp01.icico.net.ir/accounting/
+#  detail:
+#    person:
+#      prefix: "02"
+#      parent-digits: 1
+#    company:
+#      prefix: "01"
+#      parent-digits: 2
+#    financial-instrument:
+#      letter-of-credit-main-code: "107/18"
+#      letter-of-credit-parent-code: "107"
+#      gam-main-code: "108/18"
+#      gam-parent-code: "108"
+#      electronic-promissory-note-main-code: "109/18"
+#      electronic-promissory-note-parent-code: "109"
+
+

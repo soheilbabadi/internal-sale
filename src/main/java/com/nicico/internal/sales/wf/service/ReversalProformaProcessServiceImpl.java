@@ -73,15 +73,7 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 			);
 		}
 
-		ProformaVariablesInput input = new ProformaVariablesInput();
-		var performaDetailList = masterModel.getProformaDetailModelLists();
-		input.setProformaMasterId(masterModel.getId());
-		input.setContractDate(performaDetailList.get(0).getContractDate());
-		input.setGoodId(performaDetailList.get(0).getProformaGoodItemModels().get(0).getGoodId());
-		input.setGoodName(performaDetailList.get(0).getProformaGoodItemModels().get(0).getGoodName());
-		input.setCustomerName(masterModel.getCustomerName());
-		input.setContractNo(String.valueOf(masterModel.getContractNo()));
-		input.setCommission(masterModel.getCommissionPercentage());
+		ProformaVariablesInput input = processVariableProvider.buildProformaVariablesInput(masterModel);
 		StartProcessWithDataDTO startProcessDto = new StartProcessWithDataDTO();
 		startProcessDto.setProcessDefinitionKey(workflow.getDefinitionKey());
 		startProcessDto.setVariables(processVariableProvider.createReversalRequestVariables(input));

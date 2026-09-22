@@ -5,6 +5,8 @@ import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.EOperator;
 import com.nicico.copper.common.dto.search.SearchDTO;
+import com.nicico.internal.sales.accounting.dto.FinancialInstrumentType;
+import com.nicico.internal.sales.accounting.service.AccountingDetailService;
 import com.nicico.internal.sales.bank.model.IssuingBankModel;
 import com.nicico.internal.sales.bank.model.TradingBankModel;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
@@ -44,6 +46,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -86,6 +89,7 @@ public class LcServiceImpl implements LcService {
 	private final LcNosaCodeService lcNosaCodeService;
 	private final GaamRepository gaamRepository;
 	private final ExtraBillRepository extraBillRepository;
+//	private final AccountingDetailService accountingDetailService;
 
 
 //	public void appendCancellationRecord(LcModel model, String cancellationRecord) {
@@ -647,5 +651,58 @@ public class LcServiceImpl implements LcService {
 		notificationService.sendEmailForLcBroker(brokerEmailRequest, emailContent);
 	}
 
+	@Transactional
+	@Override
+	public String createDetail(Long id) {
+//		LcModel lc = lcRepository.findById(id)
+//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_LC_NOT_FOUND));
+//
+//		Long issuerBankId = lc.getIssuerBankId();
+//		if (issuerBankId == null) {
+//			throw new InternalSaleCustomException.ValidationException(MSG_ISSUING_BANK_NOT_FOUND_FOR_LC);
+//		}
+//
+//		var bank = issuingBankRepository.findById(issuerBankId)
+//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+//						MSG_ISSUING_BANK_NOT_FOUND));
+//
+//		String bankCode = bank.getBankCode();
+//		String yearSuffix = DateUtility.currentYearLast2();
+//		String detailName = buildLcDetailName(lc, bank);
+//
+//		var response = accountingDetailService.generateAndCreateFinancialInstrumentDetail(
+//				FinancialInstrumentType.LETTER_OF_CREDIT,
+//				bankCode,
+//				yearSuffix,
+//				detailName,
+//				null
+//		);
+//
+//		if (response != null && response.getCode() != null) {
+//			lc.setNosaCode(response.getCode());
+//			lcRepository.save(lc);
+//			return response.getCode();
+//		}
+
+		return null;
+	}
+
+	private String buildLcDetailName(LcModel lc, IssuingBankModel bank) {
+		String bankName = bank.getBankName() != null ? bank.getBankName() : (lc.getIssuerBankName() != null ? lc.getIssuerBankName() : "");
+		String customerName = lc.getCustomerName() != null ? lc.getCustomerName() : "";
+		String lcNo = lc.getLcNo() != null ? lc.getLcNo() : "";
+
+		StringBuilder detailNameBuilder = new StringBuilder("اعتبار");
+		if (!lcNo.isBlank()) {
+			detailNameBuilder.append(" ").append(lcNo.trim());
+		}
+		if (!bankName.isBlank()) {
+			detailNameBuilder.append(" ").append(bankName.trim());
+		}
+		if (!customerName.isBlank()) {
+			detailNameBuilder.append(" - ").append(customerName.trim());
+		}
+		return detailNameBuilder.toString().trim();
+	}
 
 }

@@ -17,10 +17,10 @@ import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
-import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,6 +31,7 @@ import java.util.List;
 public class LcProcessServiceImpl implements LcProcessService {
 
 	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
+	private static final String LC_SAVE_ERROR = "خطا در ذخیره وضعیت اعتبار اسنادی پس از تایید در کارتابل";
 	private static final String REVERSAL_PROCESS_ID_DEFAULT = "-";
 	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور پیدا نشد";
 	private static final String MSG_ACCESS_DENIED_START_LC = "شما اجازه شروع فرایند اعتبار اسنادی را ندارید";
@@ -98,24 +99,37 @@ public class LcProcessServiceImpl implements LcProcessService {
 		reviewTask(taskActionDto, false);
 	}
 
+	/**
+	 * NOTE ON BEHAVIOR CHANGE vs. the original:
+	 * `lcList` used to be loaded BEFORE the BPMS call and reused for the save afterwards.
+	 * If the BPMS call causes those same rows to be updated in another transaction
+	 * (e.g. a synchronous listener), the entities we hold go stale and
+	 * saveAllAndFlush() throws StaleObjectStateException/ObjectOptimisticLockingFailureException.
+	 * Fix: re-fetch lcList AFTER the BPMS call, immediately before mutating/saving it,
+	 * so we always work off the latest committed version.
+	 */
 	private void reviewTask(TaskActionDto dto, boolean approve) {
 
 		dto.setApprove(approve);
 		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
-		List<LcModel> lcList = lcRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
+
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
-			if (!approve) {
-				try {
+		} catch (Exception ex) {
+			// Only a genuine BPMS call failure gets reported as a BPMS connection error.
+			throw bpmsException(ex);
+		}
 
-					for (LcModel lc : lcList) {
-						lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-						lc.setAcknowledgment(Acknowledgment.CANCELED);
-					}
-					lcRepository.saveAllAndFlush(lcList);
-				} catch (Exception ex) {
-					log.error("Error while rejecting LC for process {}: {}", reviewTaskRequest.getProcessInstanceId(), ex.getMessage(), ex);
+		// Fetch fresh, post-callback state - avoids acting on a stale version.
+		List<LcModel> lcList = lcRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
+
+		try {
+			if (!approve) {
+				for (LcModel lc : lcList) {
+					lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+					lc.setAcknowledgment(Acknowledgment.CANCELED);
 				}
+				lcRepository.saveAllAndFlush(lcList);
 				return;
 			}
 
@@ -128,19 +142,31 @@ public class LcProcessServiceImpl implements LcProcessService {
 				return;
 			}
 
-
 			for (LcModel lc : lcList) {
-
 				if (lc.getPmsLcId() != null) {
+					// Fixed: this branch was previously always overwritten by the
+					// unconditional IN_PROGRESS/determine(...) calls below it and could
+					// never take effect. Now it's a proper else-branch.
 					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 					lc.setAcknowledgment(Acknowledgment.FINISHED);
+				} else {
+					lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+					lc.setAcknowledgment(acknowledgmentDeterminer.determine(lc));
 				}
-
-				lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-				lc.setAcknowledgment(acknowledgmentDeterminer.determine(lc));
 			}
 			lcRepository.saveAllAndFlush(lcList);
+		} catch (ObjectOptimisticLockingFailureException ex) {
+			// BPMS review already succeeded at this point - don't mask it as a BPMS error.
+			log.error("Optimistic lock conflict while persisting LC status for process {}: {}",
+					reviewTaskRequest.getProcessInstanceId(), ex.getMessage(), ex);
+			throw new InternalSaleCustomException.BpmsClientException(LC_SAVE_ERROR, List.of(ex.getMessage()));
 		} catch (Exception ex) {
+			if (!approve) {
+				// Preserve prior behavior for the reject path: BPMS reject succeeded,
+				// so we log a local persistence failure rather than failing the request.
+				log.error("Error while rejecting LC for process {}: {}", reviewTaskRequest.getProcessInstanceId(), ex.getMessage(), ex);
+				return;
+			}
 			throw bpmsException(ex);
 		}
 	}

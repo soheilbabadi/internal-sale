@@ -1,6 +1,7 @@
 package com.nicico.internal.sales.wf.service;
 
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
+import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
@@ -48,6 +49,8 @@ public interface ProcessVariableProvider {
 	Map<String, String> getExtraBillUserAccess();
 
 	ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model);
+
+	RemittanceVariablesInput buildRemittanceVariablesInput(RemittanceMasterModel masterModel);
 
 	ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMaster);
 

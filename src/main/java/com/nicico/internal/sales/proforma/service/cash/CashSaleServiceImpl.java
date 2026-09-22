@@ -29,6 +29,8 @@ import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 import com.nicico.internal.sales.trade.model.TradeExtractModel;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
+import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
+import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +75,7 @@ public class CashSaleServiceImpl implements CashSaleService {
 	private final BrokerRepository brokerRepository;
 	private final GoodsService goodsService;
 	private final PreciousMetalRepository preciousMetalRepository;
+	private final ProcessVariableProvider processVariableProvider;
 
 	// ==================== PUBLIC SERVICE METHODS ====================
 
@@ -538,11 +541,11 @@ public class CashSaleServiceImpl implements CashSaleService {
 		}
 	}
 
-	private void startProformaProcess(ProformaMasterModel model) {
-		var input = proformaProcessService.buildProformaVariablesInput(model);
+	private void startProformaProcess(ProformaMasterModel masterModel) {
+		ProformaVariablesInput input = processVariableProvider.buildProformaVariablesInput(masterModel);
 		var process = proformaProcessService.startProformaProcess(input);
-		model.setProcessId(process.getId());
-		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+		masterModel.setProcessId(process.getId());
+		masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
 	}
 
 	private void validateNetWeight(PreciousGoodItemCalculation calc) {

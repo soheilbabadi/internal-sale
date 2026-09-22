@@ -122,9 +122,26 @@ public interface AccountingDetailService {
 	 * Creates an accounting detail account for a financial payment instrument.
 	 *
 	 * @param request Financial instrument detail data
-	 * @return Created DetailDto
 	 */
 	void createDetailForFinancialInstrument(
 			com.nicico.internal.sales.accounting.dto.CreateFinancialInstrumentDetailDto request);
+
+	/**
+	 * Generates next sequence, creates the detail account in Accounting with retry policy and submissionId,
+	 * and returns the creation result.
+	 *
+	 * @param instrumentType Instrument type (Letter of Credit, GAM, Electronic Promissory Note)
+	 * @param twoDigitCode 2-digit user/branch sub-code
+	 * @param yearSuffix Optional 2-digit Shamsi year
+	 * @param detailName Optional detail account name (defaults to instrument title + twoDigitCode if blank)
+	 * @param submissionId Optional submission ID for Accounting tracking
+	 * @return FinancialInstrumentCreateResponseDto containing result, code, detailNumber, and created detail
+	 */
+	com.nicico.internal.sales.accounting.dto.FinancialInstrumentCreateResponseDto generateAndCreateFinancialInstrumentDetail(
+			com.nicico.internal.sales.accounting.dto.FinancialInstrumentType instrumentType,
+			String twoDigitCode,
+			String yearSuffix,
+			String detailName,
+			String submissionId);
 
 }

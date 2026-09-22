@@ -22,6 +22,8 @@ import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 import com.nicico.internal.sales.util.date.DateUtility;
+import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
+import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +55,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 	private final ProformaContractService proformaContractService;
 	private final ProformaSerialService proformaSerialService;
 	private final GoodBucketService goodBucketService;
+	private final ProcessVariableProvider processVariableProvider;
 
 
 	@Override
@@ -362,11 +365,11 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 
 	// ==================== WORKFLOW ====================
 
-	private void startWorkflowProcess(ProformaMasterModel model) {
-		var input = proformaProcessService.buildProformaVariablesInput(model);
+	private void startWorkflowProcess(ProformaMasterModel masterModel) {
+		ProformaVariablesInput input = processVariableProvider.buildProformaVariablesInput(masterModel);
 		var process = proformaProcessService.startProformaProcess(input);
-		model.setProcessId(process.getId());
-		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+		masterModel.setProcessId(process.getId());
+		masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
 	}
 
 	// ==================== SAVE HELPERS ====================

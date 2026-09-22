@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@PreAuthorize("@secUtil.hasAuthority('R_INS_GAAM')")
+@PreAuthorize("@secUtil.hasAuthority('R_INS_LC')")
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -80,17 +80,17 @@ public class GaamController {
 		return ResponseEntity.ok(service.getByMasterId(masterId));
 	}
 
-	@Operation(summary = "ثبت اوراق گام  جدید", description = "یک اوراق گام  جدید بر اساس اطلاعات دریافتی ایجاد و ذخیره می کند. نیاز به مجوز C_INS_GAAM دارد.")
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+	@Operation(summary = "ثبت اوراق گام  جدید", description = "یک اوراق گام  جدید بر اساس اطلاعات دریافتی ایجاد و ذخیره می کند. نیاز به مجوز C_INS_LC دارد.")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PostMapping("/save")
 	public ResponseEntity<GaamDto.Info> save(@RequestBody GaamRequest gaamRequest) {
 		return ResponseEntity.ok(service.save(gaamRequest));
 	}
 
 	@Operation(
-			summary = "ثبت اوراق گام های جدید", description = "اوراق گام های دریافتی را ثبت و ذخیره می کند. نیاز به مجوز C_INS_GAAM دارد."
+			summary = "ثبت اوراق گام های جدید", description = "اوراق گام های دریافتی را ثبت و ذخیره می کند. نیاز به مجوز C_INS_LC دارد."
 	)
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PostMapping("/save-all")
 	public ResponseEntity<List<GaamDto.Info>> saveAll(@RequestBody List<GaamRequest> requests) {
 		return ResponseEntity.ok(service.saveAll(requests));
@@ -100,7 +100,7 @@ public class GaamController {
 			summary = "بروزرسانی فایل های پیوست اوراق گام",
 			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
 	)
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PutMapping("/update-files")
 	public ResponseEntity<GaamDto.Info> updateBillFiles(@RequestBody GaamFileUpdateDto updateDto) {
 
@@ -122,7 +122,7 @@ public class GaamController {
 			summary = "بروزرسانی اطلاعات اوراق گام",
 			description = "اطلاعات بانکی و الکترونیکی اوراق گام را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
 	)
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PutMapping("/update")
 	public ResponseEntity<GaamDto.Info> update(
 			@RequestBody UpdateGaamRequest updateGaamRequest) {
@@ -168,7 +168,7 @@ public class GaamController {
 		return ResponseEntity.ok(service.getUserTasksReport(gaamId));
 	}
 
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PutMapping("/cancel")
 	public ResponseEntity<?> cancel(@RequestBody GaamCancelRequest request) {
 		service.cancel(request);

@@ -2,17 +2,16 @@ package com.nicico.internal.sales.accounting.controller;
 
 import com.fgostar.accounting.sdk.dto.DetailDto;
 import com.fgostar.accounting.sdk.dto.EOperator;
-import com.nicico.internal.sales.accounting.dto.CreateCompanyDetailDto;
-import com.nicico.internal.sales.accounting.dto.CreatePersonDetailDto;
+import com.nicico.internal.sales.accounting.dto.*;
 import com.nicico.internal.sales.accounting.service.AccountingDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Slf4j
@@ -25,7 +24,6 @@ public class AccountingDetailController {
 	private final AccountingDetailService accountingDetailService;
 
 	@Operation(summary = "استعلام و دریافت حساب تفصیلی بر اساس کدملی شخص یا شناسه ملی شرکت")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
 	@GetMapping("/by-national-code/{nationalCodeOrId}")
 	public ResponseEntity<DetailDto> findDetailOfNationalCode(@PathVariable String nationalCodeOrId) {
 		log.info("REST request to find accounting detail for national identifier: {}", nationalCodeOrId);
@@ -35,7 +33,6 @@ public class AccountingDetailController {
 	}
 
 	@Operation(summary = "استعلام تفصیلی شخص حقیقی بر اساس کد ملی (پیشوند 02/)")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
 	@GetMapping("/person/{nationalCode}")
 	public ResponseEntity<DetailDto> findDetailForPerson(@PathVariable String nationalCode) {
 		log.info("REST request to find person accounting detail for national code: {}", nationalCode);
@@ -45,7 +42,6 @@ public class AccountingDetailController {
 	}
 
 	@Operation(summary = "استعلام تفصیلی شخص حقوقی / شرکت بر اساس شناسه ملی (پیشوند 01/)")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
 	@GetMapping("/company/{nationalId}")
 	public ResponseEntity<DetailDto> findDetailForCompany(@PathVariable String nationalId) {
 		log.info("REST request to find company accounting detail for national ID: {}", nationalId);
@@ -55,7 +51,6 @@ public class AccountingDetailController {
 	}
 
 	@Operation(summary = "جستجوی حساب‌های تفصیلی بر اساس کد یا پیشوند")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
 	@GetMapping("/search")
 	public ResponseEntity<List<DetailDto>> searchDetailsByCode(@RequestParam("code") String detailCode) {
 		log.info("REST request to search accounting details by code: {}", detailCode);
@@ -64,7 +59,6 @@ public class AccountingDetailController {
 	}
 
 	@Operation(summary = "تطبیق و یافتن والد مناسب برای کد تفصیلی هدف")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
 	@GetMapping("/resolve-parent")
 	public ResponseEntity<DetailDto> resolveParent(@RequestParam("targetCode") String targetCode) {
 		log.info("REST request to resolve parent for targetCode: {}", targetCode);
@@ -74,7 +68,6 @@ public class AccountingDetailController {
 	}
 
 	@Operation(summary = "دریافت لیست حساب‌های تفصیلی فرزند بر اساس شناسه والد")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
 	@GetMapping("/children-by-parent/{parentDetailId}")
 	public ResponseEntity<List<DetailDto>> getChildrenByParent(
 			@PathVariable Long parentDetailId,
@@ -88,7 +81,6 @@ public class AccountingDetailController {
 	}
 
 	@Operation(summary = "محاسبه شماره دنباله بعدی تفصیلی بر اساس بزرگترین فرزند موجود والد")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
 	@GetMapping("/next-sequence")
 	public ResponseEntity<String> getNextSequenceCode(@RequestParam("parentCode") String parentCode) {
 		log.info("REST request to generate next sequence code for parent: {}", parentCode);
@@ -113,10 +105,10 @@ public class AccountingDetailController {
 	}
 
 	@Operation(summary = "محاسبه شماره دنباله بعدی تفصیلی برای ابزار مالی (اعتبار اسنادی، اوراق گام، برات الکترونیکی)")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
+
 	@GetMapping("/financial-instrument/next-sequence")
 	public ResponseEntity<Long> getFinancialInstrumentNextSequenceCode(
-			@RequestParam("instrumentType") com.nicico.internal.sales.accounting.dto.FinancialInstrumentType instrumentType,
+			@RequestParam("instrumentType") FinancialInstrumentType instrumentType,
 			@RequestParam("twoDigitCode") String twoDigitCode,
 			@RequestParam(value = "yearSuffix", required = false) String yearSuffix) {
 		log.info("REST request to generate next sequence code for financial instrument: {}, twoDigit: {}, year: {}",
@@ -125,11 +117,42 @@ public class AccountingDetailController {
 		return ResponseEntity.ok(nextCode);
 	}
 
+//	@Operation(summary = "محاسبه شماره دنباله بعدی و ایجاد حساب تفصیلی ابزار مالی (با ارسال submissionId و تلاش مجدد)")
+//	@PostMapping("/financial-instrument/next-sequence")
+//	public ResponseEntity<FinancialInstrumentCreateResponseDto> generateAndCreateFinancialInstrumentDetail(
+//			@RequestParam("instrumentType") FinancialInstrumentType instrumentType,
+//			@RequestParam("twoDigitCode") String twoDigitCode,
+//			@RequestParam(value = "yearSuffix", required = false) String yearSuffix,
+//			@RequestParam(value = "detailName", required = false) String detailName,
+//			@RequestParam(value = "submissionId", required = false) String submissionId) {
+//		log.info("REST request to generate next sequence and create financial instrument detail: {}, twoDigit: {}, year: {}, submissionId: {}",
+//				instrumentType, twoDigitCode, yearSuffix, submissionId);
+//		FinancialInstrumentCreateResponseDto response =
+//				accountingDetailService.generateAndCreateFinancialInstrumentDetail(
+//						instrumentType, twoDigitCode, yearSuffix, detailName, submissionId);
+//		return ResponseEntity.ok(response);
+//	}
+
+
+	@Operation(summary = "محاسبه شماره دنباله بعدی و ایجاد حساب تفصیلی ابزار مالی (با ارسال submissionId و تلاش مجدد)")
+	@PostMapping("/financial-instrument/next-sequence")
+	public ResponseEntity<FinancialInstrumentCreateResponseDto> generateAndCreateFinancialInstrumentDetail(
+			@Valid @RequestBody CreateFinancialInstrumentDetailDto request) {
+		log.info("REST request to generate next sequence and create financial instrument detail: {}", request);
+		FinancialInstrumentCreateResponseDto response =
+				accountingDetailService.generateAndCreateFinancialInstrumentDetail(
+						request.getInstrumentType(),
+						request.getTwoDigitCode(),
+						request.getYearSuffix(),
+						request.getDetailName(),
+						request.getSubmissionId());
+		return ResponseEntity.ok(response);
+	}
+
 	@Operation(summary = "ایجاد حساب تفصیلی برای ابزار مالی (اعتبار اسنادی، اوراق گام، برات الکترونیکی)")
-	@PreAuthorize("@secUtil.hasAuthority('R_INS_CUSTOMER') or @secUtil.hasAuthority('R_INS_ACCOUNTING')")
 	@PostMapping("/financial-instrument")
-	public ResponseEntity createDetailForFinancialInstrument(
-			@RequestBody com.nicico.internal.sales.accounting.dto.CreateFinancialInstrumentDetailDto request) {
+	public ResponseEntity<?> createDetailForFinancialInstrument(
+			@RequestBody CreateFinancialInstrumentDetailDto request) {
 		log.info("REST request to create financial instrument accounting detail: {}", request);
 		accountingDetailService.createDetailForFinancialInstrument(request);
 		return ResponseEntity.ok().build();

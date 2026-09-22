@@ -61,4 +61,6 @@ public interface LcService {
 
 
 	void updateAllAcknowledgments();
+
+	String createDetail(Long id);
 }

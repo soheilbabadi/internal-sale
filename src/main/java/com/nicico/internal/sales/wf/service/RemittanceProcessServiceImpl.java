@@ -8,10 +8,8 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
-import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,18 +41,9 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 		var workflow = processVariableProvider.getRemittanceWorkflowByTitle();
 		var masterModel = remittanceMasterRepository.findById(remittanceId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("حواله وجود ندارد"));
-		RemittanceVariablesInput input = new RemittanceVariablesInput();
-		input.setRemittanceMasterId(masterModel.getId());
-		input.setContractDate(DateUtility.getJalaliDate(masterModel.getContractDate()));
-		input.setRemittanceDate(masterModel.getRemittanceDate());
-		input.setGoodId(masterModel.getGoodId());
-		input.setGoodName(masterModel.getGoodName());
-		input.setCustomerName(masterModel.getCustomerName());
-		input.setContractNo(String.valueOf(masterModel.getContractNo()));
-		input.setRemittanceNumber(masterModel.getRemittanceNumber());
-		input.setIssuerId(masterModel.getIssuerId());
-		input.setIssuerName(masterModel.getIssuerName());
 
+
+		RemittanceVariablesInput input =processVariableProvider.buildRemittanceVariablesInput(masterModel);
 		StartProcessWithDataDTO startProcessDto = new StartProcessWithDataDTO();
 		startProcessDto.setProcessDefinitionKey(workflow.getDefinitionKey());
 		startProcessDto.setVariables(processVariableProvider.createRemittanceRequestVariable(input));

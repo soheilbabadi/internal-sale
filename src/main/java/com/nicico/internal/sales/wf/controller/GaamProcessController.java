@@ -17,7 +17,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-@PreAuthorize("@secUtil.hasAuthority('C_INS_GAAM')")
+@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 @RequestMapping("/api/v1/ins/proforma/process-gaam")
 public class GaamProcessController {
 

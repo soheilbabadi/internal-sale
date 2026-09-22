@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "accounting.detail")
 public class AccountingDetailProperties {
 
-	private PrefixConfig person = new PrefixConfig("01", 3);
-	private PrefixConfig company = new PrefixConfig("01", 3);
+	private PrefixConfig person = new PrefixConfig("01", 1);
+	private PrefixConfig company = new PrefixConfig("01", 1);
 	private FinancialInstrumentConfig financialInstrument = new FinancialInstrumentConfig();
 
 	public String getFinancialInstrumentMainCode(com.nicico.internal.sales.accounting.dto.FinancialInstrumentType type) {
@@ -46,6 +46,8 @@ public class AccountingDetailProperties {
 		private String gamParentCode = "108";
 		private String electronicPromissoryNoteMainCode = "109/18";
 		private String electronicPromissoryNoteParentCode = "109";
+		private int maxAttempts = 3;
+		private long backoffDelayMs = 2000L;
 	}
 
 	@Getter

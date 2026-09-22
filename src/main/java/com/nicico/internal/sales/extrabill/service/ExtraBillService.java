@@ -45,4 +45,6 @@ public interface ExtraBillService {
 
 	void cancel(ExtraBillCancelRequest request);
 
+	String createDetail(Long id);
+
 }

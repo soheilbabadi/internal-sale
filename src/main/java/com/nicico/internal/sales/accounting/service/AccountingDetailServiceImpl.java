@@ -3,10 +3,7 @@ package com.nicico.internal.sales.accounting.service;
 import com.fgostar.accounting.sdk.client.DetailClient;
 import com.fgostar.accounting.sdk.dto.*;
 import com.nicico.internal.sales.accounting.client.AccountingDetailProperties;
-import com.nicico.internal.sales.accounting.dto.CreateCompanyDetailDto;
-import com.nicico.internal.sales.accounting.dto.CreateFinancialInstrumentDetailDto;
-import com.nicico.internal.sales.accounting.dto.CreatePersonDetailDto;
-import com.nicico.internal.sales.accounting.dto.FinancialInstrumentType;
+import com.nicico.internal.sales.accounting.dto.*;
 import com.nicico.internal.sales.accounting.util.NationalCodeValidator;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.util.date.DateUtility;
@@ -549,19 +546,17 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 		String basePrefix = buildFinancialInstrumentBasePrefix(request.getInstrumentType(), request.getTwoDigitCode(), request.getYearSuffix());
 
 		Long sequenceNumber = calculateNextFinancialInstrumentSequenceNumber(basePrefix);
-		String formattedNext = String.format("%04d", sequenceNumber);
-		String code = basePrefix + formattedNext;
+
 
 		String detailName = request.getDetailName().trim();
 		String note = StringUtils.isNotBlank(request.getNote())
 				? request.getNote().trim()
 				: request.getInstrumentType().getTitle() + " " + request.getTwoDigitCode().trim();
 
-		log.info("Creating financial instrument accounting detail. Code: {}, DetailNumber: {}, Name: {}, Instrument: {}",
-				code, sequenceNumber, detailName, request.getInstrumentType());
+		log.info("Creating financial instrument accounting detail.  DetailNumber: {}, Name: {}, Instrument: {}"
+				, sequenceNumber, detailName, request.getInstrumentType());
 
 		DetailDto.DetailInfoDto detailInfo = new DetailDto.DetailInfoDto();
-		detailInfo.setCode(code);
 		detailInfo.setDetailNumber(sequenceNumber);
 		detailInfo.setDetailName(detailName);
 		detailInfo.setNote(note);
@@ -573,17 +568,93 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 		// Resolve parent detail using configured parent code
 		String parentCode = properties.getFinancialInstrumentParentCode(request.getInstrumentType());
 
-
 		findParentByCode(parentCode).ifPresent(p -> {
-			log.info("Setting parentDetail (id={}, code={}) for financial instrument code: {}", p.getId(), p.getCode(), code);
+			log.info("Setting parentDetail (id={}, code={}) for financial instrument ", p.getId(), p.getCode());
 			detailInfo.setParentDetailId(p.getId());
 			detailInfo.setParentDetail(p);
 		});
 
-		Call<ResponseBody> call = detailClient.saveDetail(detailInfo);
-		executeCall(call, "saveDetail (FinancialInstrument: " + code + ")");
-		log.info("Successfully requested saveDetail for financial instrument code: {}", code);
+		executeSaveDetailWithRetry(request.getSubmissionId(), detailInfo, "FinancialInstrument: ");
+		log.info("Successfully requested saveDetail for financial instrument ");
+	}
 
+	@Override
+	public FinancialInstrumentCreateResponseDto generateAndCreateFinancialInstrumentDetail(
+			FinancialInstrumentType instrumentType,
+			String twoDigitCode,
+			String yearSuffix,
+			String detailName,
+			String submissionId) {
+		if (instrumentType == null) {
+			throw new InternalSaleCustomException.ValidationException("نوع ابزار مالی نمی‌تواند خالی باشد");
+		}
+		if (StringUtils.isBlank(twoDigitCode) || !twoDigitCode.trim().matches("\\d{2}")) {
+			throw new InternalSaleCustomException.ValidationException("کد دو رقمی ابزار مالی باید دقیقاً دو رقم باشد");
+		}
+
+		String resolvedDetailName = StringUtils.isNotBlank(detailName)
+				? detailName.trim()
+				: instrumentType.getTitle() + " " + twoDigitCode.trim();
+
+		CreateFinancialInstrumentDetailDto request = CreateFinancialInstrumentDetailDto.builder()
+				.instrumentType(instrumentType)
+				.twoDigitCode(twoDigitCode.trim())
+				.yearSuffix(yearSuffix)
+				.detailName(resolvedDetailName)
+				.submissionId(submissionId)
+				.build();
+
+		createDetailForFinancialInstrument(request);
+
+		String basePrefix = buildFinancialInstrumentBasePrefix(instrumentType, twoDigitCode, yearSuffix);
+		Long sequenceNumber = calculateNextFinancialInstrumentSequenceNumber(basePrefix) - 1;
+		if (sequenceNumber < 1L) {
+			sequenceNumber = 1L;
+		}
+		String formattedNext = String.format("%04d", sequenceNumber);
+		String code = basePrefix + formattedNext;
+
+		DetailDto createdDetail = searchDetailsByCode(code, EOperator.equals).stream()
+				.filter(d -> code.equalsIgnoreCase(d.getCode()))
+				.findFirst()
+				.orElse(null);
+
+		return FinancialInstrumentCreateResponseDto.builder()
+				.success(true)
+				.code(code)
+				.detailNumber(sequenceNumber)
+				.submissionId(submissionId)
+				.detail(createdDetail)
+				.build();
+	}
+
+	private void executeSaveDetailWithRetry(String submissionId, DetailDto.DetailInfoDto detailInfo, String logContext) {
+		int maxAttempts = Math.max(1, properties.getFinancialInstrument().getMaxAttempts());
+		long backoffDelayMs = Math.max(0, properties.getFinancialInstrument().getBackoffDelayMs());
+
+		int attempt = 0;
+		while (attempt < maxAttempts) {
+			attempt++;
+			try {
+				Call<ResponseBody> call = detailClient.saveDetail(submissionId, detailInfo);
+				executeCall(call, "saveDetail (" + logContext + ") [attempt " + attempt + "/" + maxAttempts + "]");
+				return;
+			} catch (Exception e) {
+				log.warn("saveDetail failed for {} on attempt {}/{}: {}", logContext, attempt, maxAttempts, e.getMessage());
+				if (attempt >= maxAttempts) {
+					log.error("All {} attempts to saveDetail failed for {}.", maxAttempts, logContext);
+					throw e;
+				}
+				if (backoffDelayMs > 0) {
+					try {
+						Thread.sleep(backoffDelayMs);
+					} catch (InterruptedException ie) {
+						Thread.currentThread().interrupt();
+						throw new InternalSaleCustomException.ApplicationServerException("Retry interrupted: " + ie.getMessage());
+					}
+				}
+			}
+		}
 	}
 
 	private String buildFinancialInstrumentBasePrefix(FinancialInstrumentType instrumentType,

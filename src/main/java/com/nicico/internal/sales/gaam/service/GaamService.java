@@ -41,4 +41,6 @@ public interface GaamService {
 	void cancel(GaamCancelRequest request);
 
 	void cancelGaamModel(GaamModel model, GaamCancelRequest request);
+
+	String createDetail(Long id);
 }

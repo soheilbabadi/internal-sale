@@ -3,7 +3,6 @@ package com.nicico.internal.sales.wf.service;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstance;
 import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
-import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 
@@ -28,5 +27,5 @@ public interface ProformaProcessService {
 
 	boolean canStartProcess();
 
-	ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model);
+//	ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model);
 }

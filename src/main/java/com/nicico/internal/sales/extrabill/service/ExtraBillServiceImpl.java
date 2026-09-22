@@ -5,6 +5,9 @@ import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
+import com.nicico.internal.sales.accounting.dto.FinancialInstrumentType;
+import com.nicico.internal.sales.accounting.service.AccountingDetailService;
+import com.nicico.internal.sales.bank.model.IssuingBankModel;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
 import com.nicico.internal.sales.broker.repository.BrokerRepository;
@@ -79,6 +82,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private final ProformaBankBillAuditRepository auditRepository;
 	private final ProformaBankBillRevokingRepository proformaBankBillRevokingRepository;
 	private final ProformaBankBillRevokingMapper proformaBankBillRevokingMapper;
+//	private final AccountingDetailService accountingDetailService;
 
 	private final ProcessStatusDeterminerService processStatusDeterminerService;
 
@@ -519,5 +523,64 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		}
 	}
 
+	@Transactional
+	@Override
+	public String createDetail(Long id) {
+//		ExtraBankBillModel extraBill = extraBillRepository.findById(id)
+//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
+//
+//		Long issuerBankId = extraBill.getIssuerBankId();
+//		if (issuerBankId == null) {
+//			throw new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND);
+//		}
+//
+//		var bank = issuingBankRepository.findById(issuerBankId)
+//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+//
+//		String bankCode = bank.getBankCode();
+//		String yearSuffix = DateUtility.currentYearLast2();
+//		String detailName = buildExtraBillDetailName(extraBill, bank);
+//
+//		var response = accountingDetailService.generateAndCreateFinancialInstrumentDetail(
+//				FinancialInstrumentType.ELECTRONIC_PROMISSORY_NOTE,
+//				bankCode,
+//				yearSuffix,
+//				detailName,
+//				null
+//		);
+//
+//		if (response != null && response.getCode() != null) {
+//			extraBill.setNosaCode(response.getCode());
+//			extraBillRepository.save(extraBill);
+//			return response.getCode();
+//		}
+
+		return null;
+	}
+
+	private String buildExtraBillDetailName(ExtraBankBillModel extraBill, IssuingBankModel bank) {
+		String bankName = bank.getBankName() != null ? bank.getBankName() : (extraBill.getIssuerBankName() != null ? extraBill.getIssuerBankName() : "");
+		String sepamCode = extraBill.getSepamCode() != null ? extraBill.getSepamCode() : "";
+
+		String customerName = "";
+		if (extraBill.getProformaMasterId() != null) {
+			var masterOpt = proformaMasterRepository.findById(extraBill.getProformaMasterId());
+			if (masterOpt.isPresent() && masterOpt.get().getCustomerName() != null) {
+				customerName = masterOpt.get().getCustomerName();
+			}
+		}
+
+		StringBuilder detailNameBuilder = new StringBuilder("برات");
+		if (!sepamCode.isBlank()) {
+			detailNameBuilder.append(" ").append(sepamCode.trim());
+		}
+		if (!bankName.isBlank()) {
+			detailNameBuilder.append(" ").append(bankName.trim());
+		}
+		if (!customerName.isBlank()) {
+			detailNameBuilder.append(" - ").append(customerName.trim());
+		}
+		return detailNameBuilder.toString().trim();
+	}
 
 }

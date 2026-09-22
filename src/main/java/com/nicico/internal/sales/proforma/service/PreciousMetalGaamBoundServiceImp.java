@@ -25,6 +25,8 @@ import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 import com.nicico.internal.sales.trade.model.TradeExtractModel;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
+import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
+import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +63,7 @@ public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundS
 	private final GoodsRepository goodsRepository;
 	private final TradeExtractRepository tradeExtractRepository;
 	private final PreciousMetalRepository preciousMetalRepository;
+	private final ProcessVariableProvider processVariableProvider;
 
 	// ==================== PUBLIC SERVICE METHODS ====================
 
@@ -126,13 +129,13 @@ public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundS
 		return ProformaModelResponse.builder().masterModel(masterModel).detailModels(detailDtoList).build();
 	}
 
-	private void startProformaProcess(ProformaMasterModel model) {
-		var input = proformaProcessService.buildProformaVariablesInput(model);
+	private void startProformaProcess(ProformaMasterModel masterModel) {
+		ProformaVariablesInput input = processVariableProvider.buildProformaVariablesInput(masterModel);
 		var process = proformaProcessService.startProformaProcess(input);
-		model.setProcessId(process.getId());
-		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-		model.setIsProcessFinal(false);
-		model.setIsReversalProcessFinal(false);
+		masterModel.setProcessId(process.getId());
+		masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+		masterModel.setIsProcessFinal(false);
+		masterModel.setIsReversalProcessFinal(false);
 	}
 
 	private void saveDetailAndGoodItems(Long masterId, List<ProformaDetailModel> details, List<ProformaGoodItemModel> goodItems) {

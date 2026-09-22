@@ -20,6 +20,7 @@ import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 import com.nicico.internal.sales.util.date.DateUtility;
+import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,7 @@ public class GaamBoundProformaIssueServiceImpl implements GaamBoundProformaIssue
 	private final OfferTextProcess offerTextProcess;
 	private final ProformaContractService proformaContractService;
 	private final ProformaSerialService proformaSerialService;
+	private final ProcessVariableProvider processVariableProvider;
 
 
 	@Override
@@ -269,7 +271,7 @@ public class GaamBoundProformaIssueServiceImpl implements GaamBoundProformaIssue
 	}
 
 	private void startWorkflowProcess(ProformaMasterModel model) {
-		var input = proformaProcessService.buildProformaVariablesInput(model);
+		var input = processVariableProvider.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);

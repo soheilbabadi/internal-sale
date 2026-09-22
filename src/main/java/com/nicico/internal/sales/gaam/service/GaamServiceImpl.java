@@ -6,6 +6,7 @@ import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
+import com.nicico.internal.sales.bank.model.IssuingBankModel;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
 import com.nicico.internal.sales.broker.repository.BrokerRepository;
@@ -76,6 +77,7 @@ public class GaamServiceImpl implements GaamService {
 	private final BrokerRepository brokerRepository;
 	private final IMETradeRepository imeTradeRepository;
 	private final ExtraBillRepository extraBillRepository;
+//	private final AccountingDetailService accountingDetailService;
 	// ==================== PROFORMA CREATION ====================
 
 	// ==================== BANK BILL CRUD ====================
@@ -481,6 +483,66 @@ public class GaamServiceImpl implements GaamService {
 						**************************""",
 				timestamp, userFullName, LcCancellationReason.BUYER_WITHDRAWAL, notes
 		);
+	}
+
+	@Transactional
+	@Override
+	public String createDetail(Long id) {
+//		GaamModel gaam = gaamRepository.findById(id)
+//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
+//
+//		Long issuerBankId = gaam.getIssuerBankId();
+//		if (issuerBankId == null) {
+//			throw new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND);
+//		}
+//
+//		var bank = issuingBankRepository.findById(issuerBankId)
+//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+//
+//		String bankCode = bank.getBankCode();
+//		String yearSuffix = DateUtility.currentYearLast2();
+//		String detailName = buildGaamDetailName(gaam, bank);
+//
+//		var response = accountingDetailService.generateAndCreateFinancialInstrumentDetail(
+//				FinancialInstrumentType.GAM,
+//				bankCode,
+//				yearSuffix,
+//				detailName,
+//				null
+//		);
+//
+//		if (response != null && response.getCode() != null) {
+//			gaam.setNosaCode(response.getCode());
+//			gaamRepository.save(gaam);
+//			return response.getCode();
+//		}
+
+		return null;
+	}
+
+	private String buildGaamDetailName(GaamModel gaam, IssuingBankModel bank) {
+		String bankName = bank.getBankName() != null ? bank.getBankName() : (gaam.getIssuerBankName() != null ? gaam.getIssuerBankName() : "");
+		String sepamCode = gaam.getSepamCode() != null ? gaam.getSepamCode() : "";
+
+		String customerName = "";
+		if (gaam.getProformaMasterId() != null) {
+			var masterOpt = proformaMasterRepository.findById(gaam.getProformaMasterId());
+			if (masterOpt.isPresent() && masterOpt.get().getCustomerName() != null) {
+				customerName = masterOpt.get().getCustomerName();
+			}
+		}
+
+		StringBuilder detailNameBuilder = new StringBuilder("اوراق گام");
+		if (!sepamCode.isBlank()) {
+			detailNameBuilder.append(" ").append(sepamCode.trim());
+		}
+		if (!bankName.isBlank()) {
+			detailNameBuilder.append(" ").append(bankName.trim());
+		}
+		if (!customerName.isBlank()) {
+			detailNameBuilder.append(" - ").append(customerName.trim());
+		}
+		return detailNameBuilder.toString().trim();
 	}
 
 }

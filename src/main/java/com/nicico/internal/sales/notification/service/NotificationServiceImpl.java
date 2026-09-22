@@ -6,6 +6,9 @@ import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepos
 import com.nicico.internal.sales.export.service.ExportDocService;
 import com.nicico.internal.sales.export.service.FmsDocumentService;
 import com.nicico.internal.sales.ins.customer.model.CustomerModel;
+import com.nicico.internal.sales.ins.customer.repository.CustomerRepository;
+import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
+import com.nicico.internal.sales.notification.dto.EmailRequest;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
@@ -15,17 +18,10 @@ import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepositor
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;

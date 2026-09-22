@@ -16,7 +16,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 @RequestMapping("/api/v1/ins/proforma/process-extrabill")
 public class ExtraBillProcessController {
 

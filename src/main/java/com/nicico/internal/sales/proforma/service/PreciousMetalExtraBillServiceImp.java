@@ -25,6 +25,7 @@ import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 import com.nicico.internal.sales.trade.model.TradeExtractModel;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
+import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	private final GoodsRepository goodsRepository;
 	private final TradeExtractRepository tradeExtractRepository;
 	private final PreciousMetalRepository preciousMetalRepository;
+	private final ProcessVariableProvider processVariableProvider;
 
 	// ==================== PUBLIC SERVICE METHODS ====================
 
@@ -180,7 +182,7 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	 * شروع فرآیند برای پیش فاکتور
 	 */
 	private void startProformaProcess(ProformaMasterModel model) {
-		var input = proformaProcessService.buildProformaVariablesInput(model);
+		var input = processVariableProvider.buildProformaVariablesInput(model);
 		var process = proformaProcessService.startProformaProcess(input);
 		model.setProcessId(process.getId());
 		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);

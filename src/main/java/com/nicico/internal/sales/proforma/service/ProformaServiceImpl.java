@@ -18,6 +18,8 @@ import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
+import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
+import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +57,7 @@ public class ProformaServiceImpl implements ProformaService {
 	private final ExtraBillProformaIssueService extraBillProformaIssueService;
 	private final GaamBoundProformaIssueService gaamBoundProformaIssueService;
 	private final BpmsClientService bpmsClientService;
+	private final ProcessVariableProvider processVariableProvider;
 
 	// ==================== CREATE ====================
 
@@ -316,23 +319,23 @@ public class ProformaServiceImpl implements ProformaService {
 	/**
 	 * شروع فرآیند کاری برای پیش فاکتور
 	 */
-	private void startWorkflowProcess(ProformaMasterModel model) {
-		var input = proformaProcessService.buildProformaVariablesInput(model);
+	private void startWorkflowProcess(ProformaMasterModel masterModel) {
+		ProformaVariablesInput input = processVariableProvider.buildProformaVariablesInput(masterModel);
 		var process = proformaProcessService.startProformaProcess(input);
 
-		model.setProcessId(process.getId());
-		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+		masterModel.setProcessId(process.getId());
+		masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
 	}
 
 	/**
 	 * شروع فرآیند کاری برای برگشت
 	 */
-	private void startReversalWorkflow(ProformaMasterModel model) {
-		var input = proformaProcessService.buildProformaVariablesInput(model);
+	private void startReversalWorkflow(ProformaMasterModel masterModel) {
+		ProformaVariablesInput input = processVariableProvider.buildProformaVariablesInput(masterModel);
 
 		var process = proformaProcessService.startProformaProcess(input);
-		model.setProcessId(process.getId());
-		model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+		masterModel.setProcessId(process.getId());
+		masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
 	}
 
 	/**

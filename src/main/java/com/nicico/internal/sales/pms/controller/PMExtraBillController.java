@@ -24,7 +24,7 @@
 //	private final PMExtraBillService service;
 //
 //	@GetMapping("/create-from-proforma-master-id/{proformaMasterId}")
-//	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 //	@Operation(summary = "ایجاد برات در PMS از روی پروفرما", description = "با دریافت شناسه ProformaMasterId، اطلاعات برات را به سیستم PMS ارسال می کند")
 //	public ResponseEntity<HttpStatus> createPMSExtraBill(
 //			@Parameter(description = "شناسه پروفرما مستر", required = true) @PathVariable Long proformaMasterId,
@@ -36,7 +36,7 @@
 //	}
 //
 //	@GetMapping("/update/{pmsId}")
-//	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 //	@Operation(summary = "بروزرسانی برات در PMS", description = "با دریافت شناسه برات در PMS، اطلاعات برات را به PMS ارسال و بروزرسانی می کند")
 //	public ResponseEntity<HttpStatus> updatePmsExtraBill(
 //			@Parameter(description = "شناسه برات در PMS", required = true) @PathVariable String pmsId,
@@ -48,7 +48,7 @@
 //
 //
 //	@GetMapping("/send-pms/{extraBillId}")
-//	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 //	public ResponseEntity<HttpStatus> sendExtraBillToPms(
 //			@PathVariable Long extraBillId,
 //			@Parameter(description = "ارسال مجدد حتی اگر قبلاً به PMS ارسال شده باشد") @RequestParam(required = false, name = "resend", defaultValue = "false") boolean resend) throws IOException {
@@ -58,7 +58,7 @@
 //
 //
 //	@GetMapping("/fix-null-pms")
-//	@PreAuthorize("@secUtil.hasAuthority('C_INS_EXTRA_BILL')")
+//	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 //	public ResponseEntity<List<ProformaBankBillDto.Info>> findRemittanceExtraBillWithoutPmsId() {
 //		return ResponseEntity.ok(service.findRemittanceExtraBillWithoutPmsId());
 //	}
