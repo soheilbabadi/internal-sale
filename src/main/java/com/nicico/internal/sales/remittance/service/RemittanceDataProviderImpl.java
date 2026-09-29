@@ -114,13 +114,11 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 				masterModel.setIssueSourceType(IssueSourceType.BANK_GUARANTEE);
 				break;
 			case CASH:
+			case CASH_DEPOSIT_RECEIPT:
 				masterModel.setIssueSourceType(IssueSourceType.CASH);
 				break;
 			case FROM_CREDIT_FACILITIES:
 				masterModel.setIssueSourceType(IssueSourceType.FROM_CREDIT_FACILITIES);
-				break;
-			case GUARANTEE_CHECK:
-				masterModel.setIssueSourceType(IssueSourceType.GUARANTEE_CHECK);
 				break;
 			case GAM_BONDS:
 				masterModel.setIssueSourceType(IssueSourceType.GAM_BONDS);

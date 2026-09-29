@@ -353,6 +353,11 @@ public final class ProformaModelHelper {
 		return cleanName;
 	}
 
+	/**
+	 * Returns the goods name cleaned of its IME commodity symbol and underscores.
+	 * Kept in sync with {@code ProformaContractServiceImpl.getCleanName} — this class is a
+	 * static utility without Spring access, so the logic cannot be delegated to the service.
+	 */
 	public static String getCleanName(GoodsModel goodsModel) {
 		if (goodsModel == null) {
 			return "";

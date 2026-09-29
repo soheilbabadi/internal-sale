@@ -162,7 +162,13 @@ public class ExportDocServiceImpl implements ExportDocService {
 			case LETTER_OF_CREDIT_OPENING -> isApproved ? preInvoiceFileAddressSigned : preInvoiceFileAddress;
 			case EXTRA_BILL_OF_EXCHANGE -> isZeroExtraBillPercent ? extraBillFileSignedZero : extraBillFileSigned;
 			case GAM_BONDS -> isZeroExtraBillPercent ? gaamSignZeroFile : gaamSignFile;
-			case BANK_GUARANTEE, CASH, GUARANTEE_CHECK, MIXED, UNKNOWN -> {
+			case CASH_DEPOSIT_RECEIPT -> {
+				log.warn("تعیین مسیر تمپلیت پیش فاکتور {}: issueType={} نیاز به خروجی فایل ندارد",
+						detailModel.getId(), issueType);
+				throw new InternalSaleCustomException.ValidationException(
+						"برای نوع صدور " + issueType + " خروجی فایل صادر نمی‌شود");
+			}
+			case BANK_GUARANTEE, CASH -> {
 				log.warn("تعیین مسیر تمپلیت پیش فاکتور {}: issueType={} هنوز پیاده‌سازی نشده است",
 						detailModel.getId(), issueType);
 				throw new InternalSaleCustomException.ValidationException(

@@ -643,10 +643,27 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 				});
 	}
 
+	/**
+	 * Resolves the buyer's CustomerModel from a payment code
+	 * (looks up the trade model first to obtain the buyer national code).
+	 */
+	@Override
+	public CustomerModel getCustomerModelByPaymentCode(String paymentCode) {
+		return getCustomerModel(getTradeModel(paymentCode).getBuyerNationalCode());
+	}
+
+	/**
+	 * Returns the goods name cleaned of its IME commodity symbol and underscores.
+	 * Same logic as {@link ProformaModelHelper#getCleanName(GoodsModel)} (that helper is a
+	 * static utility without Spring access, so neither side can delegate to the other).
+	 */
 	@Override
 	public String getCleanName(GoodsModel goodsModel) {
-		return goodsModel.getDescription()
-				.replace(goodsModel.getImeCommoditySymbol(), "")
+		if (goodsModel == null) {
+			return "";
+		}
+		return goodsModel.getName()
+				.replace(goodsModel.getImeCommoditySymbol() != null ? goodsModel.getImeCommoditySymbol() : "", "")
 				.replace("_", "")
 				.trim();
 	}

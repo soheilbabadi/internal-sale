@@ -39,6 +39,11 @@ public interface ProformaContractService {
 
 	CustomerModel getCustomerModel(String nationalCode);
 
+	/**
+	 * Resolves the buyer's CustomerModel from a payment code.
+	 */
+	CustomerModel getCustomerModelByPaymentCode(String paymentCode);
+
 	String getCleanName(GoodsModel goodsModel);
 
 
