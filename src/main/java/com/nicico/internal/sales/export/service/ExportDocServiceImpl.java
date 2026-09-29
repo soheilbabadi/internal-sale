@@ -152,8 +152,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 	private String determineTemplatePath(ProformaDetailModel detailModel) {
 		ProformaMasterModel master = proformaMasterRepository.findById(detailModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
-		boolean isApproved = (master.getWorkflowApproveStatus() != WorkflowApproveStatus.IN_PROGRESS);
-//		boolean isApproved = true;
+		boolean isApproved = true;
 		boolean isZeroExtraBillPercent = detailModel.getExtraBillOfPercent() != null && detailModel.getExtraBillOfPercent().longValue() == 0L;
 
 		ProformaIssueType issueType = master.getProformaIssueType();

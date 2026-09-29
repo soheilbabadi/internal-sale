@@ -331,27 +331,14 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 			SaleConditionModel saleConditionModel) {
 
 		// دریافت درصد اضافی
-		BigDecimal extraPercent = BigDecimal.ZERO;
-		if (issueType == ProformaIssueType.GAM_BONDS) {
-			extraPercent = saleConditionModel.getExtraGamCertificatePercent() != null ?
-					saleConditionModel.getExtraGamCertificatePercent() : BigDecimal.ZERO;
-		} else if (issueType == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
-			extraPercent = saleConditionModel.getExtraBillOfExchangePercent() != null ?
-					saleConditionModel.getExtraBillOfExchangePercent() : BigDecimal.ZERO;
-		}
-
-		// محاسبه مبلغ نهایی با همان فرمول ExportDocService: totalPrice * (1 + percent/100)
-		BigDecimal factor = BigDecimal.ONE.add(
-				extraPercent.divide(HUNDRED, 10, RoundingMode.HALF_UP)
-		);
+		BigDecimal extraPercent = saleConditionModel.getExtraBillOfExchangePercent();
+		BigDecimal factor = BigDecimal.ONE.add(extraPercent.divide(HUNDRED, 10, RoundingMode.HALF_UP));
 		BigDecimal finalPrice = totalPrice.multiply(factor).setScale(2, RoundingMode.HALF_UP);
 		BigDecimal extraAmount = finalPrice.subtract(totalPrice).setScale(2, RoundingMode.HALF_UP);
 
 		// تنظیم مقادیر
 		// برای EXTRA_BILL مقدار فیلد amount باید «مبلغ نهایی با اضافه درصد» باشد.
-		detailModel.setExtraBillOfExchangeAmount(
-				issueType == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE ? finalPrice : extraAmount
-		);
+		detailModel.setExtraBillOfExchangeAmount(finalPrice);
 		detailModel.setExtraBillOfPercent(extraPercent);
 		detailModel.setFinalPrice(finalPrice);
 		detailModel.setGamCertificateCount(0L);
