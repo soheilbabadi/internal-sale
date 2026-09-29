@@ -643,6 +643,15 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 				});
 	}
 
+	/**
+	 * Resolves the buyer's CustomerModel from a payment code
+	 * (looks up the trade model first to obtain the buyer national code).
+	 */
+	@Override
+	public CustomerModel getCustomerModelByPaymentCode(String paymentCode) {
+		return getCustomerModel(getTradeModel(paymentCode).getBuyerNationalCode());
+	}
+
 	@Override
 	public String getCleanName(GoodsModel goodsModel) {
 		return goodsModel.getDescription()

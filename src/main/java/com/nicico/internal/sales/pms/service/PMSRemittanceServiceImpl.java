@@ -345,11 +345,11 @@ public class PMSRemittanceServiceImpl implements PMSRemittanceService {
 			case LETTER_OF_CREDIT_OPENING -> {
 				return 481;
 			}
-			case GUARANTEE_CHECK -> {
-				return 533;
-			}
 			case GAM_BONDS -> {
 				return 542;
+			}
+			case CASH_DEPOSIT_RECEIPT -> {
+				return 1;
 			}
 			default ->
 					throw new InternalSaleCustomException.ResourceNotFoundException("no pms remittance group code found for  " + proformaIssueType.getValue());

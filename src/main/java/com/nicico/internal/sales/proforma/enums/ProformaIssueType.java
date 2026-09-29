@@ -7,12 +7,10 @@ public enum ProformaIssueType {
 	LETTER_OF_CREDIT_OPENING("گشایش اعتبار اسنادی"),
 	BANK_GUARANTEE("ضمانتنامه بانکی"),
 	CASH("نقدی"),
+	CASH_DEPOSIT_RECEIPT("فیش واریز نقدی"),
 	FROM_CREDIT_FACILITIES("از محل مطالبات"),
-	GUARANTEE_CHECK("چک ضمانتی"),
 	GAM_BONDS("اوراق گام"),
-	EXTRA_BILL_OF_EXCHANGE("برات الکترونیک"),
-	MIXED("ترکیبی"),
-	UNKNOWN("نامشخص");
+	EXTRA_BILL_OF_EXCHANGE("برات الکترونیک");
 
 	private final String value;
 
