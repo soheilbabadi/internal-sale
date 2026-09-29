@@ -4,6 +4,7 @@ import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.copper.oauth.common.enumeration.EOAUserStatus;
+import com.nicico.copper.oauth.common.model.OAUser;
 import com.nicico.copper.oauth.common.repository.OAUserDAO;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.wf.dto.ProcessUserAccessDto;
@@ -16,6 +17,7 @@ import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import com.nicico.internal.sales.wf.repository.WorkflowRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -84,6 +86,12 @@ public class ProcessUserAccessServiceImpl implements ProcessUserAccessService {
 				model.setProcessVariable(processVar.name());
 				model.setProcessVariableTitle(processVar.getValue());
 			}
+			case "GAAM_BOUND" -> {
+				var processVar = GaamProcessVariable.fromString(variable);
+				model.setProcessVariable(processVar.name());
+				model.setProcessVariableTitle(processVar.getValue());
+			}
+
 
 			default -> throw new InternalSaleCustomException.ValidationException("این فرایند تعریف نشده است: " + title);
 		}
@@ -110,17 +118,47 @@ public class ProcessUserAccessServiceImpl implements ProcessUserAccessService {
 		processUserAccessRepository.deleteById(id);
 	}
 
+//	@Override
+//	public List<UserDataDto> getUserList(String fullName) {
+//		List<OAUser> users = fullName == null
+//				? oaUserDAO.findAll()
+//				: oaUserDAO.findByFullNameContains(fullName);
+//
+//		return users.stream()
+//				.filter(x -> x.getStatus() == EOAUserStatus.Enabled)
+//				.limit(20)
+//				.map(user -> new UserDataDto(
+//						user.getId(),
+//						user.getUsername(),
+//						user.getFullName() + " " + user.getNationalCode(),
+//						user.getNationalCode(),
+//						user.getStatus().name()))
+//				.toList();
+//	}
+
 	@Override
 	public List<UserDataDto> getUserList(String fullName) {
+		List<OAUser> users;
+
 		if (fullName == null) {
-			return oaUserDAO.findAll().stream()
-					.filter(x -> x.getStatus() == EOAUserStatus.Enabled)
-					.limit(20).map(user -> new UserDataDto(user.getId(), user.getUsername(), user.getFullName(), user.getNationalCode(), user.getStatus().name())).toList();
+			users = oaUserDAO.findAll();
+		} else {
+			Specification<OAUser> spec = (root, query, cb) -> cb.or(
+					cb.like(root.get("fullName"), "%" + fullName + "%"),
+					cb.like(root.get("nationalCode"), "%" + fullName + "%")
+			);
+			users = oaUserDAO.findAll(spec);
 		}
-		return oaUserDAO.findByFullNameContains(fullName).stream()
+
+		return users.stream()
 				.filter(x -> x.getStatus() == EOAUserStatus.Enabled)
-				.limit(20).map(user -> new UserDataDto(user.getId(), user.getUsername(), user.getFullName(), user.getNationalCode(), user.getStatus().name())).toList();
+				.limit(20)
+				.map(user -> new UserDataDto(
+						user.getId(),
+						user.getUsername(),
+						user.getFullName() + " " + user.getNationalCode(),
+						user.getNationalCode(),
+						user.getStatus().name()))
+				.toList();
 	}
-
-
 }

@@ -4,7 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum ProformaReversalStatus {
-	NORMAL("NORMAL"), CANCELED("CANCELED"), EDITED("EDITED");
+	NORMAL("NORMAL")
+	, CANCELED("CANCELED")
+	, EDITED("EDITED");
 	private final String value;
 
 	ProformaReversalStatus(String value) {

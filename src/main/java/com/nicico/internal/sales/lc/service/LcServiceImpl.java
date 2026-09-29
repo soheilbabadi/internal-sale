@@ -3,7 +3,6 @@ package com.nicico.internal.sales.lc.service;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
-import com.nicico.copper.common.dto.search.EOperator;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.accounting.dto.FinancialInstrumentType;
 import com.nicico.internal.sales.accounting.service.AccountingDetailService;
@@ -16,12 +15,8 @@ import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
-import com.nicico.internal.sales.gaam.repository.GaamRepository;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
-import com.nicico.internal.sales.lc.dto.LcAuditDto;
-import com.nicico.internal.sales.lc.dto.LcDto;
-import com.nicico.internal.sales.lc.dto.LcFilesDto;
-import com.nicico.internal.sales.lc.dto.LcMapper;
+import com.nicico.internal.sales.lc.dto.*;
 import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.lc.dto.request.LcCancelRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateAcceptedLcRequest;
@@ -31,6 +26,7 @@ import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcAuditRepository;
 import com.nicico.internal.sales.lc.repository.LcRepository;
+import com.nicico.internal.sales.lc.repository.LcRevokingReadyRepository;
 import com.nicico.internal.sales.nosa.LcNosaCodeService;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
@@ -51,7 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -73,10 +68,12 @@ public class LcServiceImpl implements LcService {
 	private static final String MSG_LC_DISPATCH_FILE_REQUIRED = "برای این اعتبار اسنادی فایل ابلاغیه فروش الزامی است";
 	private static final String MSG_BROKER_EMAIL_MISSING = "اطلاعات تماس ایمیل کارگزار  موجود نمی باشد.";
 	private static final int PAYMENT_DEFERRAL_NONE = 0;
+	private static final String MSG_ITEM_CANCELED_BEFORE = "این آیتم قبلا باطل شده است و امکان ابطال مجدد وجود ندارد";
 
 	private final LcRepository lcRepository;
 	private final LcAuditRepository lcAuditRepository;
 	private final LcMapper lcMapper;
+	private final LcRevokingReadyMapper lcRevokingReadyMapper;
 	private final LcValidationService lcValidationService;
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final ProformaDetailRepository proformaDetailRepository;
@@ -87,9 +84,9 @@ public class LcServiceImpl implements LcService {
 	private final BrokerRepository brokerRepository;
 	private final IMETradeRepository imeTradeRepository;
 	private final LcNosaCodeService lcNosaCodeService;
-	private final GaamRepository gaamRepository;
+	private final LcRevokingReadyRepository lcRevokingReadyRepository;
 	private final ExtraBillRepository extraBillRepository;
-//	private final AccountingDetailService accountingDetailService;
+	private final AccountingDetailService accountingDetailService;
 
 
 //	public void appendCancellationRecord(LcModel model, String cancellationRecord) {
@@ -123,20 +120,20 @@ public class LcServiceImpl implements LcService {
 		}
 	}
 
-	public BrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
-		markAllAsReckoning(proformaMaster.getId());
-
-		BrokerEmailRequest request = new BrokerEmailRequest();
-		request.setContractNo(proformaMaster.getContractNo());
-		request.setContractDate(proformaMaster.getContractDate());
-		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
-		request.setCustomerName(proformaMaster.getCustomerName());
-		request.setGoodName(proformaMaster.getGoodName());
-		request.setBrokerName(broker.getName());
-		request.setBrokerEmail(broker.getEmail());
-
-		return request;
-	}
+//	public BrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
+//		markAllAsReckoning(proformaMaster.getId());
+//
+//		BrokerEmailRequest request = new BrokerEmailRequest();
+//		request.setContractNo(proformaMaster.getContractNo());
+//		request.setContractDate(proformaMaster.getContractDate());
+//		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
+//		request.setCustomerName(proformaMaster.getCustomerName());
+//		request.setGoodName(proformaMaster.getGoodName());
+//		request.setBrokerName(broker.getName());
+//		request.setBrokerEmail(broker.getEmail());
+//
+//		return request;
+//	}
 
 
 	public void updateLcDetailsIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
@@ -209,7 +206,6 @@ public class LcServiceImpl implements LcService {
 				lcItem.setReckoningSend(true);
 				lcItem.setReckoningSendDate(newReckoningSendDate);
 				lcItem.setAcknowledgment(Acknowledgment.RECKONING);
-
 			}
 		}
 		lcRepository.saveAllAndFlush(lcItems);
@@ -363,43 +359,7 @@ public class LcServiceImpl implements LcService {
 
 	@Override
 	public SearchDTO.SearchRs<LcDto.Info> findReadyReckoning(SearchDTO.SearchRq request) {
-		SearchDTO.SearchRq searchRq = request == null ? new SearchDTO.SearchRq() : request;
-		SearchDTO.CriteriaRq rootCriteria = searchRq.getCriteria();
-
-		if (rootCriteria == null) {
-			rootCriteria = new SearchDTO.CriteriaRq()
-					.setOperator(EOperator.and)
-					.setCriteria(new ArrayList<>());
-			searchRq.setCriteria(rootCriteria);
-		} else if (rootCriteria.getCriteria() == null && rootCriteria.getFieldName() != null) {
-			rootCriteria = new SearchDTO.CriteriaRq()
-					.setOperator(EOperator.and)
-					.setCriteria(new ArrayList<>(List.of(searchRq.getCriteria())));
-			searchRq.setCriteria(rootCriteria);
-		}
-
-		if (rootCriteria.getOperator() == null) {
-			rootCriteria.setOperator(EOperator.and);
-		}
-
-		if (rootCriteria.getCriteria() == null) {
-			rootCriteria.setCriteria(new ArrayList<>());
-		}
-
-		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
-				.setFieldName("acknowledgment")
-				.setOperator(EOperator.notEqual)
-				.setValue(Acknowledgment.REMITTANCE));
-		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
-				.setFieldName("workflowApproveStatus")
-				.setOperator(EOperator.equals)
-				.setValue(WorkflowApproveStatus.IN_PROGRESS));
-		rootCriteria.getCriteria().add(new SearchDTO.CriteriaRq()
-				.setFieldName("lcNo")
-				.setOperator(EOperator.notNull));
-
-
-		return SearchUtil.search(lcRepository, searchRq, lcMapper::toDTO);
+		return SearchUtil.search(lcRevokingReadyRepository, request, lcRevokingReadyMapper::toDTO);
 	}
 
 	@Override
@@ -423,10 +383,8 @@ public class LcServiceImpl implements LcService {
 
 	@Override
 	public String generateLcBrokerEmailContent(long lcId) {
-
 		LcModel lcModel = lcRepository.findById(lcId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_LC_NOT_FOUND));
-
 
 		var masterModel = proformaMasterRepository.findById(lcModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
@@ -452,28 +410,19 @@ public class LcServiceImpl implements LcService {
 		validateCancelRequest(request);
 		LcModel lcModel = lcRepository.findById(request.getLcId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_LC_NOT_FOUND));
-		List<LcModel> lcModelList = lcRepository.findByMasterId(lcModel.getProformaMasterId());
 
+		if(lcModel.getWorkflowApproveStatus()==WorkflowApproveStatus.REVERSAL){
+			throw new InternalSaleCustomException.ValidationException(MSG_ITEM_CANCELED_BEFORE);
+		}
+		List<LcModel> lcModelList = lcRepository.findByMasterId(lcModel.getProformaMasterId());
 
 		for (LcModel model : lcModelList) {
 			model.setCancelDate(new Date());
 			model.setLcCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
 			model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
-
-			String cancellationRecord = buildCancellationRecord(request);
-			appendCancellationRecord(model, cancellationRecord);
-
-			lcRepository.save(model);
+			model.setDescription(buildCancellationRecord(request));
 		}
-	}
-
-	private void appendCancellationRecord(LcModel model, String cancellationRecord) {
-		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
-		if (!existingDesc.isEmpty()) {
-			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
-		} else {
-			model.setDescription(cancellationRecord);
-		}
+		lcRepository.saveAll(lcModelList);
 	}
 
 	private String buildCancellationRecord(LcCancelRequest request) {
@@ -654,35 +603,35 @@ public class LcServiceImpl implements LcService {
 	@Transactional
 	@Override
 	public String createDetail(Long id) {
-//		LcModel lc = lcRepository.findById(id)
-//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_LC_NOT_FOUND));
-//
-//		Long issuerBankId = lc.getIssuerBankId();
-//		if (issuerBankId == null) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_ISSUING_BANK_NOT_FOUND_FOR_LC);
-//		}
-//
-//		var bank = issuingBankRepository.findById(issuerBankId)
-//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-//						MSG_ISSUING_BANK_NOT_FOUND));
-//
-//		String bankCode = bank.getBankCode();
-//		String yearSuffix = DateUtility.currentYearLast2();
-//		String detailName = buildLcDetailName(lc, bank);
-//
-//		var response = accountingDetailService.generateAndCreateFinancialInstrumentDetail(
-//				FinancialInstrumentType.LETTER_OF_CREDIT,
-//				bankCode,
-//				yearSuffix,
-//				detailName,
-//				null
-//		);
-//
-//		if (response != null && response.getCode() != null) {
-//			lc.setNosaCode(response.getCode());
-//			lcRepository.save(lc);
-//			return response.getCode();
-//		}
+		LcModel lc = lcRepository.findById(id)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_LC_NOT_FOUND));
+
+		Long issuerBankId = lc.getIssuerBankId();
+		if (issuerBankId == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUING_BANK_NOT_FOUND_FOR_LC);
+		}
+
+		var bank = issuingBankRepository.findById(issuerBankId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						MSG_ISSUING_BANK_NOT_FOUND));
+
+		String bankCode = bank.getBankCode();
+		String yearSuffix = DateUtility.currentYearLast2();
+		String detailName = buildLcDetailName(lc, bank);
+
+		var response = accountingDetailService.generateAndCreateFinancialInstrumentDetail(
+				FinancialInstrumentType.LETTER_OF_CREDIT,
+				bankCode,
+				yearSuffix,
+				detailName,
+				null
+		);
+
+		if (response != null && response.getCode() != null) {
+			lc.setNosaCode(response.getCode());
+			lcRepository.save(lc);
+			return response.getCode();
+		}
 
 		return null;
 	}

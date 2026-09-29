@@ -44,7 +44,6 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		        tipd.C_PERFORMA_NO,
 		        tipd.N_FINAL_PRICE,
 		        tipd.D_PERFORMA_DATE,
-		
 		        tipm.C_CONTRACT_DATE,
 		        tipm.N_CONTRACT_NO,
 		        tipm.C_NATIONAL_CODE,

@@ -77,7 +77,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		        ON tipd.F_PERFORMA_MASTER_ID = tipm.ID
 		       AND tipd.RN = 1
 		
-		    WHERE tipm.C_PROFORMA_ISSUE_TYPE = 'EXTRA_BILL_OF_EXCHANGE'
+		    WHERE tipm.C_PROFORMA_ISSUE_TYPE = 'GAM_BONDS'
 		      AND tipm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
 		
 		      AND NOT EXISTS (
@@ -87,18 +87,12 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		            AND tis.SETTLEMENT_TYPE IN ('انفساخ', 'نقدی')
 		      )
 		
-		      AND NOT EXISTS (
-		          SELECT 1
-		          FROM T_INS_GAAM_BILL tipbb
-		          WHERE tipbb.F_PERFORMA_MASTER_ID = tipm.ID
-		            AND tipbb.C_WORKFLOW_APPROVE_STATUS IN ('ACCEPTED', 'IN_PROGRESS')
-		      )
 		)
 		SELECT fm.*
 		FROM filtered_master fm
 		WHERE NOT EXISTS (
 		    SELECT 1
-		    FROM T_INS_GAAM_BILL tpbb
+		    FROM T_INS_GAAM tpbb
 		    WHERE tpbb.F_PERFORMA_MASTER_ID = fm.N_MASTER_ID
 		      AND tpbb.C_WORKFLOW_APPROVE_STATUS != 'CANCELED'
 		)

@@ -71,7 +71,7 @@ public class ExtraBillController {
 		if (criteria != null && !criteria.isEmpty()) {
 			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
 		}
-		return ResponseEntity.ok(service.searchReport(searchRq));
+		return ResponseEntity.ok(service.searchIssueHistory(searchRq));
 	}
 
 	@Operation(summary = "دریافت براتها بر اساس شناسه قرارداد اصلی", description = "تمام براتها مرتبط با یک قرارداد پیش فاکتور اصلی (Master) را بر اساس شناسه آن برمی گرداند.")

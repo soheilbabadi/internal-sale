@@ -1,10 +1,13 @@
 package com.nicico.internal.sales.gaam.dto;
 
+import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.validation.constraints.NotEmpty;
 import java.io.Serial;
 import java.io.Serializable;
@@ -21,7 +24,8 @@ public class GaamCancelRequest implements Serializable {
 
 	@Schema(description = "دلیل ابطال")
 	@NotEmpty
-	private String cancellationReason;
+	@Enumerated(EnumType.STRING)
+	private LcCancellationReason cancellationReason;
 
 	@Schema(description = "توضیحات")
 	private String description = "برات ابطال شد";

@@ -49,7 +49,6 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    tpbb.C_PMS_BILL_ID,
 		    tpbb.D_CANCEL_DATE,
 		    tpbb.C_CANCELLATION_REASON,
-		
 		    tit.BUYER_NAME,
 		    tit.BUYER_NATIONAL_CODE,
 		    tit.COMMODITY_CODE,

@@ -32,6 +32,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -148,14 +149,12 @@ public class ExportDocServiceImpl implements ExportDocService {
 	}
 
 
-	private String determineTemplatePath(ProformaDetailModel proforma) {
-		ProformaMasterModel master = proformaMasterRepository.findById(proforma.getProformaMasterId())
+	private String determineTemplatePath(ProformaDetailModel detailModel) {
+		ProformaMasterModel master = proformaMasterRepository.findById(detailModel.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
-//		boolean isApproved = master.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED;
-		boolean isApproved = true;
-		boolean isZeroExtraBillPercent = !master.getProformaDetailModelLists().isEmpty()
-				&& master.getProformaDetailModelLists().get(0).getExtraBillOfPercent() != null
-				&& master.getProformaDetailModelLists().get(0).getExtraBillOfPercent().compareTo(BigDecimal.ZERO) == 0;
+		boolean isApproved = (master.getWorkflowApproveStatus() != WorkflowApproveStatus.IN_PROGRESS);
+//		boolean isApproved = true;
+		boolean isZeroExtraBillPercent = detailModel.getExtraBillOfPercent() != null && detailModel.getExtraBillOfPercent().longValue() == 0L;
 
 		ProformaIssueType issueType = master.getProformaIssueType();
 
@@ -166,14 +165,14 @@ public class ExportDocServiceImpl implements ExportDocService {
 			case GAM_BONDS -> isZeroExtraBillPercent ? gaamSignZeroFile : gaamSignFile;
 			case BANK_GUARANTEE, CASH, GUARANTEE_CHECK, MIXED, UNKNOWN -> {
 				log.warn("تعیین مسیر تمپلیت پیش فاکتور {}: issueType={} هنوز پیاده‌سازی نشده است",
-						proforma.getId(), issueType);
+						detailModel.getId(), issueType);
 				throw new InternalSaleCustomException.ValidationException(
 						"نوع صدور پیش فاکتور (" + issueType + ") هنوز پشتیبانی نمی‌شود");
 			}
 		};
 
 		log.info("تعیین مسیر تمپلیت پیش فاکتور {}: issueType={}, templatePath={}",
-				proforma.getId(), issueType, templatePath);
+				detailModel.getId(), issueType, templatePath);
 
 		return templatePath;
 	}
@@ -262,7 +261,7 @@ public class ExportDocServiceImpl implements ExportDocService {
 					new DocumentReplacement("CONTRACT_DATE", DateUtility.getJalaliDate(detailModel.getOrderDate())),
 					new DocumentReplacement("N_EXTRA_BILL_OF_PERCENT", formatter.format(extraPercent)),
 					new DocumentReplacement("N_EXTRA_BILL_OF_AMOUNT", formatter.format(finalAmountWithExtra)),
-					new DocumentReplacement("N_GAM_CERTIFICATE_COUNT", formatter.format(detailModel.getGamCertificateCount())),
+					new DocumentReplacement("N_GAM_CERTIFICATE_COUNT", formatter.format(finalAmountWithExtra.divide(BigDecimal.valueOf(1_000_000),0, RoundingMode.UP).intValue())),
 					new DocumentReplacement("N_SHIPPING_DEAD", detailModel.getShippingDeadline().toString())
 			));
 

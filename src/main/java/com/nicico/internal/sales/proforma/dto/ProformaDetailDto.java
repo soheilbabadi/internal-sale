@@ -64,7 +64,7 @@ public class ProformaDetailDto implements Serializable {
 
 
 	@Schema(description = "تعداد اوراق گام")
-	private Integer gamCertificateCount;
+	private Long gamCertificateCount;
 
 
 	@Schema(description = "مبلغ اضافه شده به مبلغ کل")

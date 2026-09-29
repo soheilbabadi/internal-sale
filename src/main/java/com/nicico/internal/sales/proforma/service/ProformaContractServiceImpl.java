@@ -381,7 +381,7 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 					.orderDate(requestDto.getOrderDate())
 					.contractDate(params.tradeModel().getContractDate())
 					.proformaReversalStatus(ProformaReversalStatus.NORMAL)
-					.gamCertificateCount(0)
+					.gamCertificateCount(0L)
 					.extraBillOfExchangeAmount(EXTRA_BILL_PERCENT_DEFAULT)
 					.build();
 

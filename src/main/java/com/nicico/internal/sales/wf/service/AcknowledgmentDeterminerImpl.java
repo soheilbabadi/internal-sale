@@ -186,7 +186,7 @@ public class AcknowledgmentDeterminerImpl implements AcknowledgmentDeterminer {
 	/**
 	 * Helper class containing all logic specific to GAAM Acknowledgment determination.
 	 */
-	private class GaamHelper {
+	public class GaamHelper {
 		public Acknowledgment determine(GaamModel gaamModel) {
 			Map<String, List<UserTaskReportDTO>> report = getUserTaskReportOrEmpty(gaamModel.getProcessId());
 
@@ -200,8 +200,7 @@ public class AcknowledgmentDeterminerImpl implements AcknowledgmentDeterminer {
 				return Acknowledgment.FINISHED;
 			}
 
-			if (gaamModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED
-					|| gaamModel.getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL) {
+			if (gaamModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED || gaamModel.getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL) {
 				return Acknowledgment.CANCELED;
 			}
 
@@ -245,7 +244,7 @@ public class AcknowledgmentDeterminerImpl implements AcknowledgmentDeterminer {
 	/**
 	 * Helper class containing all logic specific to ExtraBill Acknowledgment determination.
 	 */
-	private class ExtraBillHelper {
+	public class ExtraBillHelper {
 		public Acknowledgment determine(ExtraBankBillModel extraBankBillModel) {
 			Map<String, List<UserTaskReportDTO>> report = getUserTaskReportOrEmpty(extraBankBillModel.getProcessId());
 

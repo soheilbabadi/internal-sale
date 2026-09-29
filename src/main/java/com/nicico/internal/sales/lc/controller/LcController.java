@@ -7,10 +7,12 @@ import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.lc.dto.LcAuditDto;
 import com.nicico.internal.sales.lc.dto.LcDto;
 import com.nicico.internal.sales.lc.dto.LcFilesDto;
+import com.nicico.internal.sales.lc.dto.LcIssueProviderDto;
 import com.nicico.internal.sales.lc.dto.request.LcCancelRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateAcceptedLcRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateStartedLcRequest;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
+import com.nicico.internal.sales.lc.service.LcIssueService;
 import com.nicico.internal.sales.lc.service.LcService;
 import com.nicico.internal.sales.nosa.LcNosaCodeService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
@@ -40,6 +42,7 @@ import java.util.*;
 public class LcController {
 	private final LcService lcService;
 	private final LcNosaCodeService lcNosaCodeService;
+	private final LcIssueService lcIssueService;
 
 	@Operation(
 			summary = "به روزرسانی اطلاعات LC",
@@ -297,5 +300,14 @@ public class LcController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
+	@PostMapping("/search-issue-history")
+	public ResponseEntity<SearchDTO.SearchRs<LcIssueProviderDto.Info>> searchIssueHistory(
+
+			@RequestBody(required = false) SearchDTO.SearchRq searchRq, @RequestParam(required = false) MultiValueMap<String, String> criteria) {
+		if (criteria != null && !criteria.isEmpty()) {
+			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
+		}
+		return ResponseEntity.ok(lcIssueService.search(searchRq));
+	}
 
 }

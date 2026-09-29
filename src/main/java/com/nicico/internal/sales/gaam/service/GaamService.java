@@ -4,7 +4,6 @@ import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.gaam.dto.*;
-import com.nicico.internal.sales.gaam.model.GaamModel;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +11,7 @@ import java.util.Map;
 public interface GaamService {
 	SearchDTO.SearchRs<GaamDto.Info> search(SearchDTO.SearchRq request);
 
-	SearchDTO.SearchRs<GaamReportDto.Info> searchReport(SearchDTO.SearchRq request);
+	SearchDTO.SearchRs<GaamReportDto.Info> searchIssueHistory(SearchDTO.SearchRq request);
 
 	List<GaamDto.Info> saveAll(List<GaamRequest> requests);
 
@@ -39,8 +38,6 @@ public interface GaamService {
 	SearchDTO.SearchRs<GaamReportDto.Info> findReadyReckoning(SearchDTO.SearchRq request);
 
 	void cancel(GaamCancelRequest request);
-
-	void cancelGaamModel(GaamModel model, GaamCancelRequest request);
 
 	String createDetail(Long id);
 }

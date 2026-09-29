@@ -440,7 +440,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 
 		// محاسبه تعداد اوراق گام (فقط برای نوع GAM_BONDS)
 		if (issueType == ProformaIssueType.GAM_BONDS) {
-			int gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
+			Long gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000),0, RoundingMode.UP).longValue();
 			detailModel.setGamCertificateCount(gamCount);
 		}
 	}

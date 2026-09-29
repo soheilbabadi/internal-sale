@@ -90,7 +90,7 @@ public class ProformaDetailModel extends BaseClassModel {
 	@Schema(description = "تعداد اوراق گام")
 	@Column(name = "N_GAM_CERTIFICATE_COUNT", nullable = false)
 	@Builder.Default
-	private Integer gamCertificateCount = 0;
+	private Long gamCertificateCount = 0L;
 
 
 	@Schema(description = "مبلغ اضافه شده به مبلغ کل")

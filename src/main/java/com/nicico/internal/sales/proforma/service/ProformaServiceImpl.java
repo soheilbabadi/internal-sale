@@ -21,6 +21,7 @@ import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
+import com.nicico.internal.sales.wf.service.WorkflowTaskActionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -58,6 +59,7 @@ public class ProformaServiceImpl implements ProformaService {
 	private final GaamBoundProformaIssueService gaamBoundProformaIssueService;
 	private final BpmsClientService bpmsClientService;
 	private final ProcessVariableProvider processVariableProvider;
+	private final WorkflowTaskActionService workflowTaskActionService;
 
 	// ==================== CREATE ====================
 
@@ -150,6 +152,29 @@ public class ProformaServiceImpl implements ProformaService {
 		return createSearchResponse(dtoList);
 	}
 
+	@Transactional
+	@Override
+	public void clearAllProformaFileIds(String proformaNo) {
+		List<ProformaDetailModel> details = proformaDetailRepository.findAllByPerformaNo(proformaNo);
+		if (details.isEmpty()) {
+			throw new InternalSaleCustomException.ResourceNotFoundException("پیش فاکتور با شماره " + proformaNo + " یافت نشد");
+		}
+
+		details.forEach(detail -> detail.setProformaFileId(null));
+		proformaDetailRepository.saveAll(details);
+	}
+
+	@Transactional
+	@Override
+	public void clearProformaFileId(String proformaNo) {
+		ProformaDetailModel detailModel = proformaDetailRepository.findByPerformaNo(proformaNo)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("پیش فاکتور با شماره " + proformaNo + " یافت نشد"));
+
+		detailModel.setProformaFileId(null);
+		proformaDetailRepository.save(detailModel);
+
+		log.info("Proforma file ID reset to null for proformaNo: {}", proformaNo);
+	}
 
 	@Override
 	public List<ProformaMasterDTO.Info> getFailedProforma(Pageable pageable, Sort sort) {
@@ -312,6 +337,34 @@ public class ProformaServiceImpl implements ProformaService {
 	@Override
 	public boolean canStartReversal(Long masterId) {
 		return proformaValidationService.canStartReversal(masterId);
+	}
+
+	@Override
+	@Transactional
+	public void resetReversalByContractNo(Long contractNo) {
+		ProformaMasterModel master = proformaMasterRepository
+				.findByContractNoAndWorkflowApproveStatus(contractNo, WorkflowApproveStatus.REVERSAL)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
+						"پیش فاکتور در وضعیت ابطال برای شماره قرارداد " + contractNo + " یافت نشد"
+				));
+
+		String instanceId = master.getReversalProcessId();
+
+		master.setReversalProcessId("-");
+		master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+		master.setIsReversalProcessFinal(false);
+		proformaMasterRepository.save(master);
+
+
+		List<ProformaDetailModel> details = proformaDetailRepository.findAllByProformaMasterId(master.getId());
+		for (ProformaDetailModel detail : details) {
+			detail.setProformaReversalStatus(ProformaReversalStatus.NORMAL);
+		}
+		proformaDetailRepository.saveAll(details);
+
+		workflowTaskActionService.rejectAllTasksByInstanceId(instanceId);
+
+		log.info("Reset reversal status to ACCEPTED/NORMAL for masterId: {}, contractNo: {}", master.getId(), contractNo);
 	}
 
 	// ==================== PRIVATE HELPER METHODS ====================

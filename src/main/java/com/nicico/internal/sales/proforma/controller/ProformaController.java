@@ -44,7 +44,6 @@ public class ProformaController {
 	private final ProformaService proformaService;
 	private final PreciousMetalService proformaContractPreciousMetalService;
 	private final NotificationService notificationService;
-	//	private final ExportDocService exportDocService;
 	private final SmsNotificationService smsNotificationService;
 	private final ProcessStatusDeterminerService processStatusDeterminerService;
 	private final CashSaleService cashSaleService;
@@ -170,6 +169,15 @@ public class ProformaController {
 		return ResponseEntity.ok(proformaService.createReversal(dto));
 	}
 
+	@Operation(summary = "بازنشانی وضعیت ابطال پیش فاکتور", description = "بازنشانی وضعیت پیش فاکتور ابطال شده به تایید شده بر اساس شماره قرارداد")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA')")
+	@PutMapping("/reset-reversal/{contractNo}")
+	public ResponseEntity<HttpStatus> resetReversal(@PathVariable Long contractNo) {
+		log.info("Resetting reversal for contractNo: {}", contractNo);
+		proformaService.resetReversalByContractNo(contractNo);
+		return ResponseEntity.ok().build();
+	}
+
 	// ==================== UTILITY ====================
 
 	@Operation(summary = "تشخیص فلز گرانبها", description = "بررسی می کند که آیا کالای مربوطه جزو فلزات گرانبها است یا خیر")
@@ -280,5 +288,13 @@ public class ProformaController {
 	public ResponseEntity<?> sendProformaSms(@PathVariable Long proformaMasterId) throws IOException {
 		smsNotificationService.preFactorEmailedSMSNotification(proformaMasterId);
 		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@Operation(summary = "حذف شناسه فایل پیش فاکتور", description = "تنظیم شناسه فایل پیش فاکتور به null بر اساس شماره پیش فاکتور")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA')")
+	@PutMapping("/clear-file/{proformaNo}")
+	public ResponseEntity<Void> clearProformaFileId(@PathVariable String proformaNo) {
+		proformaService.clearAllProformaFileIds(proformaNo);
+		return ResponseEntity.ok().build();
 	}
 }

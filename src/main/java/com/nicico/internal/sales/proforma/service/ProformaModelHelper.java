@@ -445,9 +445,9 @@ public final class ProformaModelHelper {
 			BigDecimal extraBillOfPercent,
 			BigDecimal extraBillOfExchangeAmount) {
 
-		int gaamcount = 0;
+		long gaamcount = 0L;
 		if (proformaIssueType == ProformaIssueType.GAM_BONDS) {
-			gaamcount = detailTotals.finalAmount().divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
+			gaamcount = detailTotals.finalAmount().divide(BigDecimal.valueOf(1_000_000),0,  RoundingMode.UP).longValue();
 		}
 		return ProformaDetailModel.builder()
 				.proformaGoodItemModels(goodItems)

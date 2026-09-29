@@ -14,7 +14,7 @@ public interface ExtraBillService {
 	SearchDTO.SearchRs<ProformaBankBillDto.Info> search(SearchDTO.SearchRq request);
 
 
-	SearchDTO.SearchRs<ProformaBankBillReportDto.Info> searchReport(SearchDTO.SearchRq request);
+	SearchDTO.SearchRs<ProformaBankBillReportDto.Info> searchIssueHistory(SearchDTO.SearchRq request);
 
 
 	List<ProformaBankBillDto.Info> saveAll(List<ProformaBankBillRequest> requests);

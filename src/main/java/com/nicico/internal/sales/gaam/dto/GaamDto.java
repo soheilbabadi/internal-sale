@@ -123,7 +123,7 @@ public class GaamDto implements Serializable {
 
 
 	@Schema(description = "تعداد اوراق گام")
-	private Integer gamCertificateCount = 0;
+	private Long gamCertificateCount = 0L;
 
 
 	@Schema(description = "مبلغ اضافه شده به مبلغ کل")

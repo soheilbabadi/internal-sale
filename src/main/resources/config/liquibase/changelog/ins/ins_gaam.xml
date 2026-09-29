@@ -89,6 +89,17 @@
             <column name="D_CANCEL_DATE" type="DATETIME"/>
             <column name="C_PMS_BILL_ID" type="VARCHAR2(50)"/>
 
+            <column name="N_GAM_CERTIFICATE_COUNT" type="BIGINT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="N_EXTRA_BILL_OF_AMOUNT" type="NUMBER(10,2)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="N_EXTRA_BILL_OF_PERCENT" type="NUMBER(10,2)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
 
         </createTable>
     </changeSet>
@@ -143,6 +154,10 @@
             <column name="C_CANCELLATION_REASON" type="VARCHAR2(50)"/>
             <column name="D_CANCEL_DATE" type="DATETIME"/>
             <column name="C_PMS_BILL_ID" type="VARCHAR2(50)"/>
+
+            <column name="N_GAM_CERTIFICATE_COUNT" type="BIGINT"/>
+            <column name="N_EXTRA_BILL_OF_AMOUNT" type="NUMBER(10,2)"/>
+            <column name="N_EXTRA_BILL_OF_PERCENT" type="NUMBER(10,2)"/>
         </createTable>
     </changeSet>
 

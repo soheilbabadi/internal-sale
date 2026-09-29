@@ -3,6 +3,7 @@ package com.nicico.internal.sales.wf.service;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
+import com.nicico.internal.sales.gaam.model.GaamModel;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.model.LcModel;
 
@@ -19,6 +20,7 @@ public interface ProcessStatusDeterminerService {
 
 
 	Acknowledgment determineAcknowledgment(LcModel lcModel);
+	Acknowledgment determineAcknowledgment(GaamModel gaamModel);
 
 	Acknowledgment determineAcknowledgment(ExtraBankBillModel extraBankBillModel);
 
@@ -40,6 +42,8 @@ public interface ProcessStatusDeterminerService {
 	Map<String, List<UserTaskReportDTO>> getProformaBankBillSummaryReport(Long billId);
 
 	void updateAllLcAcknowledgments();
+
+	void updateAllGaamAcknowledgments();
 
 	void updateAllExtraBillAcknowledgments();
 

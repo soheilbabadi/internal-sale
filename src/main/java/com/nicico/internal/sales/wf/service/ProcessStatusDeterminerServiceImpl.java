@@ -76,6 +76,11 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 		return acknowledgmentDeterminer.determine(lcModel);
 	}
 
+	@Override
+	public Acknowledgment determineAcknowledgment(GaamModel gaamModel) {
+		return acknowledgmentDeterminer.determine(gaamModel);
+	}
+
 
 	@Override
 	public Acknowledgment determineAcknowledgment(ExtraBankBillModel extraBankBillModel) {
@@ -147,15 +152,35 @@ public class ProcessStatusDeterminerServiceImpl implements ProcessStatusDetermin
 	}
 
 
-	@Override
-	public void updateAllExtraBillAcknowledgments() {
-//		List<ExtraBankBillModel> extraBankBillModels = extraBillRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
-		List<ExtraBankBillModel> extraBankBillModels = extraBillRepository.findAll();
 
-		for (ExtraBankBillModel bankBillModel : extraBankBillModels) {
-			if (isTerminalAcknowledgment(bankBillModel.getAcknowledgment())) {
+	@Override
+	public void updateAllGaamAcknowledgments() {
+		List<GaamModel> gaamModels = gaamRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+
+		for (GaamModel gaamModel : gaamModels) {
+			if (isTerminalAcknowledgment(gaamModel.getAcknowledgment())) {
 				continue;
 			}
+
+			Acknowledgment determined = determineAcknowledgment(gaamModel);
+
+			if (gaamModel.getAcknowledgment() != determined) {
+				gaamModel.setAcknowledgment(determined);
+				try {
+					gaamRepository.saveAndFlush(gaamModel);
+				} catch (Exception ex) {
+					log.debug("Skipping concurrent extra-bill acknowledgment update for id={}", gaamModel.getId(), ex);
+				}
+			}
+		}
+	}
+
+
+	@Override
+	public void updateAllExtraBillAcknowledgments() {
+		List<ExtraBankBillModel> extraBankBillModels = extraBillRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+
+		for (ExtraBankBillModel bankBillModel : extraBankBillModels) {
 
 			Acknowledgment determined = determineAcknowledgment(bankBillModel);
 

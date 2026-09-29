@@ -124,8 +124,8 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 		}
 	}
 
-	@Override
-	public void reviewTask(ReviewTaskRequest reviewTaskRequest) {
+
+	private void reviewTask(ReviewTaskRequest reviewTaskRequest) {
 		bpmsClientService.reviewTask(reviewTaskRequest);
 
 		try {

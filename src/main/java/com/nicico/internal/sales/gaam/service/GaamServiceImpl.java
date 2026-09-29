@@ -7,10 +7,12 @@ import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.bank.model.IssuingBankModel;
+import com.nicico.internal.sales.bank.repository.BaseBankRepository;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
 import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.gaam.dto.*;
 import com.nicico.internal.sales.gaam.mapper.GaamMapper;
@@ -25,8 +27,10 @@ import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
+import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.notification.service.NotificationService;
+import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
@@ -39,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.Date;
@@ -52,19 +57,31 @@ public class GaamServiceImpl implements GaamService {
 
 	// ==================== CONSTANTS ====================
 	private static final String MSG_BANK_NOT_FOUND = "بانک یافت نشد";
+	private static final String MSG_ISSUER_BANK_ID_REQUIRED = "شناسه بانک صادرکننده نمی تواند خالی باشد";
+	private static final String MSG_AGENT_BANK_ID_REQUIRED = "شناسه بانک عامل نمی تواند خالی باشد";
+	private static final String MSG_AGENT_BANK_NOT_FOUND = "بانک عامل یافت نشد";
 	private static final String MSG_PROFORMA_DETAIL_NOT_FOUND = "جزئیات پیش فاکتور یافت نشد";
 	private static final String MSG_PROFORMA_MASTER_NOT_FOUND = "قرارداد فروش وجود ندارد";
 	private static final String MSG_BROKER_EMAIL_MISSING = "اطلاعات تماس ایمیل کارگزار  موجود نمی باشد.";
-
-	// Validation error messages
-	private static final String MSG_SALES_CONTRACT_NOT_FOUND = "قرارداد فروش وجود ندارد";
 	private static final String MSG_CONCURRENT_EXTRA_BILL_UPDATE = "اطلاعات برات همزمان توسط کاربر دیگری تغییر کرده است. لطفا مجدد تلاش کنید";
 	private static final String ERROR_TRADE_NOT_FOUND = "کالای مورد نظر وجود ندارد";
+	private static final String MSG_SEPAM_CODE_REQUIRED = "کد سپام نمی تواند خالی باشد";
+	private static final String MSG_TREASURY_ID_REQUIRED = "شناسه خزانه داری نمی تواند خالی باشد";
+	private static final String MSG_ISSUE_DATE_REQUIRED = "تاریخ صدور برات نمی تواند خالی باشد";
+	private static final String MSG_ISSUE_DATE_AFTER_DUE_DATE = "تاریخ صدور برات نمی تواند بعد از تاریخ سررسید باشد";
+	private static final String MSG_DUE_DATE_REQUIRED = "تاریخ سررسید نمی تواند خالی باشد";
+	private static final String MSG_PROFORMA_DETAIL_ID_REQUIRED = "شناسه جزئیات پیش فاکتور نمی تواند خالی باشد";
+	private static final String MSG_PROFORMA_DETAIL_CANCELED = " پیش فاکتور ابطال شده است";
+	private static final String MSG_PROFORMA_NOT_ACCEPTED = "پیش فاکتور در وضعیت تایید شده نیست";
+	private static final String LC_ALREADY_EXISTS = "برای این پیش فاکتور اعتبار اسنادی فعال وجود دارد";
+	private static final String PROFORMA_DUPLICATE_START = "برای این پیش فاکتور قبلا اعتبار صادر شده است";
+	private static final String MSG_ITEM_CANCELED_BEFORE = "این آیتم قبلا باطل شده است و امکان ابطال مجدد وجود ندارد";
 	// ==================== DEPENDENCIES ====================
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final GaamMapper gaamMapper;
 	private final GaamRepository gaamRepository;
 	private final IssuingBankRepository issuingBankRepository;
+	private final BaseBankRepository baseBankRepository;
 	private final GaamReportRepository gaamReportRepository;
 	private final GaamReportMapper gaamReportMapper;
 	private final ProformaMasterRepository proformaMasterRepository;
@@ -90,7 +107,8 @@ public class GaamServiceImpl implements GaamService {
 
 
 	@Override
-	public SearchDTO.SearchRs<GaamReportDto.Info> searchReport(SearchDTO.SearchRq request) {
+	public SearchDTO.SearchRs<GaamReportDto.Info> searchIssueHistory(SearchDTO.SearchRq request) {
+		processStatusDeterminerService.updateAllGaamAcknowledgments();
 		return SearchUtil.search(gaamReportRepository, request, gaamReportMapper::toDTO);
 	}
 
@@ -108,17 +126,17 @@ public class GaamServiceImpl implements GaamService {
 	private GaamModel prepareGaamBound(GaamRequest request) {
 		ValidateGaamRequest(request);
 		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId()).orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+		var agentBank = baseBankRepository.findById(request.getAgentBankId()).orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_AGENT_BANK_NOT_FOUND));
 
 		try {
 			GaamModel model = gaamRepository.findById(request.getId())
 					.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 			model.setIssueDate(request.getIssueDate());
 			model.setDueDate(request.getDueDate());
-			model.setNosaCode(request.getNosaCode());
 			model.setSepamCode(request.getSepamCode());
 			model.setTreasuryId(request.getTreasuryId());
-			model.setAgentBankId(issuerBank.getId());
-			model.setAgentBankName(issuerBank.getBankName());
+			model.setAgentBankId(agentBank.getId());
+			model.setAgentBankName(agentBank.getBankTitle());
 			model.setIssuerBankId(request.getIssuerBankId());
 			model.setIssuerBankName(issuerBank.getBankName());
 			model.setBranchCode(issuerBank.getBranchCode());
@@ -147,6 +165,8 @@ public class GaamServiceImpl implements GaamService {
 		// اعتبارسنجی و یافتن موجودیت ها
 		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+		var agentBank = baseBankRepository.findById(request.getAgentBankId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_AGENT_BANK_NOT_FOUND));
 
 		// ساخت و ذخیره مدل
 
@@ -156,11 +176,11 @@ public class GaamServiceImpl implements GaamService {
 
 			model.setIssueDate(request.getIssueDate());
 			model.setDueDate(request.getDueDate());
-			model.setNosaCode(request.getNosaCode());
+//			model.setNosaCode(request.getNosaCode());
 			model.setSepamCode(request.getSepamCode());
 			model.setTreasuryId(request.getTreasuryId());
-			model.setAgentBankId(issuerBank.getId());
-			model.setAgentBankName(issuerBank.getBankName());
+			model.setAgentBankId(agentBank.getId());
+			model.setAgentBankName(agentBank.getBankTitle());
 			model.setIssuerBankId(request.getIssuerBankId());
 			model.setIssuerBankName(issuerBank.getBankName());
 			model.setBranchCode(issuerBank.getBranchCode());
@@ -172,7 +192,7 @@ public class GaamServiceImpl implements GaamService {
 
 			log.info("Extra bill saved successfully with id: {}", savedModel.getId());
 			return gaamMapper.toDTO(savedModel);
-		} catch (ObjectOptimisticLockingFailureException ex) {
+		} catch (Exception ex) {
 			log.warn("Concurrent extra bill update detected for id={}", request.getId(), ex);
 			throw new InternalSaleCustomException.ValidationException(MSG_CONCURRENT_EXTRA_BILL_UPDATE);
 		}
@@ -197,31 +217,65 @@ public class GaamServiceImpl implements GaamService {
 	 */
 	private void ValidateGaamRequest(GaamRequest request) {
 
-//
-//		if (request.getIssuerBankId() == null) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_ISSUER_BANK_ID_REQUIRED);
-//		}
-//		if (!StringUtils.hasText(request.getNosaCode())) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_NOSA_CODE_REQUIRED);
-//		}
-//		if (!StringUtils.hasText(request.getSepamCode())) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_SEPAM_CODE_REQUIRED);
-//		}
-//		if (!StringUtils.hasText(request.getTreasuryId())) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_TREASURY_ID_REQUIRED);
-//		}
-//		if (request.getIssueDate() == null) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_ISSUE_DATE_REQUIRED);
-//		}
-//		if (request.getDueDate() == null) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_DUE_DATE_REQUIRED);
-//		}
-//		if (request.getProformaDetailId() == null) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_ID_REQUIRED);
-//		}
-//		if (!request.getIssueDate().before(request.getDueDate())) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_ISSUE_DATE_AFTER_DUE_DATE);
-//		}
+		ProformaDetailModel detail = proformaDetailRepository.findById(request.getProformaDetailId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
+
+		if (detail.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
+			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_CANCELED);
+		}
+
+
+		List<ExtraBankBillModel> bills = extraBillRepository.findAllByProformaMasterId(request.getProformaDetailId());
+
+		long nonCanceledCount = bills.stream().filter(bill -> bill.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED).count();
+		if (nonCanceledCount > 0) {
+			throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
+		}
+
+		ProformaMasterModel master = proformaMasterRepository.findById(detail.getProformaMasterId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
+
+		if (master.getWorkflowApproveStatus() != WorkflowApproveStatus.ACCEPTED) {
+			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_NOT_ACCEPTED);
+		}
+
+
+		List<LcModel> lcs = lcRepository.findAllByProformaMasterId(master.getId());
+
+		long activeLcCount = lcs.stream()
+				.filter(lc -> lc.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED)
+				.count();
+
+		if (activeLcCount > 0) {
+			throw new InternalSaleCustomException.ValidationException(LC_ALREADY_EXISTS);
+		}
+
+		if (request.getIssuerBankId() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUER_BANK_ID_REQUIRED);
+		}
+		if (request.getAgentBankId() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_AGENT_BANK_ID_REQUIRED);
+		}
+
+		if (!StringUtils.hasText(request.getSepamCode())) {
+			throw new InternalSaleCustomException.ValidationException(MSG_SEPAM_CODE_REQUIRED);
+		}
+		if (!StringUtils.hasText(request.getTreasuryId())) {
+			throw new InternalSaleCustomException.ValidationException(MSG_TREASURY_ID_REQUIRED);
+		}
+		if (request.getIssueDate() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUE_DATE_REQUIRED);
+		}
+		if (request.getDueDate() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_DUE_DATE_REQUIRED);
+		}
+		if (request.getProformaDetailId() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_ID_REQUIRED);
+		}
+
+		if (!request.getIssueDate().before(request.getDueDate())) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUE_DATE_AFTER_DUE_DATE);
+		}
 	}
 
 	/**
@@ -254,16 +308,14 @@ public class GaamServiceImpl implements GaamService {
 	@Override
 	public void sendReckoningEmail(Long gaamId) {
 
-		GaamModel billModel = gaamRepository.findById(gaamId)
+		GaamModel gaamModel = gaamRepository.findById(gaamId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
-		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
+		markAllGaamAsReckoning(gaamModel.getProformaMasterId());
 
-		markAllGaamAsReckoning(billModel.getProformaMasterId());
-		ProformaDetailModel detail = proformaDetailRepository.findById(billModel.getProformaDetailId())
+		ProformaDetailModel detail = proformaDetailRepository.findById(gaamModel.getProformaDetailId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+
 		BrokerEmailRequest emailRequest = buildGaamBrokerEmailRequest(detail);
 		String emailContent = generateGaamBrokerEmailContent(gaamId);
 		sendGaamBrokerReckoningEmail(emailRequest, emailContent);
@@ -331,6 +383,8 @@ public class GaamServiceImpl implements GaamService {
 			}
 		}
 
+		gaamRepository.saveAll(billModels);
+
 	}
 
 
@@ -340,15 +394,10 @@ public class GaamServiceImpl implements GaamService {
 		GaamModel billModel = gaamRepository.findById(gaamId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
-		var masterModel = proformaMasterRepository.findById(billModel.getProformaMasterId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-						MSG_SALES_CONTRACT_NOT_FOUND));
 
-		ProformaDetailModel detail = gaamRepository.getDetailByBillId(gaamId).orElseThrow(
+		ProformaDetailModel detail = proformaDetailRepository.findById(billModel.getProformaDetailId()).orElseThrow(
 				() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-		var broker = fetchBrokerForTrade(masterModel.getTradeId());
 		BrokerEmailRequest dto = buildGaamBrokerEmailRequest(detail);
-
 		return "کارگزاری محترم " + dto.getBrokerName() + " : قرارداد شماره " + dto.getContractNo() +
 				"  مورخ  " + dto.getContractDate() + " جهت خرید " + dto.getQuantity() +
 				" کیلوگرم محصول " + dto.getGoodName() + " توسط شرکت:  " + dto.getCustomerName() +
@@ -378,8 +427,20 @@ public class GaamServiceImpl implements GaamService {
 		GaamModel bill = gaamRepository.findById(updateExtraBillRequest.getId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
-		bill.setIssuerBankId(updateExtraBillRequest.getIssuerBankId());
-		bill.setAgentBankId(updateExtraBillRequest.getIssuerBankId());
+		var agentBank = baseBankRepository.findById(updateExtraBillRequest.getAgentBankId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_AGENT_BANK_NOT_FOUND));
+
+		var issuerBank = issuingBankRepository.findById(updateExtraBillRequest.getIssuerBankId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+
+		bill.setIssuerBankId(issuerBank.getId());
+		bill.setIssuerBankName(issuerBank.getBankName());
+		bill.setBranchCode(issuerBank.getBranchCode());
+		bill.setBranchName(issuerBank.getBranchName());
+		bill.setPaymentCity(issuerBank.getCity());
+		bill.setAgentBankId(agentBank.getId());
+		bill.setAgentBankName(agentBank.getBankTitle());
+
 		bill.setNosaCode(updateExtraBillRequest.getNosaCode());
 		bill.setSepamCode(updateExtraBillRequest.getSepamCode());
 		bill.setTreasuryId(updateExtraBillRequest.getTreasuryId());
@@ -411,26 +472,6 @@ public class GaamServiceImpl implements GaamService {
 		return SearchUtil.search(gaamReadyRevokingRepository, searchRq, gaamRevokingMapper::toDTO);
 	}
 
-//	@Override
-//	public void markAllAsReckoning(Long proformaMasterId) {
-//
-//		List<GaamModel> billModels = gaamRepository.findAllByProformaMasterId(proformaMasterId);
-//
-//		if (billModels == null || billModels.isEmpty()) {
-//			log.warn("No ExtraBill items found for proformaMasterId: {}", proformaMasterId);
-//			return;
-//		}
-//		for (GaamModel item : billModels) {
-//			boolean oldReckoningSend = item.isReckoningSend();
-//			if (!oldReckoningSend) {
-//				Date newReckoningSendDate = new Date();
-//				item.setReckoningSend(true);
-//				item.setReckoningSendDate(newReckoningSendDate);
-//				item.setAcknowledgment(Acknowledgment.RECKONING);
-//				gaamRepository.save(item);
-//			}
-//		}
-//	}
 
 	@Override
 	public void cancel(GaamCancelRequest request) {
@@ -438,33 +479,21 @@ public class GaamServiceImpl implements GaamService {
 		GaamModel gaamModel = gaamRepository.findById(request.getId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
 
-		List<GaamModel> lcModelList = gaamRepository.findAllByProformaMasterId(gaamModel.getProformaMasterId());
-
-		lcModelList.forEach(model -> cancelGaamModel(model, request));
-	}
-
-	@Override
-	public void cancelGaamModel(GaamModel model, GaamCancelRequest request) {
-		ProformaDetailModel detailModel = proformaDetailRepository.findById(request.getId()).get();
-		model.setCancelDate(new Date());
-		model.setCancellationReason(LcCancellationReason.BUYER_WITHDRAWAL);
-		model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
-
-		appendGaamCancellationRecord(model, buildCancellationRecord(request));
-
-		gaamRepository.save(model);
-	}
-
-
-
-	public void appendGaamCancellationRecord(GaamModel model, String cancellationRecord) {
-		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
-		if (!existingDesc.isEmpty()) {
-			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
-		} else {
-			model.setDescription(cancellationRecord);
+		if (gaamModel.getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ITEM_CANCELED_BEFORE);
 		}
+		List<GaamModel> all = gaamRepository.findAllByProformaMasterId(gaamModel.getProformaMasterId());
+
+		all.forEach(model -> {
+			model.setCancelDate(new Date());
+			model.setCancellationReason(request.getCancellationReason());
+			model.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
+			model.setDescription(buildCancellationRecord(request));
+
+		});
+		gaamRepository.saveAll(all);
 	}
+
 
 	private String buildCancellationRecord(GaamCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());

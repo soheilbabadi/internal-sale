@@ -68,6 +68,7 @@ public class ProcessGeneralController {
 				break;
 			case "GAAM_BOUND":
 				enumSupplier = () -> Arrays.stream(GaamProcessVariable.values());
+				break;
 			default:
 				return ResponseEntity.notFound().build();
 		}
@@ -95,6 +96,9 @@ public class ProcessGeneralController {
 						return ((ExtraBillProcessVariable) e).getValue();
 					}
 
+					if (e instanceof GaamProcessVariable) {
+						return ((GaamProcessVariable) e).getValue();
+					}
 
 					return null;
 				}

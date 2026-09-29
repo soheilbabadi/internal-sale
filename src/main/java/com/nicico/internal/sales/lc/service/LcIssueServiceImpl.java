@@ -64,6 +64,7 @@ public class LcIssueServiceImpl implements LcIssueService {
 
 	@Override
 	public SearchDTO.SearchRs<LcIssueProviderDto.Info> search(SearchDTO.SearchRq request) {
+
 		return SearchUtil.search(repository, request, mapper::toDTO);
 	}
 

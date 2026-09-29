@@ -33,5 +33,8 @@ public interface ProformaDetailRepository extends JpaRepository<ProformaDetailMo
 	@Query(value = "SELECT * FROM T_INS_PERFORMA_DETAIL WHERE F_PERFORMA_MASTER_ID IN (SELECT F_PERFORMA_MASTER_ID FROM T_INS_EXTRA_BANK_BILL WHERE id = :billId)", nativeQuery = true)
 	Optional<ProformaDetailModel> getDetailByBillId(@Param("billId") Long billId);
 
+	Optional<ProformaDetailModel> findByPerformaNo(String performaNo);
+
+	List<ProformaDetailModel> findAllByPerformaNo(String performaNo);
 
 }

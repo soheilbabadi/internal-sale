@@ -1,12 +1,12 @@
 package com.nicico.internal.sales.proforma.service;
 
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.goods.model.GoodsBucketModel;
 import com.nicico.internal.sales.goods.model.GoodsModel;
 import com.nicico.internal.sales.goods.service.GoodBucketService;
 import com.nicico.internal.sales.goods.special.service.OfferTextProcess;
 import com.nicico.internal.sales.ime.trade.IMETradeModel;
-import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.proforma.dto.PerfomaCreateRequest;
 import com.nicico.internal.sales.proforma.dto.PerformaDetailGenerator;
 import com.nicico.internal.sales.proforma.dto.ProformaModelResponse;
@@ -354,12 +354,7 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		);
 		detailModel.setExtraBillOfPercent(extraPercent);
 		detailModel.setFinalPrice(finalPrice);
-
-		// محاسبه تعداد اوراق گام (فقط برای نوع GAM_BONDS)
-		if (issueType == ProformaIssueType.GAM_BONDS) {
-			int gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
-			detailModel.setGamCertificateCount(gamCount);
-		}
+		detailModel.setGamCertificateCount(0L);
 	}
 
 

@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +44,7 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 	@Override
 	public ProcessInstance startReversal(Long masterId) {
 
-		refreshReversalProformaStatus();
+		refreshOne(masterId);
 		if (!canStartProcess()) {
 			throw new InternalSaleCustomException.ValidationException("شما اجازه شروع فرایند ابطال پیش فاکتور را ندارید");
 		}
@@ -111,8 +112,8 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
 
-	@Override
-	public void reviewTask(ReviewTaskRequest reviewTaskRequest) {
+
+	private void reviewTask(ReviewTaskRequest reviewTaskRequest) {
 
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
@@ -129,7 +130,7 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		} catch (Exception ex) {
 			throw new InternalSaleCustomException.BpmsClientException("خطا در اتصال به کارتابل", new ArrayList<>(Collections.singletonList(ex.getMessage())));
 		} finally {
-			refreshReversalProformaStatus();
+			refreshStatus();
 		}
 
 	}
@@ -144,71 +145,80 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		}
 	}
 
-	public void refreshReversalProformaStatus() {
+	@Override
+	public void refreshStatus() {
 		if (!canStartProcess()) return;
-		try {
-			List<ProformaMasterModel> masterModelList = proformaMasterRepository.findAllByWorkflowApproveStatusIn(
-					List.of(WorkflowApproveStatus.REVERSAL));
-			for (ProformaMasterModel masterModel : masterModelList) {
-				String reversalId = masterModel.getReversalProcessId();
-				if (Boolean.TRUE.equals(masterModel.getIsReversalProcessFinal()) || reversalId == null || REVERSAL_PROCESS_ID_DEFAULT.equals(reversalId))
-					continue;
-				var acceptedFinally = processVariableProvider.isProcessAcceptedFinally(reversalId);
-				var status = bpmsClientService.getProcessInstanceHistoryById(reversalId);
+		var masterIds = proformaMasterRepository.findIdsByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.REVERSAL));
 
-				boolean detailsUpdated = false;
-				switch (status.getStatus()) {
-					case ACTIVE:
-						masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
-						masterModel.setIsProcessFinal(true);
-						masterModel.setIsReversalProcessFinal(false);
-						updateDetailStatuses(masterModel, ProformaReversalStatus.CANCELED);
-						detailsUpdated = true;
-						proformaMasterRepository.saveAndFlush(masterModel);
-						break;
-					case CANCELED:
-						masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-						masterModel.setIsProcessFinal(true);
-						masterModel.setIsReversalProcessFinal(true);
-						updateDetailStatuses(masterModel, ProformaReversalStatus.NORMAL);
-						detailsUpdated = true;
-						proformaMasterRepository.saveAndFlush(masterModel);
-						break;
-					case FINISHED:
-						if (acceptedFinally) {
-							masterModel.setIsProcessFinal(true);
-							masterModel.setIsReversalProcessFinal(true);
-							masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
-							updateDetailStatuses(masterModel, ProformaReversalStatus.CANCELED);
-							detailsUpdated = true;
-						}
-						proformaMasterRepository.saveAndFlush(masterModel);
-						break;
-					default:
-						masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-						masterModel.setIsProcessFinal(true);
-						masterModel.setIsReversalProcessFinal(false);
-						masterModel.setReversalProcessId(REVERSAL_PROCESS_ID_DEFAULT);
-						updateDetailStatuses(masterModel, ProformaReversalStatus.NORMAL);
-						detailsUpdated = true;
-						proformaMasterRepository.save(masterModel);
-				}
-				if (reversalId != null && processVariableProvider.isProcessFinished(reversalId) && processVariableProvider.isProcessAcceptedFinally(reversalId)) {
-					masterModel.setIsProcessFinal(true);
-					masterModel.setIsReversalProcessFinal(true);
+		for (Long masterId : masterIds) {
+			try {
+				refreshOne(masterId);
+			} catch (Exception ex) {
+				log.error("Error while refreshing status for reversal proforma master id={}", masterId, ex);
+			}
+		}
+	}
+
+	@Override
+	public void refreshOne(Long masterId) {
+		ProformaMasterModel masterModel = proformaMasterRepository.findById(masterId)
+				.orElseThrow(() -> new EntityNotFoundException("ProformaMasterModel not found: " + masterId));
+
+		String reversalId = masterModel.getReversalProcessId();
+		if (Boolean.TRUE.equals(masterModel.getIsReversalProcessFinal()) || reversalId == null || REVERSAL_PROCESS_ID_DEFAULT.equals(reversalId)) {
+			return;
+		}
+		var status = bpmsClientService.getProcessInstanceHistoryById(reversalId);
+		var acceptedFinally = processVariableProvider.isProcessAcceptedFinally(reversalId);
+
+		switch (status.getStatus()) {
+			case ACTIVE:
+				masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
+				masterModel.setIsProcessFinal(true);
+				masterModel.setIsReversalProcessFinal(false);
+				updateDetailStatuses(masterModel, ProformaReversalStatus.CANCELED);
+				proformaMasterRepository.saveAndFlush(masterModel);
+				break;
+			case CANCELED:
+				masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+				masterModel.setIsProcessFinal(true);
+				masterModel.setIsReversalProcessFinal(true);
+				updateDetailStatuses(masterModel, ProformaReversalStatus.NORMAL);
+				proformaMasterRepository.saveAndFlush(masterModel);
+				break;
+			case FINISHED:
+				masterModel.setIsProcessFinal(true);
+				masterModel.setIsReversalProcessFinal(true);
+				if (acceptedFinally) {
 					masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
 					updateDetailStatuses(masterModel, ProformaReversalStatus.CANCELED);
-					proformaMasterRepository.saveAndFlush(masterModel);
-				} else if (reversalId != null && processVariableProvider.isProcessFinished(reversalId) && !processVariableProvider.isProcessAcceptedFinally(reversalId)) {
-					masterModel.setIsProcessFinal(true);
-					masterModel.setIsReversalProcessFinal(true);
+				}
+				else {
 					masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 					updateDetailStatuses(masterModel, ProformaReversalStatus.NORMAL);
-					proformaMasterRepository.saveAndFlush(masterModel);
 				}
-			}
-		} catch (Exception ex) {
-			log.error(ex.getMessage());
+				proformaMasterRepository.saveAndFlush(masterModel);
+				break;
+			default:
+				masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+				masterModel.setIsProcessFinal(true);
+				masterModel.setIsReversalProcessFinal(false);
+				masterModel.setReversalProcessId(REVERSAL_PROCESS_ID_DEFAULT);
+				updateDetailStatuses(masterModel, ProformaReversalStatus.NORMAL);
+				proformaMasterRepository.save(masterModel);
+		}
+		if (processVariableProvider.isProcessFinished(reversalId) && processVariableProvider.isProcessAcceptedFinally(reversalId)) {
+			masterModel.setIsProcessFinal(true);
+			masterModel.setIsReversalProcessFinal(true);
+			masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.REVERSAL);
+			updateDetailStatuses(masterModel, ProformaReversalStatus.CANCELED);
+			proformaMasterRepository.saveAndFlush(masterModel);
+		} else if (processVariableProvider.isProcessFinished(reversalId) && !processVariableProvider.isProcessAcceptedFinally(reversalId)) {
+			masterModel.setIsProcessFinal(true);
+			masterModel.setIsReversalProcessFinal(true);
+			masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			updateDetailStatuses(masterModel, ProformaReversalStatus.NORMAL);
+			proformaMasterRepository.saveAndFlush(masterModel);
 		}
 	}
 

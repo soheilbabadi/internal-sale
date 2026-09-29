@@ -8,20 +8,20 @@ import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
-import com.nicico.internal.sales.extrabill.service.ExtraBillServiceImpl;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
+import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
+import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
+import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
-import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.enums.ExtraBillProcessVariable;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,8 +40,9 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private static final String PROFORMA_DUPLICATE_START = "برای این پیش فاکتور قبلا برات صادر شده است";
 	private static final String LC_ALREADY_EXISTS = "برای این پیش فاکتور اعتبار اسنادی فعال وجود دارد";
 	private static final String PROCESS_ID_PLACEHOLDER = "-";
-
-
+	private static final String MSG_PROFORMA_NOT_ACCEPTED = "پیش فاکتور در وضعیت تایید شده نیست";
+	private static final String MSG_PROFORMA_MASTER_NOT_FOUND = "قرارداد فروش وجود ندارد";
+	private static final String MSG_PROFORMA_DETAIL_CANCELED = " پیش فاکتور ابطال شده است";
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
 	private final ProcessVariableProvider processVariableProvider;
@@ -49,7 +50,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private final LcRepository lcRepository;
 	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
 	private final ProcessUserAccessRepository processUserAccessRepository;
-
+	private final ProformaDetailRepository proformaDetailRepository;
 
 	@Override
 	@Transactional
@@ -87,26 +88,43 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	// -------------------------------------------------------------------------
 
 	private void validateNoActiveExtraBill(Long masterId) {
-		boolean hasActiveLc = lcRepository.findAllByProformaMasterId(masterId)
-				.stream()
-				.anyMatch(lc -> lc.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED
-						&& lc.getWorkflowApproveStatus() != WorkflowApproveStatus.REVERSAL);
 
-		if (hasActiveLc) {
+		ProformaMasterModel master = proformaMasterRepository.findById(masterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
+
+		if (master.getWorkflowApproveStatus() != WorkflowApproveStatus.ACCEPTED) {
+			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_NOT_ACCEPTED);
+		}
+
+		ProformaDetailModel detail = proformaDetailRepository.findById(master.getProformaDetailModelLists().get(0).getId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
+
+		if (detail.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
+			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_CANCELED);
+		}
+
+
+		List<LcModel> lcs = lcRepository.findAllByProformaMasterId(masterId);
+
+		long activeLcCount = lcs.stream()
+				.filter(lc -> lc.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED)
+				.count();
+
+		if (activeLcCount > 0) {
 			throw new InternalSaleCustomException.ValidationException(LC_ALREADY_EXISTS);
 		}
 
 		List<ExtraBankBillModel> bills = extraBillRepository.findAllByProformaMasterId(masterId);
-		for (ExtraBankBillModel bill : bills) {
-			if (bill.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED) {
-				throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
-			}
-			if (bill.getProcessId() != null && !bill.getProcessId().equalsIgnoreCase(PROCESS_ID_PLACEHOLDER) && !processVariableProvider.isProcessFinished(bill.getProcessId())) {
-				throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
-			}
-		}
-	}
 
+		long nonCanceledCount = bills.stream()
+				.filter(bill -> bill.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED)
+				.count();
+
+		if (nonCanceledCount > 0) {
+			throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
+		}
+
+	}
 	private List<ExtraBankBillModel> buildExtraBankBills(ProformaMasterModel proformaMaster, ProcessInstance processInstance) {
 
 		List<ExtraBankBillModel> billModels = new ArrayList<>();

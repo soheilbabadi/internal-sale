@@ -64,7 +64,7 @@ public class CustomerValidationServiceImpl implements CustomerValidationService 
 			errors.add(MSG_CUSTOMER_EXISTS);
 		}
 
-		errors.addAll(validateCustomerFields(requestDto));
+//		errors.addAll(validateCustomerFields(requestDto));
 
 		throwIfErrors(errors);
 		return errors;
@@ -84,7 +84,7 @@ public class CustomerValidationServiceImpl implements CustomerValidationService 
 			errors.add(MSG_NATIONAL_CODE_INVALID);
 		}
 
-		errors.addAll(validateCustomerFields(requestDto));
+//		errors.addAll(validateCustomerFields(requestDto));
 
 		throwIfErrors(errors);
 		return errors;

@@ -16,6 +16,9 @@ public interface ProformaMasterRepository extends JpaRepository<ProformaMasterMo
 
 	List<ProformaMasterModel> findAllByWorkflowApproveStatusIn(List<WorkflowApproveStatus> statuses);
 
+	@Query("select p.id from ProformaMasterModel p where p.workflowApproveStatus in :statuses")
+	List<Long> findIdsByWorkflowApproveStatusIn(@Param("statuses") List<WorkflowApproveStatus> statuses);
+
 	List<ProformaMasterModel> findAllByNationalCodeInOrderByIdDesc(List<String> nationalCodes);
 
 	Optional<ProformaMasterModel> findByProcessId(String processId);
@@ -43,8 +46,12 @@ public interface ProformaMasterRepository extends JpaRepository<ProformaMasterMo
 	@Query(value = "UPDATE T_INS_PERFORMA_MASTER m SET m.C_SETTLEMENT_TYPE = (SELECT CASE s.SETTLEMENT_TYPE WHEN 'نقدی' THEN 'CASH' WHEN 'اعتباری' THEN 'CREDIT'WHEN 'انفساخ' THEN 'EXHALATION' WHEN 'نامشخص' THEN 'UNKNOWN' ELSE 'UNKNOWN' END FROM TBL_IME_SETTLEMENT s WHERE s.PAYMENT_CODE = m.C_PAYMENT_CODE AND ROWNUM = 1) WHERE m.C_SETTLEMENT_TYPE = 'UNKNOWN' AND EXISTS (SELECT 1 FROM TBL_IME_SETTLEMENT s WHERE s.PAYMENT_CODE = m.C_PAYMENT_CODE)", nativeQuery = true)
 	void syncSettlementTypeFromDetails();
 
+	Optional<ProformaMasterModel> findByContractNoAndWorkflowApproveStatus(Long contractNo, WorkflowApproveStatus workflowApproveStatus);
+
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select p from ProformaMasterModel p where p.id = :id")
 	Optional<ProformaMasterModel> findByIdForUpdate(@Param("id") Long id);
+
+	Optional<Object> findFirstByContractNoAndWorkflowApproveStatusOrderByIdDesc(Long contractNo, WorkflowApproveStatus workflowApproveStatus);
 }

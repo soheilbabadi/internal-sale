@@ -73,7 +73,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    tipd.D_PERFORMA_DATE
 		
 		
-		FROM T_INS_GAAM_BILL tpbb
+		FROM T_INS_GAAM tpbb
 		         LEFT JOIN TBL_IME_TRADE tit ON tit.ID = tpbb.F_TRADE_ID
 		         INNER JOIN T_INS_PERFORMA_MASTER tipm ON tipm.ID = tpbb.F_PERFORMA_MASTER_ID
 		         INNER JOIN T_INS_PERFORMA_DETAIL tipd ON tipd.F_PERFORMA_MASTER_ID = tipm.ID
@@ -224,6 +224,9 @@ public class GaamlReadyRevokingModel implements Serializable {
 
 	@Column(name = "C_CONTRACT_DATE")
 	private String contractDate;
+
+	@Column(name = "TRADE_CONTRACT_DATE")
+	private String tradeContractDate;
 
 	@Schema(description = "شماره پیش فاکتور")
 	@Column(name = "C_PERFORMA_NO")

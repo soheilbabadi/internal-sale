@@ -7,12 +7,12 @@ import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.copper.core.SecurityUtil;
+import com.nicico.internal.sales.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
 import com.nicico.internal.sales.export.service.ExportDocService;
-import com.nicico.internal.sales.customer.model.CustomerModel;
-import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.notification.dto.EmailRequest;
 import com.nicico.internal.sales.notification.service.MailService;
@@ -114,7 +114,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 
 
 	@Override
-	
+
 	public void reviewTask(ReviewTaskRequest reviewTaskRequest) {
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
@@ -161,14 +161,14 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 		}
 	}
 
-	
+
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(true);
 		this.reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
 
-	
+
 	@Override
 	public void rejectTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(false);
@@ -176,7 +176,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	}
 
 	@Override
-	
+
 	public void refreshStatus() {
 		List<ProformaMasterModel> masterModelList = proformaMasterRepository
 				.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
@@ -266,9 +266,7 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	}
 
 
-	private void applyStatus(ProformaMasterModel model,
-	                         WorkflowApproveStatus status,
-	                         boolean isProcessFinal) {
+	private void applyStatus(ProformaMasterModel model, WorkflowApproveStatus status, boolean isProcessFinal) {
 		model.setWorkflowApproveStatus(status);
 		model.setIsProcessFinal(isProcessFinal);
 		model.setIsReversalProcessFinal(false);

@@ -17,6 +17,6 @@ public interface GaamProcessService {
 
 	void refreshStatus();
 
-	void refreshOne(Long masterId);
 
+	void refreshOne(Long masterId);
 }

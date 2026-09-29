@@ -2,7 +2,6 @@ package com.nicico.internal.sales.wf.service;
 
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstance;
 import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
-import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 
@@ -19,7 +18,6 @@ public interface RemittanceProcessService {
 
 	void rejectTask(TaskActionDto taskActionDto);
 
-	void reviewTask(ReviewTaskRequest reviewTaskRequest);
 
 	void refreshRemittanceStatus();
 

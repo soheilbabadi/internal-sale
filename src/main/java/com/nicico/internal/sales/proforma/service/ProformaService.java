@@ -5,6 +5,7 @@ import com.nicico.internal.sales.proforma.dto.*;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,6 +16,12 @@ public interface ProformaService {
 
 	SearchDTO.SearchRs<ProformaMasterDTO.Info> getByNationalCode(List<String> nationalCodes);
 
+
+	@Transactional
+	void clearAllProformaFileIds(String proformaNo);
+
+	@Transactional
+	void clearProformaFileId(String proformaNo);
 
 	List<ProformaMasterDTO.Info> getFailedProforma(Pageable pageable, Sort sort);
 
@@ -45,4 +52,6 @@ public interface ProformaService {
 	String getLotNumberByTradeId(Long tradeId);
 
 
+	@Transactional
+	void resetReversalByContractNo(Long contractNo);
 }

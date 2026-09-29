@@ -266,7 +266,7 @@ public class GaamBoundProformaIssueServiceImpl implements GaamBoundProformaIssue
 		detailModel.setExtraBillOfExchangeAmount(extraAmount);
 		detailModel.setExtraBillOfPercent(extraPercent);
 		detailModel.setFinalPrice(finalPrice);
-		int gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.CEILING).intValue();
+		Long gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000),0,  RoundingMode.UP).longValue();
 		detailModel.setGamCertificateCount(gamCount);
 	}
 

@@ -1026,7 +1026,7 @@
             <column name="d_order_date" type="DATETIME"/>
             <column name="c_contract_date" type="VARCHAR2(20)"/>
             <column name="f_performa_master_id" type="BIGINT"/>
-            <column name="N_GAM_CERTIFICATE_COUNT" type="INT" defaultValue="0">
+            <column name="N_GAM_CERTIFICATE_COUNT" type="BIGINT" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
             <column name="N_EXTRA_BILL_OF_AMOUNT" type="DECIMAL(19,3)" defaultValue="0">

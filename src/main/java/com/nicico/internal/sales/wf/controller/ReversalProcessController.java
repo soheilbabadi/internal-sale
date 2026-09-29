@@ -3,7 +3,6 @@ package com.nicico.internal.sales.wf.controller;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.wf.dto.GroupTaskActionDto;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import com.nicico.internal.sales.wf.service.ReversalProformaProcessService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,6 @@ import java.util.Collections;
 @PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA')")
 public class ReversalProcessController {
 	private final ReversalProformaProcessService reversalProformaProcessService;
-	private final ProformaProcessService proformaProcessService;
 
 	@Operation(summary = "شروع فرآیند ابطال پیش  فاکتور", description = "با دریافت شناسه پیش  فاکتور اصلی (Master ID)،  فرایند ابطال پیش  فاکتور را آغاز می  کند. این عملیات شامل ایجاد تسک  های اولیه ابطال، بررسی شرایط ابطال، تنظیم وضعیت اولیه و شروع جریان کاری مطابق با قوانین و ضوابط تعیین شده می  باشد. خروجی شامل اطلاعات نمونه فرآیند ایجاد شده می  باشد.")
 	@PostMapping("/start-reversal/{masterId}")
@@ -36,14 +34,14 @@ public class ReversalProcessController {
 	@Operation(summary = "رد تسک فرآیند ابطال پیش  فاکتور", description = "این متد برای رد کردن یک تسک در  فرایند ابطال پیش  فاکتور استفاده می  شود. با دریافت اطلاعات تسک شامل شناسه تسک و توضیحات، عملیات رد را انجام داده و جریان کاری ابطال را به مرحله قبلی بازمی  گرداند یا متوقف می  کند. کاربر باید علت رد را به صورت کامل و دقیق در توضیحات وارد نماید.")
 	@PutMapping("/reject-task")
 	public ResponseEntity<HttpStatus> rejectTask(@RequestBody @Valid TaskActionDto taskActionDto) throws Exception {
-		proformaProcessService.rejectTask(taskActionDto);
+		reversalProformaProcessService.rejectTask(taskActionDto);
 		return ResponseEntity.ok().build();
 	}
 
 	@Operation(summary = "تایید تسک فرآیند ابطال پیش  فاکتور", description = "این متد برای تایید یک تسک در  فرایند ابطال پیش  فاکتور استفاده می  شود. با دریافت اطلاعات تسک شامل شناسه تسک و توضیحات، عملیات تایید را انجام داده و جریان کاری ابطال را به مرحله بعد هدایت می  کند. پس از تایید نهایی، عملیات ابطال پیش  فاکتور انجام شده و وضعیت آن به  روزرسانی می  گردد.")
 	@PutMapping("/approve-task")
 	public ResponseEntity<HttpStatus> approveTask(@RequestBody @Valid TaskActionDto taskActionDto) throws Exception {
-		proformaProcessService.approveTask(taskActionDto);
+		reversalProformaProcessService.approveTask(taskActionDto);
 		return ResponseEntity.ok().build();
 	}
 

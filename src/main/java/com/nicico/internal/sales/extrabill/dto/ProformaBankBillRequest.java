@@ -29,9 +29,17 @@ public class ProformaBankBillRequest implements Serializable {
 	@Schema(description = "نام بانک صادر کننده برات")
 	private Long issuerBankId;
 
-	@NotBlank(message = "کد تفصیلی نمی تواند خالی باشد")
-	@Schema(description = "کد تفصیلی")
-	private String nosaCode;
+	@NotNull(message = "شناسه بانک عامل نمی تواند خالی باشد")
+	@Schema(description = "شناسه بانک عامل")
+	private Long agentBankId;
+
+//	@NotBlank(message = "کد تفصیلی نمی تواند خالی باشد")
+//	@Schema(description = "کد تفصیلی")
+//	private String nosaCode;
+//
+
+
+
 
 	@NotBlank(message = "کد سپام نمی تواند خالی باشد")
 	@Schema(description = "کد سپام")

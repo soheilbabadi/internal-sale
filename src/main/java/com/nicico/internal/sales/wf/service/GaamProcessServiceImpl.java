@@ -5,16 +5,19 @@ import com.nicico.bpmsclient.model.flowable.process.StartProcessWithDataDTO;
 import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.gaam.model.GaamModel;
 import com.nicico.internal.sales.gaam.repository.GaamRepository;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
+import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
+import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
+import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
-import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,12 +33,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GaamProcessServiceImpl implements GaamProcessService {
 
-	private static final String ACCESS_DENIED_MESSAGE = "شما اجازه شروع فرایند برات الکترونیک را ندارید";
+	private static final String ACCESS_DENIED_MESSAGE = "شما اجازه شروع فرایند اوراق گام را ندارید";
 	private static final String PROFORMA_NOT_FOUND_MESSAGE = "پیش فاکتور پیدا نشد";
-	private static final String PROFORMA_DUPLICATE_START = "برای این پیش فاکتور قبلا برات صادر شده است";
+	private static final String PROFORMA_DUPLICATE_START = "برای این پیش فاکتور قبلا اوراق گام صادر شده است";
 	private static final String LC_ALREADY_EXISTS = "برای این پیش فاکتور اعتبار اسنادی فعال وجود دارد";
-	private static final String EXTRABILL_ALREADY_EXISTS = "برای این پیش فاکتور برات الکترونیک فعال وجود دارد";
 	private static final String PROCESS_ID_PLACEHOLDER = "-";
+	private static final String APPROVED_KEY = "approved";
+
+	private static final String MSG_PROFORMA_NOT_ACCEPTED = "پیش فاکتور در وضعیت تایید شده نیست";
+	private static final String MSG_PROFORMA_MASTER_NOT_FOUND = "قرارداد فروش وجود ندارد";
+	private static final String MSG_PROFORMA_DETAIL_CANCELED = " پیش فاکتور ابطال شده است";
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
@@ -43,20 +50,24 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 	private final GaamRepository gaamRepository;
 	private final ExtraBillRepository extraBillRepository;
 	private final LcRepository lcRepository;
-	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
-
+		private final ProcessService processService;
+	private final ProformaDetailRepository proformaDetailRepository;
+	private final GaamProcessVariableDetector  gaamProcessVariableDetector;
 
 	@Override
 	@Transactional
 	public ProcessInstance startProcess(Long masterId) {
 
+		validateNoActiveGaam(masterId);
+		refreshStatus();
 		validateAccess();
 		ProformaMasterModel proformaMaster = proformaMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
-		validateNoActiveGaam(masterId);
+
 		StartProcessWithDataDTO startProcessDto = buildStartProcessDto(proformaMaster);
 		ProcessInstance processInstance = startProcessWithData(startProcessDto);
 		List<GaamModel> gaamModels = buildGaamModels(proformaMaster, processInstance);
+
 		gaamRepository.saveAll(gaamModels);
 		return processInstance;
 	}
@@ -80,37 +91,7 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 	// Process start helpers
 	// -------------------------------------------------------------------------
 
-	private void validateNoActiveGaam(Long masterId) {
-		boolean hasActiveLc = lcRepository.findAllByProformaMasterId(masterId)
-				.stream()
-				.anyMatch(lc -> lc.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED
-						&& lc.getWorkflowApproveStatus() != WorkflowApproveStatus.REVERSAL);
 
-		if (hasActiveLc) {
-			throw new InternalSaleCustomException.ValidationException(LC_ALREADY_EXISTS);
-		}
-
-
-		boolean hasActiveExtraBill = extraBillRepository.findAllByProformaMasterId(masterId)
-				.stream()
-				.anyMatch(lc -> lc.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED
-						&& lc.getWorkflowApproveStatus() != WorkflowApproveStatus.REVERSAL);
-
-		if (hasActiveExtraBill) {
-			throw new InternalSaleCustomException.ValidationException(EXTRABILL_ALREADY_EXISTS);
-		}
-
-
-		List<GaamModel> gaamModels = gaamRepository.findAllByProformaMasterId(masterId);
-		for (GaamModel item : gaamModels) {
-			if (item.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED) {
-				throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
-			}
-			if (item.getProcessId() != null && !item.getProcessId().equalsIgnoreCase(PROCESS_ID_PLACEHOLDER) && !processVariableProvider.isProcessFinished(item.getProcessId())) {
-				throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
-			}
-		}
-	}
 
 
 	//TODO: check all values set
@@ -118,6 +99,7 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 
 		List<GaamModel> gaamModels = new ArrayList<>();
 		for (ProformaDetailModel detailModel : proformaMaster.getProformaDetailModelLists()) {
+
 			GaamModel gaamModel = GaamModel.builder()
 					.processId(processInstance.getId())
 					.workflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS)
@@ -152,11 +134,12 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 					.cancelDate(null)
 					.cancellationReason(null)
 					// Certificate count and extra bill amounts from detail model
-					.gamCertificateCount(detailModel.getGamCertificateCount() != null ? detailModel.getGamCertificateCount() : 0)
+					.gamCertificateCount(detailModel.getGamCertificateCount() != null ? detailModel.getGamCertificateCount() : 0L)
 					.extraBillOfExchangeAmount(detailModel.getExtraBillOfExchangeAmount() != null ? detailModel.getExtraBillOfExchangeAmount() : java.math.BigDecimal.ZERO)
 					.extraBillOfPercent(detailModel.getExtraBillOfPercent() != null ? detailModel.getExtraBillOfPercent() : java.math.BigDecimal.ZERO)
 					// Reckoning send date - null initially
 					.reckoningSendDate(null)
+
 					.build();
 			gaamModels.add(gaamModel);
 		}
@@ -164,7 +147,44 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 		return gaamModels;
 	}
 
+	private void validateNoActiveGaam(Long masterId) {
 
+		ProformaMasterModel master = proformaMasterRepository.findById(masterId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
+
+		if (master.getWorkflowApproveStatus() != WorkflowApproveStatus.ACCEPTED) {
+			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_NOT_ACCEPTED);
+		}
+
+		ProformaDetailModel detail = proformaDetailRepository.findById(master.getProformaDetailModelLists().get(0).getId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
+
+		if (detail.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
+			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_CANCELED);
+		}
+
+
+		List<LcModel> lcs = lcRepository.findAllByProformaMasterId(masterId);
+
+		long activeLcCount = lcs.stream()
+				.filter(lc -> lc.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED)
+				.count();
+
+		if (activeLcCount > 0) {
+			throw new InternalSaleCustomException.ValidationException(LC_ALREADY_EXISTS);
+		}
+
+		List<ExtraBankBillModel> bills = extraBillRepository.findAllByProformaMasterId(masterId);
+
+		long nonCanceledCount = bills.stream()
+				.filter(bill -> bill.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED)
+				.count();
+
+		if (nonCanceledCount > 0) {
+			throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
+		}
+
+	}
 	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel proformaMaster) {
 		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
 		dto.setProcessDefinitionKey(processVariableProvider.getGaamWorkflowByTitle().getDefinitionKey());
@@ -188,7 +208,6 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 
 
 	@Override
-	@Transactional
 	public void rejectTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(false);
 		ReviewTaskRequest reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(taskActionDto);
@@ -197,6 +216,9 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 
 
 	private void reviewTask(ReviewTaskRequest reviewTaskRequest) {
+
+
+
 		bpmsClientService.reviewTask(reviewTaskRequest);
 
 		if (Boolean.FALSE.equals(reviewTaskRequest.getApprove())) {
@@ -211,15 +233,17 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 					gaam.setAcknowledgment(Acknowledgment.REMITTANCE);
 
 				else {
-					gaam.setAcknowledgment(acknowledgmentDeterminer.determine(gaam));
+					gaam.setAcknowledgment(gaamProcessVariableDetector.detectStep(gaam));
 				}
 				if (gaam.getAcknowledgment() == Acknowledgment.FINISHED) {
 					gaam.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 				}
 
+
 				gaamRepository.saveAndFlush(gaam);
 			});
 		}
+
 
 	}
 
@@ -254,46 +278,61 @@ public class GaamProcessServiceImpl implements GaamProcessService {
 		}
 	}
 
-
+	@Override
 	public void refreshOne(Long masterId) {
-		GaamModel master = gaamRepository.findById(masterId)
+		GaamModel gaamModel = gaamRepository.findById(masterId)
 				.orElseThrow(() -> new EntityNotFoundException("GaamModel not found: " + masterId));
 
-		Acknowledgment determined = acknowledgmentDeterminer.determine(master);
-		if (master.getAcknowledgment() != determined) {
-			master.setAcknowledgment(determined);
+		Acknowledgment determined = gaamProcessVariableDetector.detectStep(gaamModel);
+		if (gaamModel.getAcknowledgment() != determined) {
+			gaamModel.setAcknowledgment(determined);
 		}
 
-		if (master.getPmsBillId() != null) {
-			master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-			master.setAcknowledgment(Acknowledgment.FINISHED);
-			gaamRepository.save(master);
+		if (gaamModel.getPmsBillId() != null) {
+			gaamModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			gaamModel.setAcknowledgment(Acknowledgment.FINISHED);
+			gaamRepository.save(gaamModel);
 			return;
 		}
-		var processHistory = bpmsClientService.getProcessInstanceHistoryById(master.getProcessId());
+		var processHistory = bpmsClientService.getProcessInstanceHistoryById(gaamModel.getProcessId());
 		switch (processHistory.getStatus()) {
-			case ACTIVE -> master.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+			case ACTIVE -> {
+
+				gaamModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+				gaamModel.setAcknowledgment(determined);
+				gaamRepository.save(gaamModel);
+				return;
+			}
 			case CANCELED -> {
-				master.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-				master.setAcknowledgment(Acknowledgment.CANCELED);
+				gaamModel.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+				gaamModel.setAcknowledgment(Acknowledgment.CANCELED);
+				gaamRepository.save(gaamModel);
+				return;
 			}
 			case FINISHED -> {
-				boolean acceptedFinally = processVariableProvider.isProcessAcceptedFinally(master.getProcessId());
+				boolean acceptedFinally = processVariableProvider.isProcessAcceptedFinally(gaamModel.getProcessId());
 				if (acceptedFinally) {
-					master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					master.setAcknowledgment(Acknowledgment.FINISHED);
+					gaamModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+					gaamModel.setAcknowledgment(Acknowledgment.FINISHED);
 				} else {
-					master.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-					master.setAcknowledgment(Acknowledgment.CANCELED);
+					gaamModel.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+					gaamModel.setAcknowledgment(Acknowledgment.CANCELED);
 				}
+				gaamRepository.save(gaamModel);
+				return;
 			}
 			default -> {
-				master.setWorkflowApproveStatus(WorkflowApproveStatus.DRAFT);
-				master.setAcknowledgment(Acknowledgment.UNKNOWN);
+				gaamModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+				gaamModel.setAcknowledgment(Acknowledgment.RECKONING);
+				gaamRepository.save(gaamModel);
+				return;
 			}
 		}
 
-		gaamRepository.save(master);
 	}
+
+
+
+
 
 }

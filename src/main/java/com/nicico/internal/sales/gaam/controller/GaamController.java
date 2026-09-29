@@ -28,7 +28,7 @@ import java.util.List;
 public class GaamController {
 
 	private final GaamService service;
-	private final GaamIssueService extraBillIssueService;
+	private final GaamIssueService gaamIssueService;
 
 	@Operation(summary = "جستجوی اوراق گامی قابل صدور", description = "لیست اوراق گام که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی گرداند.")
 	@PostMapping("/search-issuable")
@@ -38,7 +38,7 @@ public class GaamController {
 		if (criteria != null && !criteria.isEmpty()) {
 			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
 		}
-		return ResponseEntity.ok(extraBillIssueService.search(searchRq));
+		return ResponseEntity.ok(gaamIssueService.search(searchRq));
 	}
 
 	@Operation(summary = "جستجوی اوراق گام", description = "اوراق گام صادر شده را بر اساس فیلترهای ورودی جستجو کرده و نتیجه را برمی گرداند.")
@@ -69,7 +69,7 @@ public class GaamController {
 		if (criteria != null && !criteria.isEmpty()) {
 			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
 		}
-		return ResponseEntity.ok(service.searchReport(searchRq));
+		return ResponseEntity.ok(service.searchIssueHistory(searchRq));
 	}
 
 	@Operation(summary = "دریافت اوراق گام بر اساس شناسه قرارداد اصلی", description = "تمام اوراق گام مرتبط با یک قرارداد پیش فاکتور اصلی (Master) را بر اساس شناسه آن برمی گرداند.")
@@ -112,7 +112,7 @@ public class GaamController {
 			description = "اوراق گام مشخص، ایمیل تایید تسویه حساب به کارگزار ارسال می شود. این عملیات پس از اتمام فرآیند تسویه و تایید نهایی انجام می گردد."
 	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_SEND_NOTIFICATION')")
-	@PostMapping("/send-reckoning-extra-bill/{gaamId}")
+	@PostMapping("/send-reckoning-gaam/{gaamId}")
 	public ResponseEntity<Void> sendReckoningEmail(@PathVariable Long gaamId) {
 		service.sendReckoningEmail(gaamId);
 		return ResponseEntity.ok().build();
