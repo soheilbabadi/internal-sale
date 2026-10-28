@@ -19,10 +19,6 @@ import java.util.List;
 public class WorkflowTaskActionServiceImpl implements WorkflowTaskActionService {
 	private final BpmsClientService bpmsClientService;
 
-
-	/**
-	 * Reads all tasks for an instance and rejects them in a loop.
-	 */
 	@Override
 	public void rejectAllTasksByInstanceId(String instanceId ) {
 		if (!TextUtility.isValidUUID(instanceId)) {
@@ -43,9 +39,7 @@ public class WorkflowTaskActionServiceImpl implements WorkflowTaskActionService 
 		bpmsClientService.cancelProcessInstance(instanceId);
 	}
 
-	/**
-	 * Prepares a ReviewTaskRequest for rejection (approve = false).
-	 */
+
 	private ReviewTaskRequest prepareRejectTaskRequest(String taskId ) {
 		TaskDetail taskInfo = bpmsClientService.getTaskDetail(taskId);
 
@@ -74,6 +68,4 @@ public class WorkflowTaskActionServiceImpl implements WorkflowTaskActionService 
 			throw new InternalSaleCustomException.ValidationException("خطا در رد تسک: " + ex.getMessage());
 		}
 	}
-
-
 }

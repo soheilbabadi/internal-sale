@@ -20,8 +20,6 @@ public class BaseBankServiceImp implements BaseBankService {
 	private static final String MSG_BASE_BANK_NOT_FOUND = "بانک پیدا نشد";
 	private final BaseBankMapper mapper;
 	private final BaseBankRepository repository;
-
-
 	@Override
 	public BaseBankDto save(BaseBankDto.Create dto) {
 		var bankBranch = mapper.fromDTO(dto);
@@ -48,8 +46,6 @@ public class BaseBankServiceImp implements BaseBankService {
 		String yearSuffix = getCurrentJalaliYear();
 		return 0;
 	}
-
-
 	private String getCurrentJalaliYear() {
 		Integer year = getJalaliYear(new Date());
 		return String.format("%02d", year % 100);

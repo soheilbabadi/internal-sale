@@ -38,8 +38,6 @@ public class BillingMasterModel extends BaseClassModel {
 	@Schema(description = "تاریخ صدور", name = "billingDate", example = "2023-10-01T00:00:00Z")
 	@Column(name = "D_BILLING_DATE")
 	private Date billingDate;
-
-
 	@Schema(description = "وزن نهایی", name = "totalFinalQuantity", example = "100000")
 	@Column(name = "N_TOTAL_FINAL_QUANTITY")
 	private BigDecimal totalFinalQuantity;
@@ -70,14 +68,12 @@ public class BillingMasterModel extends BaseClassModel {
 	private boolean isFinal;
 
 	@Schema(description = "کد فرایند", name = "processId", example = "5e2b7f8c9d4a6b1e3f7c8d9a0b1e2c3d")
-	@Column(name = "C_PROCESS_ID", length = 50, nullable = false)
+	@Column(name = "C_PROCESS_ID", length = 50)
 	private String processId;
 
 	@Schema(description = "کد فرایندابطال", name = "reversalProcessId", example = "5e2b7f8c9d4a6b1e3f7c8d9a0b1e2c3d")
 	@Column(name = "C_REVERSAL_PROCESS_ID", length = 50)
 	private String reversalProcessId;
-
-
 	@Enumerated(EnumType.STRING)
 	@Column(name = "C_WORKFLOW_APPROVE_STATUS", length = 100)
 	private WorkflowApproveStatus workflowApproveStatus;
@@ -86,8 +82,6 @@ public class BillingMasterModel extends BaseClassModel {
 	@JoinColumn(name = "F_REMITTANCE_ID", referencedColumnName = "ID", insertable = false, updatable = false)
 	@EqualsAndHashCode.Exclude
 	private RemittanceMasterModel remittanceMaster;
-
-
 	@OneToMany(mappedBy = "billingMaster", cascade = CascadeType.ALL, fetch = FetchType.EAGER, targetEntity = BillingWeightingDetailModel.class)
 	@EqualsAndHashCode.Exclude
 	private List<BillingWeightingDetailModel> billingWeighingDetails;

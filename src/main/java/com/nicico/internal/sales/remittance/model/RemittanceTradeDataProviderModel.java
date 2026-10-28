@@ -23,48 +23,18 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Data
 @Audited(targetAuditMode = NOT_AUDITED)
 @Subselect("""
-				SELECT DISTINCT 
+	SELECT DISTINCT 
 		    tit.ID                                                               AS ID,
 		    tit.PAYMENT_CODE                                                     AS C_PAYMENT_CODE,
 		    tic.ID                                                               AS N_CUSTOMER_ID,
 		    tit.BUYER_NAME                                                       AS C_CUSTOMER_NAME,
 		    CASE 
-		        WHEN LENGTH(
-		            NVL(
-		                TRIM(
-		                    REGEXP_SUBSTR(
-		                        DBMS_LOB.SUBSTR(tio.DESCRIPTION, 4000, 1),
-		                        '([A-Za-z]+-)?[0-9]+(-[0-9]+)*',
-		                        1, 1, NULL, 0
-		                    )
-		                ),
-		                '-'
-		            )
-		        ) = 1 
-		        AND REGEXP_LIKE(
-		            NVL(
-		                TRIM(
-		                    REGEXP_SUBSTR(
-		                        DBMS_LOB.SUBSTR(tio.DESCRIPTION, 4000, 1),
-		                        '([A-Za-z]+-)?[0-9]+(-[0-9]+)*',
-		                        1, 1, NULL, 0
-		                    )
-		                ),
-		                '-'
-		            ),
-		            '^[0-9]$'
-		        )
-		        THEN '-'
-		        ELSE NVL(
-		            TRIM(
-		                REGEXP_SUBSTR(
-		                    DBMS_LOB.SUBSTR(tio.DESCRIPTION, 4000, 1),
-		                    '([A-Za-z]+-)?[0-9]+(-[0-9]+)*',
-		                    1, 1, NULL, 0
-		                )
-		            ),
-		            '-'
-		        )
+		        WHEN REGEXP_SUBSTR(DBMS_LOB.SUBSTR(tio.DESCRIPTION, 4000, 1), '##', 1, 1) IS NOT NULL 
+		        THEN '-' 
+		        ELSE NVL( 
+		            REGEXP_SUBSTR(DBMS_LOB.SUBSTR(tio.DESCRIPTION, 4000, 1), '#([^#]+)#', 1, 1, NULL, 1), 
+		            '-' 
+		        ) 
 		    END                                                                   AS C_LOT_NUMBER,
 		    tic.C_ECONOMIC_CODE                                                  AS C_ECONOMIC_CODE,
 		    tit.BUYER_NATIONAL_CODE                                              AS C_NATIONAL_CODE,
@@ -73,7 +43,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    tit.COMMODITY_CODE                                                   AS N_IME_COMMODITY_ID,
 		    tig.C_IME_COMMODITY_SYMBOL,
 		    tit.CONTRACT_DATE                                                    AS C_CONTRACT_DATE,
-		    tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO                   AS C_CONTRACT_NO,
+		    tit.CONTRACT_NO || LPAD(tit.CONTRACT_DETAIL_NO, 3, '0')                   AS C_CONTRACT_NO,
 		    tit.BUYER_BROKER_CODE                                                AS N_BUYER_BROKER_ID,
 		    buyerBroker.PERSIAN_NAME                                             AS C_BUYER_BROKER_NAME,
 		    tit.SELLER_BROKER_CODE                                               AS N_SELLER_BROKER_ID,
@@ -123,11 +93,11 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		        ON  tis.PAYMENT_CODE        = tit.PAYMENT_CODE
 		        AND tis.CONTRACT_NO         = tit.CONTRACT_NO
 		        AND tis.CONTRACT_DETAIL_NO  = tit.CONTRACT_DETAIL_NO
-		        AND tit.CONTRACT_DATE       > '1405/01/01'
+		        AND tit.CONTRACT_DATE       > '1405/04/01'
 		        AND tit.CURRENCY_CODE       = 1
-		        AND tis.SETTLEMENT_TYPE     != 'نقدی/اعتباری'
+		        AND tis.SETTLEMENT_TYPE     NOT IN ('نقدی/اعتباری','انفساخ')
 		    INNER JOIN T_INS_GOODS tig
-		        ON tit.COMMODITY_CODE = tig.N_IME_COMMODITY_ID
+		        ON tit.COMMODITY_CODE = tig.N_IME_COMMODITY_ID AND tig.C_IME_COMMODITY_SYMBOL != 'SUACB'
 		    INNER JOIN TBL_IME_PS_CONTRACT_TYPES tipct
 		        ON tit.CONTRACT_TYPE_CODE = tipct.ID
 		    INNER JOIN T_INS_CUSTOMER tic
@@ -159,12 +129,9 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		        ON sellerBroker.ID = tit.SELLER_BROKER_CODE
 		    LEFT JOIN TBL_IME_PS_BROKERS buyerBroker 
 		        ON buyerBroker.ID = tit.BUYER_BROKER_CODE
-		WHERE NOT EXISTS (
-		    SELECT 1  
-		    FROM T_INS_REMITTANCE_MASTER tirm 
-		    WHERE tirm.N_TRADE_ID = tit.ID 
-		    AND tirm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
-		)
+		WHERE tig.C_IME_COMMODITY_SYMBOL != 'SUACB'
+		AND NOT EXISTS (
+		    SELECT 1   FROM T_INS_REMITTANCE_MASTER tirm    WHERE tirm.N_TRADE_ID = tit.ID AND tirm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED')
 		""")
 public class RemittanceTradeDataProviderModel implements Serializable {
 
@@ -295,8 +262,6 @@ public class RemittanceTradeDataProviderModel implements Serializable {
 	@Schema(description = "متن آگهی عرضه", name = "offerDescription", example = "کیفیت عالی")
 	@Column(name = "C_OFFER_DESCRIPTION", length = 4000)
 	private String offerDescription;
-
-
 	@Schema(description = "شماره لات")
 	@Column(name = "C_LOT_NUMBER")
 	private String lotNumber;

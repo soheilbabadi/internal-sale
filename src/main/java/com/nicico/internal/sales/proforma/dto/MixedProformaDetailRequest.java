@@ -16,6 +16,4 @@ public abstract class MixedProformaDetailRequest implements Serializable {
 
 	private ProformaIssueType proformaIssueType;
 	private BigDecimal netWeight;
-
-
 }

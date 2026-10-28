@@ -4,12 +4,9 @@ import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.goods.model.GoodsBucketModel;
 import com.nicico.internal.sales.goods.model.GoodsModel;
-import com.nicico.internal.sales.goods.service.GoodBucketService;
 import com.nicico.internal.sales.goods.special.service.OfferTextProcess;
 import com.nicico.internal.sales.ime.trade.IMETradeModel;
-import com.nicico.internal.sales.proforma.dto.PerfomaCreateRequest;
-import com.nicico.internal.sales.proforma.dto.PerformaDetailGenerator;
-import com.nicico.internal.sales.proforma.dto.ProformaModelResponse;
+import com.nicico.internal.sales.proforma.dto.*;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.SettlementType;
@@ -21,8 +18,11 @@ import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
+import com.nicico.internal.sales.trade.model.TradeExtractModel;
+import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
+import com.nicico.internal.sales.wf.detection.ExtraBillStepDetector;
 import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +43,12 @@ import static com.nicico.internal.sales.proforma.service.ProformaModelHelper.*;
 @RequiredArgsConstructor
 public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssueService {
 	private static final String ERR_PROFORMA_ACCESS_DENIED = "شما اجازه شروع فرایند صدور پیش فاکتور را ندارید";
+	private static final String ERR_CONTRACT_NO_REQUIRED = "شماره قرارداد الزامی است";
+	private static final String ERR_PROFORMA_NOT_FOUND = "پیش فاکتور برای شماره قرارداد %s یافت نشد";
+	private static final String ERR_PROFORMA_DETAIL_NOT_FOUND = "جزییات پیش فاکتور برای شماره قرارداد %s یافت نشد";
+	private static final String ERR_TRADE_INFO_NOT_FOUND = "اطلاعات معامله برای قرارداد %s یافت نشد";
+	private static final String ERR_EXTRA_BILL_PERCENT_INVALID = "درصد اضافه برات نامعتبر است";
+
 	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 	private static final String DEFAULT_PLACEHOLDER = "-";
 
@@ -54,22 +60,22 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 	private final OfferTextProcess offerTextProcess;
 	private final ProformaContractService proformaContractService;
 	private final ProformaSerialService proformaSerialService;
-	private final GoodBucketService goodBucketService;
-	private final ProcessVariableProvider processVariableProvider;
+	private final ExtraBillStepDetector extraBillStepDetector;
+	private final TradeExtractRepository tradeExtractRepository;
 
+	private final ProcessVariableProvider processVariableProvider;
 
 	@Override
 	@Transactional
 	public String create(PerfomaCreateRequest requestDto) {
 		log.debug("Creating extra bill proforma for tradeId: {}", requestDto.getTradeId());
+		extraBillStepDetector.updateAllAcknowledgments();
 
 		if (!proformaProcessService.canStartProcess()) {
 			throw new InternalSaleCustomException.AccessDeniedException(ERR_PROFORMA_ACCESS_DENIED);
 		}
-
 		proformaValidationService.validateProformaData(requestDto);
 		proformaValidationService.validateDate(requestDto);
-
 		ProformaMasterModel model = createProformaMaster(requestDto);
 		startWorkflowProcess(model);
 		proformaMasterRepository.saveAndFlush(model);
@@ -78,45 +84,42 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		return model.getContractNo().toString();
 	}
 
-	// ==================== PROFORMA MASTER CREATION ====================
+	@Override
+	@Transactional
+	public ProformaResponseDto getDetailByContractNo(Long contractNo) {
+		log.debug("Getting extra bill proforma detail and updating extra bill percent by contractNo: {}", contractNo);
+		return updateProformaExtraBillPercent(contractNo);
+	}
 
 	@Transactional
 	public ProformaMasterModel createProformaMaster(PerfomaCreateRequest requestDto) {
 		log.debug("Creating extra bill proforma master for tradeId: {}", requestDto.getTradeId());
 
-
 		ProformaModelResponse contractDetail = getContractDetail(requestDto);
 		ProformaMasterModel masterModel = contractDetail.getMasterModel();
 		masterModel.setContractNo(requestDto.getContractNo());
-
-
-		// استفاده از Helper برای تنظیم روابط
 		setupFullRelationships(masterModel, contractDetail.getDetailModels());
-
 		proformaMasterRepository.save(masterModel);
-
 		Long masterId = masterModel.getId();
 		List<ProformaDetailModel> detailModels = distinctDetails(contractDetail.getDetailModels());
-
-		// ذخیره Detail و GoodItem ها
 		saveDetailAndGoodItems(detailModels, masterId);
-
 		masterModel.setProformaDetailModelLists(detailModels);
 		return masterModel;
 	}
 
-	// ==================== CONTRACT DETAIL ====================
+	private SaleConditionModel getSalesCondition(String paymentCode) {
+		return proformaContractService.getSaleConditionModel(paymentCode);
+	}
 
 	private ProformaModelResponse getContractDetail(PerfomaCreateRequest requestDto) {
 		log.debug("Getting contract detail for tradeId: {}", requestDto.getTradeId());
 
 		var tradeExtract = proformaContractService.getTradeModel(requestDto.getTradeId());
 		int jalaliYear = DateUtility.getJalaliYear(requestDto.getOrderDate());
-
-		// استفاده از ProformaContractService برای دریافت اطلاعات
+		SaleConditionModel saleConditionModel = getSalesCondition(tradeExtract.getPaymentCode());
 		IMETradeModel tradeModel = proformaContractService.getTradeModel(tradeExtract.getPaymentCode());
 		GoodsModel goodsModel = proformaContractService.getGoodsModel(tradeExtract.getPaymentCode());
-		SaleConditionModel saleConditionModel = proformaContractService.getSaleConditionModel(tradeExtract.getPaymentCode());
+
 		GoodsBucketModel goodsBucketModel = proformaContractService.getGoodBucketModel(tradeExtract.getPaymentCode());
 		CustomerModel customerModel = proformaContractService.getCustomerModel(tradeExtract.getBuyerNationalCode());
 
@@ -129,13 +132,8 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 				goodsBucketModel,
 				saleConditionModel
 		);
-
 		List<ProformaDetailModel> detailDtoList = generatePerformaDetailList(params, saleConditionModel);
-
-		// استفاده از Helper برای محاسبه مجموع ها
 		Totals totals = calculateTotals(detailDtoList);
-
-		// ساخت MasterModel با Helper
 		ProformaMasterModel masterModel = buildMasterModel(
 				tradeModel,
 				goodsModel,
@@ -146,7 +144,6 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 				params
 		);
 
-		// استفاده از Helper برای تنظیم روابط
 		setMasterForDetails(detailDtoList, masterModel);
 
 		return ProformaModelResponse.builder()
@@ -154,8 +151,6 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 				.detailModels(detailDtoList)
 				.build();
 	}
-
-	// ==================== MASTER MODEL BUILDER ====================
 
 	private ProformaMasterModel buildMasterModel(
 
@@ -167,7 +162,6 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 			Totals totals,
 			PerformaDetailGenerator params) {
 
-		// استفاده از Helper برای محاسبه درصدها
 		CashCreditPercentages percentages = calculateCashCreditPercentages(goodsBucketModel, false);
 
 		return ProformaMasterModel.builder()
@@ -207,10 +201,11 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 				.offerDescription(tradeModel.getOfferDescription())
 				.settlementType(SettlementType.UNKNOWN.name())
 				.contractNo(requestDto.getContractNo())
+				.depositSlipWithTax(BigDecimal.ZERO)
+				.depositSlipWithoutTax(BigDecimal.ZERO)
+				.depositSlipType(null)
 				.build();
 	}
-
-// ==================== DETAIL GENERATION ====================
 
 	private List<ProformaDetailModel> generatePerformaDetailList(
 			PerformaDetailGenerator params,
@@ -223,13 +218,10 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		List<ProformaDetailModel> detailDtoList = new ArrayList<>();
 
 		for (int i = 0; i < requestDto.getParts().size(); i++) {
-			// 1. تولید آیتم های کالا
 			List<ProformaGoodItemModel> goodItem = generateProformaGoodItemList(params, i);
 
-			// 2. محاسبه مجموع های Detail
 			DetailTotals detailTotals = calculateDetailTotals(goodItem);
 
-			// 3. ساخت DetailModel
 			ProformaDetailModel detailModel = buildProformaDetailModel(
 					goodItem,
 					jalaliYear,
@@ -244,18 +236,10 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 					params.tradeModel().getContractDate(),
 					ProformaReversalStatus.NORMAL,
 					saleConditionModel.getExtraBillOfExchangePercent(),
-					BigDecimal.ZERO // مقدار موقت، بعداً محاسبه می شود
+					BigDecimal.ZERO
 			);
 
-			// 4. محاسبه مبلغ اضافی و مبلغ نهایی
-			calculateAndSetExtraAmount(
-					detailModel,
-					requestDto.getProformaIssueType(),
-					detailTotals.totalAmount(),
-					saleConditionModel
-			);
-
-			// 5. تنظیم رابطه بین GoodItem و Detail
+			calculateAndSetExtraAmount(detailModel, detailTotals.totalAmount(), saleConditionModel.getExtraBillOfExchangePercent());
 			goodItem.forEach(item -> item.setProformaDetailModel(detailModel));
 			detailDtoList.add(detailModel);
 		}
@@ -263,19 +247,15 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		return detailDtoList.stream().toList();
 	}
 
-	// ==================== GOOD ITEM GENERATION ====================
-
 	private List<ProformaGoodItemModel> generateProformaGoodItemList(PerformaDetailGenerator params, int rank) {
 		var tradeExtract = proformaContractService.getTradeModel(params.requestDto().getTradeId());
 		String description = offerTextProcess.findDescriptionByPaymentCode(tradeExtract.getPaymentCode());
 		String lot = offerTextProcess.extractLotNumber(description);
 
-		// استفاده از Helper برای پردازش نام
 		String cleanName = processGoodName(params.good(), description);
 
 		long quantity = params.requestDto().getParts().get(rank).longValue();
 
-		// استفاده از Helper برای محاسبات مالی
 		CashGoodItemCalculation calc = calculateCashGoodItem(
 				params.tradeModel(),
 				params.goodsBucketModel(),
@@ -287,13 +267,9 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 				lot
 		);
 
-		// استفاده از Helper برای ساخت GoodItem
 		return List.of(buildGoodItemFromCalculation(calc));
 	}
 
-	/**
-	 * ساخت GoodItem از محاسبات
-	 */
 	private ProformaGoodItemModel buildGoodItemFromCalculation(CashGoodItemCalculation calc) {
 		return ProformaGoodItemModel.builder()
 				.goodId(calc.goodId())
@@ -319,33 +295,88 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 				.build();
 	}
 
-	// ==================== EXTRA AMOUNT CALCULATION ====================
 
-	/**
-	 * محاسبه و تنظیم مبلغ اضافی بر اساس نوع پیش فاکتور
-	 */
-	private void calculateAndSetExtraAmount(
-			ProformaDetailModel detailModel,
-			ProformaIssueType issueType,
-			BigDecimal totalPrice,
-			SaleConditionModel saleConditionModel) {
+	private ExtraBillCalculationContext calculateExtraBillContext(BigDecimal totalPrice, BigDecimal extraPercent) {
+		if (totalPrice == null) {
+			totalPrice = BigDecimal.ZERO;
+		}
+		if (extraPercent == null) {
+			extraPercent = BigDecimal.ZERO;
+		}
+		BigDecimal extraPercentRatio = extraPercent.divide(HUNDRED, 10, RoundingMode.HALF_UP);
+		BigDecimal finalPrice = totalPrice.multiply(BigDecimal.ONE.add(extraPercentRatio)).setScale(2, RoundingMode.HALF_UP);
+		BigDecimal extraAmount = finalPrice.multiply(extraPercentRatio).setScale(2, RoundingMode.HALF_UP);
 
-		// دریافت درصد اضافی
-		BigDecimal extraPercent = saleConditionModel.getExtraBillOfExchangePercent();
-		BigDecimal factor = BigDecimal.ONE.add(extraPercent.divide(HUNDRED, 10, RoundingMode.HALF_UP));
-		BigDecimal finalPrice = totalPrice.multiply(factor).setScale(2, RoundingMode.HALF_UP);
-		BigDecimal extraAmount = finalPrice.subtract(totalPrice).setScale(2, RoundingMode.HALF_UP);
-
-		// تنظیم مقادیر
-		// برای EXTRA_BILL مقدار فیلد amount باید «مبلغ نهایی با اضافه درصد» باشد.
-		detailModel.setExtraBillOfExchangeAmount(finalPrice);
-		detailModel.setExtraBillOfPercent(extraPercent);
-		detailModel.setFinalPrice(finalPrice);
-		detailModel.setGamCertificateCount(0L);
+		return ExtraBillCalculationContext.builder()
+				.totalPrice(totalPrice)
+				.extraBillPercent(extraPercent)
+				.extraPercentRatio(extraPercentRatio)
+				.extraBillOfExchangeAmount(extraAmount)
+				.finalPrice(finalPrice)
+				.build();
 	}
 
 
-	// ==================== WORKFLOW ====================
+	private ExtraBillCalculationContext calculateAndSetExtraAmount(ProformaDetailModel detailModel, BigDecimal totalPrice, BigDecimal extraPercent) {
+		ExtraBillCalculationContext context = calculateExtraBillContext(totalPrice, extraPercent);
+		detailModel.setExtraBillOfExchangeAmount(context.getExtraBillOfExchangeAmount());
+		detailModel.setExtraBillOfPercent(context.getExtraBillPercent());
+		detailModel.setFinalPrice(context.getFinalPrice());
+		detailModel.setGamCertificateCount(0L);
+		detailModel.setProformaIssueType(ProformaIssueType.EXTRA_BILL_OF_EXCHANGE);
+		return context;
+	}
+
+
+	@Override
+	@Transactional
+	public ProformaResponseDto updateProformaExtraBillPercent(Long contractNo) {
+		log.debug("Updating proforma extra bill percent for contractNo: {}", contractNo);
+		if (contractNo == null) {
+			throw new InternalSaleCustomException.ValidationException(ERR_CONTRACT_NO_REQUIRED);
+		}
+		ProformaMasterModel masterModel = proformaMasterRepository.findFirstByContractNoOrderByIdDesc(contractNo)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERR_PROFORMA_NOT_FOUND.formatted(contractNo)));
+
+
+		TradeExtractModel tradeExtract = tradeExtractRepository.findFirstByPaymentCodeOrderByIdDesc(masterModel.getPaymentCode())
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERR_PROFORMA_NOT_FOUND.formatted(contractNo)));
+
+
+		SaleConditionModel saleConditionModel = proformaContractService.getSaleConditionModel(tradeExtract.getPaymentCode());
+		return updateProformaExtraBillPercent(contractNo, saleConditionModel.getExtraBillOfExchangePercent());
+	}
+
+
+
+
+	@Transactional
+	public ProformaResponseDto updateProformaExtraBillPercent(Long contractNo, BigDecimal newExtraBillPercent) {
+
+		ProformaMasterModel masterModel = proformaMasterRepository.findFirstByContractNoOrderByIdDesc(contractNo)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERR_PROFORMA_NOT_FOUND.formatted(contractNo)));
+		proformaContractService.getDetailById(masterModel.getId());
+
+		List<ProformaDetailModel> details = proformaDetailRepository.findAllByProformaMasterId(masterModel.getId());
+
+		BigDecimal totalFinal = BigDecimal.ZERO;
+		for (ProformaDetailModel detail : details) {
+			BigDecimal totalPrice = detail.getTotalAmount() != null && detail.getTotalAmount().compareTo(BigDecimal.ZERO) > 0
+					? detail.getTotalAmount()
+					: (detail.getProformaGoodItemModels() != null
+					? ProformaModelHelper.calculateDetailTotals(detail.getProformaGoodItemModels()).totalAmount()
+					: BigDecimal.ZERO);
+
+			calculateAndSetExtraAmount(detail, totalPrice, newExtraBillPercent);
+			proformaDetailRepository.save(detail);
+			totalFinal = totalFinal.add(detail.getFinalPrice());
+		}
+
+		masterModel.setTotalFinalAmount(totalFinal);
+		proformaMasterRepository.save(masterModel);
+
+		return proformaContractService.getDetailById(masterModel.getId());
+	}
 
 	private void startWorkflowProcess(ProformaMasterModel masterModel) {
 		ProformaVariablesInput input = processVariableProvider.buildProformaVariablesInput(masterModel);
@@ -354,19 +385,12 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
 	}
 
-	// ==================== SAVE HELPERS ====================
-
-	/**
-	 * ذخیره Detail و GoodItem ها
-	 * این متد در چند کلاس مشابه است و باید به Helper منتقل شود
-	 */
 	private void saveDetailAndGoodItems(List<ProformaDetailModel> detailModels, Long masterId) {
 		detailModels.forEach(detailModel -> {
 			detailModel.setProformaMasterId(masterId);
 			proformaDetailRepository.save(detailModel);
 
-			detailModel.getProformaGoodItemModels().stream()
-					.distinct()
+			detailModel.getProformaGoodItemModels().stream().distinct()
 					.forEach(goodItem -> {
 						goodItem.setProformaDetailId(detailModel.getId());
 						proformaGoodItemRepository.save(goodItem);
@@ -374,10 +398,4 @@ public class ExtraBillProformaIssueServiceImpl implements ExtraBillProformaIssue
 		});
 	}
 
-
-	// ==================== PUBLIC SERVICE METHODS ====================
-
-	public GoodsBucketModel getGoodBucketModel(String paymentCode) {
-		return goodBucketService.findByPaymentCodeModel(paymentCode);
-	}
 }

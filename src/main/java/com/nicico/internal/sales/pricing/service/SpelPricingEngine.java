@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.pricing.service;
-
-
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

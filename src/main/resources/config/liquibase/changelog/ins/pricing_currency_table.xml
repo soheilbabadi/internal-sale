@@ -42,11 +42,7 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-
-
     </changeSet>
-
-
     <changeSet id="20250802-02-create-seq-ins-price-currency" author="soheil">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -64,8 +60,6 @@
             </not>
         </preConditions>
         <!-- ایجاد Sequence برای تولید خودکار ID -->
-
-
         <!-- ایجاد جدول اصلی -->
         <createTable tableName="T_INS_PRICE_CURRENCY_TYPE">
 

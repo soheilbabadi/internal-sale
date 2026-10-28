@@ -9,9 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface RemittanceTradeDataProviderRepository extends JpaRepository<RemittanceTradeDataProviderModel, Long>, JpaSpecificationExecutor<RemittanceTradeDataProviderModel> {
-
-
 	Optional<RemittanceTradeDataProviderModel> findFirstByIdOrderByContractDateDesc(Long id);
-
-
 }

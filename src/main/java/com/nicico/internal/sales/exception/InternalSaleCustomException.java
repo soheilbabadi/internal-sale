@@ -31,8 +31,6 @@ public class InternalSaleCustomException extends RuntimeException {
 			logException(this, message);
 		}
 	}
-
-
 //    @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
 //    public static class ResourceUnauthorizedException extends RuntimeException {
 //        @Serial
@@ -43,8 +41,6 @@ public class InternalSaleCustomException extends RuntimeException {
 //            logException(this, message);
 //        }
 //    }
-
-
 	@ResponseStatus(value = HttpStatus.FORBIDDEN)
 	public static class AccessDeniedException extends org.springframework.security.access.AccessDeniedException {
 		@Serial
@@ -137,8 +133,6 @@ public class InternalSaleCustomException extends RuntimeException {
 			logException(this, message);
 		}
 	}
-
-
 	@ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
 	public static class PricingCalculationException extends RuntimeException {
 		@Serial

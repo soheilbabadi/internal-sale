@@ -120,12 +120,8 @@ public class GaamDto implements Serializable {
 
 	@Schema(description = "دلیل ابطال اوراق گام")
 	private LcCancellationReason cancellationReason;
-
-
 	@Schema(description = "تعداد اوراق گام")
 	private Long gamCertificateCount = 0L;
-
-
 	@Schema(description = "مبلغ اضافه شده به مبلغ کل")
 	private BigDecimal extraBillOfExchangeAmount = BigDecimal.ZERO;
 

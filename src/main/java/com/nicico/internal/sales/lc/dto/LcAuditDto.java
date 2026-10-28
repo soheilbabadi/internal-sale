@@ -96,6 +96,4 @@ public class LcAuditDto {
 	private Date cancelDate;
 	@Schema(description = "دلیل ابطال")
 	private LcCancellationReason lcCancellationReason;
-
-
 }

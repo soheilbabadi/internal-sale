@@ -65,8 +65,6 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	private final ProcessVariableProvider processVariableProvider;
 
 	// ==================== PUBLIC SERVICE METHODS ====================
-
-
 	@Transactional
 	@Override
 	public String create(PreciousMetalProfomaCreateRequest requestDto) {
@@ -92,8 +90,6 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		log.info("Precious metal proforma created successfully with contractNo: {}", model.getContractNo());
 		return model.getContractNo().toString();
 	}
-
-
 	private ProformaMasterModel createProformaMaster(PreciousMetalProfomaCreateRequest requestDto) {
 		log.debug("Creating proforma master for precious metal");
 
@@ -120,8 +116,6 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 		log.info("Proforma master created successfully with id: {}", masterModel.getId());
 		return masterModel;
 	}
-
-
 	private ProformaModelResponse getContractDetail(PreciousMetalProfomaCreateRequest requestDto) {
 		log.debug("Getting contract detail for precious metal, tradeId: {}", requestDto.getTradeId());
 
@@ -165,8 +159,6 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 				.detailModels(detailDtoList)
 				.build();
 	}
-
-
 	private boolean isPreciousMetalByPaymentCode(String paymentCode) {
 		try {
 			GoodsModel good = proformaContractService.getGoodsModel(paymentCode);
@@ -176,8 +168,6 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 			return false;
 		}
 	}
-
-
 	/**
 	 * شروع فرآیند برای پیش فاکتور
 	 */
@@ -289,6 +279,9 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 				.settlementType(SETTLEMENT_TYPE_DEFAULT)
 				.isProcessFinal(false)
 				.isReversalProcessFinal(false)
+				.depositSlipWithTax(BigDecimal.ZERO)
+				.depositSlipWithoutTax(BigDecimal.ZERO)
+				.depositSlipType(null)
 				.build();
 	}
 
@@ -445,6 +438,4 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 				.netQuantity(calc.netQuantity())
 				.build();
 	}
-
-
 }

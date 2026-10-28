@@ -60,8 +60,6 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 		SaleConditionModel savedRule = saleConditionRepository.save(mapper.fromDTO(request));
 		return mapper.toDTO(savedRule);
 	}
-
-
 	@Override
 	public SaleConditionDto.Info getCurrentRule(long goodId) {
 		return this.getOnSpecificDateModel(goodId, new Date()) != null ? mapper.toDTO(this.getOnSpecificDateModel(goodId, new Date())) : null;
@@ -127,21 +125,14 @@ public class SaleConditionServiceImpl implements SaleConditionService {
 	public SaleConditionModel getOnSpecificDateModel(long goodId, Date targetDate) {
 		List<SaleConditionModel> candidates = saleConditionRepository.findActiveByGoodIdAndDate(goodId, targetDate);
 
-		// اولویت اول: آیتم های بدون expireDate (expireDate == null)
+		// اولویت اول: رکوردهای دارای تاریخ انقضا (startDate <= date و expireDate > date)
 		Optional<SaleConditionModel> model = candidates.stream()
-				.filter(item -> item.getExpireDate() == null)
+				.filter(item -> item.getExpireDate() != null)
 				.max(Comparator.comparing(SaleConditionModel::getId));
 
-		// اولویت دوم: آیتم های دارای expireDate (expireDate != null)
+		// اولویت دوم: رکوردهای بدون تاریخ انقضا (startDate <= date و expireDate == null)
 		if (model.isEmpty()) {
 			model = candidates.stream()
-					.filter(item -> item.getExpireDate() != null)
-					.max(Comparator.comparing(SaleConditionModel::getId));
-		}
-
-		// اولویت سوم: Fallback - همه رکوردهای بدون expireDate
-		if (model.isEmpty()) {
-			model = saleConditionRepository.findAllByGoodId(goodId).stream()
 					.filter(item -> item.getExpireDate() == null)
 					.max(Comparator.comparing(SaleConditionModel::getId));
 		}

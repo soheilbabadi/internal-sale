@@ -14,6 +14,4 @@ public interface PreciousMetalService {
 	ProformaModelResponse getContractDetail(PreciousMetalProfomaCreateRequest requestDto);
 
 	boolean isPreciousMetalByPaymentCode(String paymentCode);
-
-
 }

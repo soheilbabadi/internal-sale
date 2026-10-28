@@ -17,8 +17,6 @@ public interface RemittanceProcessService {
 	void approveTask(TaskActionDto taskActionDto);
 
 	void rejectTask(TaskActionDto taskActionDto);
-
-
 	void refreshRemittanceStatus();
 
 	boolean canStartProcess();

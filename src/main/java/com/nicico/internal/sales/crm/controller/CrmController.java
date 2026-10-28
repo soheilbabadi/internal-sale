@@ -103,8 +103,6 @@ public class CrmController {
 			@PathVariable Long id) {
 		return ResponseEntity.ok(historyService.getRemittanceDetailById(id));
 	}
-
-
 	@Operation(summary = "خروجی PDF حواله", description = "فایل PDF حواله را پس از تبدیل فایل Word مربوطه برمی گرداند.")
 	@GetMapping("/remittance-export-pdf/{id}")
 	public ResponseEntity<byte[]> exportRemittancePdf(@PathVariable long id) {
@@ -139,8 +137,6 @@ public class CrmController {
 				.contentLength(pdfBytes.length)
 				.body(pdfBytes);
 	}
-
-
 	@Operation(summary = "خروجی FMS حواله", description = "فایل FMS حواله را پس از تبدیل فایل Word مربوطه برمی گرداند.")
 	@GetMapping("/remittance-export-fms/{id}")
 	public ResponseEntity<FmsFile> exportRemittanceFms(@PathVariable long id) {

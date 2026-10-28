@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.history.dto;
-
-
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import io.swagger.annotations.ApiModel;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,14 +11,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class HistoryExtractMasterDto implements Serializable {
-
-
 	@Serial
 	private static final long serialVersionUID = -2562752336835329769L;
 
@@ -95,8 +89,6 @@ public class HistoryExtractMasterDto implements Serializable {
 
 	@Schema(name = "preInvoiceStatus", description = "وضعیت پیش فاکتور", example = "APPROVED")
 	private String preinvoiceStatus;
-
-
 	@Schema(name = "lcStatus", description = "وضعیت اعتبار اسنادی", example = "APPROVED")
 	private String lcStatus;
 
@@ -124,8 +116,6 @@ public class HistoryExtractMasterDto implements Serializable {
 
 	@Schema(description = "تاییدیه نوع تسویه و نوع حواله", name = "acknowledgment")
 	private Acknowledgment acknowledgment;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@ApiModel("HistoryExtractMasterDto.Info")

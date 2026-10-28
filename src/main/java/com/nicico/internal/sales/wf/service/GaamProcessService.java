@@ -16,7 +16,5 @@ public interface GaamProcessService {
 	boolean canStartProcess();
 
 	void refreshStatus();
-
-
 	void refreshOne(Long masterId);
 }

@@ -44,8 +44,6 @@ public class PMSLCController {
 		service.updatePmsLc(pmsId, pmsUserName);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-
-
 	@GetMapping("/send-pms/{lcId}")
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	public ResponseEntity<HttpStatus> sendLcToPms(@PathVariable Long lcId,
@@ -53,13 +51,9 @@ public class PMSLCController {
 		service.createPMSLc(lcId, resend);
 		return new ResponseEntity<>(HttpStatus.CREATED);
 	}
-
-
 	@GetMapping("/fix-null-pms")
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	public ResponseEntity<List<LcDto.Info>> findRemittanceLcWithoutPmsId() {
 		return ResponseEntity.ok(service.findRemittanceLcWithoutPmsId());
 	}
-
-
 }

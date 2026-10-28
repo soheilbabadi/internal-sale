@@ -2,12 +2,10 @@ package com.nicico.internal.sales.customer.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -64,6 +62,9 @@ public class CustomerDTO {
 	@Schema(description = "کد نقش تاجر", example = "TRD-01")
 	private String tradeRoleCode;
 
+	@Schema(description = "کد تفصیلی")
+	private String nosaCode;
+
 	@Data
 	@NoArgsConstructor
 	@ApiModel("CustomerDTO.Create")
@@ -79,13 +80,5 @@ public class CustomerDTO {
 		private String createdBy;
 		private String lastModifiedBy;
 		private String comment;
-	}
-
-	@Data
-	@NoArgsConstructor
-	@AllArgsConstructor
-	@ApiModel("CustomerDTO.Delete")
-	public static class Delete {
-		private List<Long> ids;
 	}
 }

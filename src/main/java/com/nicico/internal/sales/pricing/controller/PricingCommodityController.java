@@ -105,8 +105,6 @@ public class PricingCommodityController {
 		boolean exists = service.existsByPersianShortDate(persianShortDate);
 		return ResponseEntity.ok(exists);
 	}
-
-
 	@GetMapping("/average/molybdenum-high-low")
 	@Operation(summary = "دریافت میانگین قیمت مولیبدن", description = "محاسبه میانگین قیمت مولیبدن (کمترین و بیشترین) در تاریخ مشخص")
 	public ResponseEntity<BigDecimal> getAverageMolybdenumPrice(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
@@ -159,6 +157,4 @@ public class PricingCommodityController {
 
 		return ResponseEntity.ok(result);
 	}
-
-
 }

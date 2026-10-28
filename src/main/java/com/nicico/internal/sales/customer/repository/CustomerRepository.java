@@ -8,14 +8,13 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<CustomerModel, Long>, JpaSpecificationExecutor<CustomerModel> {
 
 	Optional<CustomerModel> findByNationalCode(String nationalCode);
-
-
 	@Query(value = """
 			SELECT
 			    c.*
@@ -36,7 +35,16 @@ public interface CustomerRepository extends JpaRepository<CustomerModel, Long>, 
 					    p.CUST_ID IS  NULL
 					""", nativeQuery = true)
 	Page<CustomerModel> findAllCustomersNotExistsInPms(Pageable pageable);
-
-
 	boolean existsByNationalCode(String nationalCode);
+
+	@Query("""
+			SELECT c FROM CustomerModel c WHERE c.nosaCode IS NULL
+			ORDER BY c.id ASC
+			""")
+	List<CustomerModel> findCustomersReadyForNosaAssignment(Pageable pageable);
+
+	@Query("""
+			SELECT count(c) FROM CustomerModel c WHERE c.nosaCode IS NULL
+			""")
+	long countCustomersReadyForNosaAssignment();
 }

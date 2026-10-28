@@ -36,9 +36,10 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    COALESCE(100 - tigb.N_CASH_PERCENTAGE, 0) AS N_CREDIT_PERCENTAGE,
 		    COALESCE(tigb.N_COMMISSION, 0) AS N_COMMISSION,
 		    tit.CONTRACT_DATE,
-		    tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO AS C_CONTRACT_NO,
+		    tit.CONTRACT_NO || LPAD(tit.CONTRACT_DETAIL_NO, 3, '0') AS C_CONTRACT_NO,
 		    tit.PAYMENT_CODE,
 		    255 AS SETTLEMENT_TYPE,
+			s.SETTLEMENT_DATE,
 		    COALESCE(s.SETTLEMENT_TYPE, 'نامشخص') AS SETTLEMENT_TYPE_DESC,
 		    tit.UNIT_COUNT * 1000 AS UNIT_COUNT,
 		    tit.UNIT_PRICE,
@@ -75,7 +76,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    AND tigb.rn = 1
 		    AND TRUNC(tigb.D_START_DATE) <= TRUNC(TO_DATE(tit.CONTRACT_DATE, 'YYYY/MM/DD', 'NLS_CALENDAR=PERSIAN'))
 		         LEFT JOIN T_INS_TAX_VAT titv ON SUBSTR(tit.CONTRACT_DATE, 1, 4) = titv.JALALI_YEAR
-		         LEFT JOIN TBL_IME_SETTLEMENT s ON s.PAYMENT_CODE = tit.PAYMENT_CODE
+		         LEFT JOIN TBL_IME_SETTLEMENT s ON s.PAYMENT_CODE = tit.PAYMENT_CODE AND s.SETTLEMENT_TYPE NOT IN('انفساخ','نقدی')
 		         LEFT JOIN (
 		    SELECT x.*
 		    FROM (
@@ -87,7 +88,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		      AND (x.C_WORKFLOW_APPROVE_STATUS IS NULL OR x.C_WORKFLOW_APPROVE_STATUS NOT IN ('IN_PROGRESS', 'ACCEPTED'))
 		) tipm ON tit.PAYMENT_CODE = tipm.C_PAYMENT_CODE
 		         LEFT JOIN TBL_IME_PS_OFFERS tio ON tit.OFFER_CODE = tio.ID
-		WHERE tit.CONTRACT_DATE > '1405/01/01'
+		WHERE tit.CONTRACT_DATE > '1405/04/01'
 		  AND tit.CURRENCY_CODE = 1
 		  AND s.PAYMENT_CODE IS NULL
 		  AND NOT EXISTS (
@@ -156,7 +157,10 @@ public class TradeExtractModel implements Serializable {
 	@Column(name = "LC_STATUS")
 	private String lcStatus;
 	@Column(name = "MASTER_ID")
-	private long masterId;
+	private Long masterId;
 	@Column(name = "C_OFFER_DESCRIPTION")
 	private String offerDescription;
+
+	@Column(name = "settlement_date", length = 10)
+	private String settlementDate;
 }

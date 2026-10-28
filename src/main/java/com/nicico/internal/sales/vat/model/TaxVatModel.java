@@ -24,7 +24,7 @@ public class TaxVatModel extends BaseClassModel {
 	private static final long serialVersionUID = 590214217382453171L;
 	@Id
 	private Long id;
-	@Column(name = "jalali_year", nullable = false)
+	@Column(name = "jalali_year")
 	private Integer jalaliYear;
 	@Column(name = "EMISSION_TAX")
 	@DecimalMax(value = "100", message = "percent between 0 and 100")

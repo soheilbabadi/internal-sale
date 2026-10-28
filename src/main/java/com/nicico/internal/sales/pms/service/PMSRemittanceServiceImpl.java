@@ -14,9 +14,9 @@ import com.nicico.internal.sales.ime.broker.model.IMEBrokerModel;
 import com.nicico.internal.sales.ime.broker.repository.IMEBrokerRepository;
 import com.nicico.internal.sales.ime.trade.IMETradeModel;
 import com.nicico.internal.sales.ime.trade.IMETradeRepository;
-import com.nicico.internal.sales.ins.InsPmsImeMapping.InsPmsImeMappingModel;
-import com.nicico.internal.sales.ins.InsPmsImeMapping.InsPmsImeMappingRepository;
-import com.nicico.internal.sales.ins.InsPmsImeMapping.InsPmsImeMappingTypeEnum;
+import com.nicico.internal.sales.pms.model.InsPmsImeMappingModel;
+import com.nicico.internal.sales.pms.repository.InsPmsImeMappingRepository;
+import com.nicico.internal.sales.pms.enums.InsPmsImeMappingTypeEnum;
 import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.lc.model.LcModel;
@@ -101,14 +101,10 @@ public class PMSRemittanceServiceImpl implements PMSRemittanceService {
 	private final FmsDocumentService fmsDocumentService;
 	@Value("${nicico.pdf-api}")
 	private String pdfConvertorUrl;
-
-
 	@Value("${nicico.bcc-address}")
 	private String bccAddress;
 	@Value("${nicico.lc-bcc-address}")
 	private String lcBccAddress;
-
-
 	@Override
 	@Transactional(readOnly = true)
 	public void create(Long remittanceId, String username, boolean resend) throws IOException {
@@ -313,8 +309,6 @@ public class PMSRemittanceServiceImpl implements PMSRemittanceService {
 		} catch (Exception exception) {
 			throw new InternalSaleCustomException.ValidationException("امکان ثبت در سیستم لجستیک وجود ندارد", List.of(exception.getMessage()));
 		}
-
-
 		if (goodsName == null) {
 			errors.add("goodsName can not be null");
 		}
@@ -441,8 +435,6 @@ public class PMSRemittanceServiceImpl implements PMSRemittanceService {
 		}
 		return filePath;
 	}
-
-
 	private EmailRequest prepareRemittanceEmailRequest(RemittanceMasterModel masterModel, CustomerModel customer) {
 		EmailRequest emailRequest = new EmailRequest();
 		emailRequest.setSubject(MSG_EMAIL_REMITTANCE_SUBJECT + " : " + masterModel.getContractNo());

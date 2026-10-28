@@ -165,6 +165,10 @@
       "title": "ایجاد و پیکربندی پیام"
     },
     {
+      "code": "R_INS_NOTIFICATION",
+      "title": "مشاهده و پیکربندی پیام"
+    },
+    {
       "code": "C_INS_SEND_NOTIFICATION",
       "title": "ارسال ایمیلهای اطلاع رسانی"
     },

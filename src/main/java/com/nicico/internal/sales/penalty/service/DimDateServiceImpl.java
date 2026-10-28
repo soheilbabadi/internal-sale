@@ -129,8 +129,6 @@ public class DimDateServiceImpl implements DimDateService {
 	public DimDateDto.Info addSixWorkingDays(Date date) {
 		return addWorkingDays(date, 6);
 	}
-
-
 	private boolean isSameDay(Date date1, Date date2) {
 		Calendar cal1 = Calendar.getInstance();
 		Calendar cal2 = Calendar.getInstance();

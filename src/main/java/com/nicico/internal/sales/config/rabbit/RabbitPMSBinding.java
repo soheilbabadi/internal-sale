@@ -27,8 +27,6 @@ public class RabbitPMSBinding {
 	public Queue responsePreFactorQueue() {
 		return QueueBuilder.durable(properties.getQueues().getPreFactor().getResponseQueue()).build();
 	}
-
-
 	@Bean
 	public Queue responseLcQueue() {
 		return QueueBuilder.durable(properties.getQueues().getLc().getResponseQueue()).build();
@@ -38,8 +36,6 @@ public class RabbitPMSBinding {
 	public Queue responseUpdateLcQueue() {
 		return QueueBuilder.durable(properties.getQueues().getLc().getUpdateResponseQueue()).build();
 	}
-
-
 	@Bean
 	public Queue responseHavalehQueue() {
 		return QueueBuilder.durable(properties.getQueues().getHavaleh().getResponseQueue()).build();
@@ -49,14 +45,10 @@ public class RabbitPMSBinding {
 	public Queue responseUpdateHavalehQueue() {
 		return QueueBuilder.durable(properties.getQueues().getHavaleh().getUpdateResponseQueue()).build();
 	}
-
-
 	@Bean
 	public Binding responsePreFactorBinding() {
 		return BindingBuilder.bind(responsePreFactorQueue()).to(pmsExchange()).with(properties.getQueues().getPreFactor().getResponseRoutingKey());
 	}
-
-
 	@Bean
 	public Binding responseLcBinding() {
 		return BindingBuilder.bind(responseLcQueue()).to(pmsExchange()).with(properties.getQueues().getLc().getResponseRoutingKey());
@@ -66,8 +58,6 @@ public class RabbitPMSBinding {
 	public Binding responseUpdateLcBinding() {
 		return BindingBuilder.bind(responseUpdateLcQueue()).to(pmsExchange()).with(properties.getQueues().getLc().getUpdateResponseRoutingKey());
 	}
-
-
 	@Bean
 	public Binding responseHavalehBinding() {
 		return BindingBuilder.bind(responseHavalehQueue()).to(pmsExchange()).with(properties.getQueues().getHavaleh().getResponseRoutingKey());
@@ -78,33 +68,23 @@ public class RabbitPMSBinding {
 		return BindingBuilder.bind(responseUpdateHavalehQueue())
 				.to(pmsExchange()).with(properties.getQueues().getHavaleh().getUpdateResponseRoutingKey());
 	}
-
-
 	@Bean
 	public MessageConverter jsonMessageConverter() {
 		return new Jackson2JsonMessageConverter();
 	}
-
-
 	@Bean
 	public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
 		final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
 		rabbitTemplate.setMessageConverter(jsonMessageConverter());
 		return rabbitTemplate;
 	}
-
-
 	@Bean
 	public Queue responseCustomerQueue() {
 		return QueueBuilder.durable(properties.getQueues().getCustomer().getResponseQueue()).build();
 	}
-
-
 	@Bean
 	public Binding responseCustomerBinding() {
 		return BindingBuilder.bind(responseCustomerQueue())
 				.to(pmsExchange()).with(properties.getQueues().getCustomer().getResponseRoutingKey());
 	}
-
-
 }

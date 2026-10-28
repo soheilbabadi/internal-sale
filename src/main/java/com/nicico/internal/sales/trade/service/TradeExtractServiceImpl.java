@@ -44,8 +44,6 @@ public class TradeExtractServiceImpl implements TradeExtractService {
 	private final GoodsRepository goodsRepository;
 	private final TradeExtractStartProformaRepository tradeExtractStartProformaRepository;
 	private final TradeExtractStartProformaMapper extractStartProformaMapper;
-
-
 	@Override
 	public TradeExtractDto.Info getByPaymentCode(String paymentCode) {
 		return tradeExtractRepository.findFirstByPaymentCodeOrderByIdDesc(paymentCode).map(mapper::toDTO).orElse(null);
@@ -66,8 +64,6 @@ public class TradeExtractServiceImpl implements TradeExtractService {
 
 		return SearchUtil.search(tradeExtractRepository, request, mapper::toDTO);
 	}
-
-
 	@Override
 	public List<BuyerInfoDto> listAllBuyerInfo() {
 		return tradeExtractRepository.findAll().stream().map(trade -> new BuyerInfoDto(trade.getBuyerName(), trade.getBuyerNationalCode())).toList();

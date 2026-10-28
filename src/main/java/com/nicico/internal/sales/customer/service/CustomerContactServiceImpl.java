@@ -7,6 +7,7 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.customer.dto.CustomerContactDto;
 import com.nicico.internal.sales.customer.dto.CustomerContactMapper;
 import com.nicico.internal.sales.customer.model.CustomerContactModel;
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.customer.repository.CustomerContactRepository;
 import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.util.TextUtility;
@@ -35,15 +36,15 @@ public class CustomerContactServiceImpl implements CustomerContactService {
 		if (customer.getAddress() == null || customer.getEmail() == null || customer.getMobile() == null || customer.getPostCode() == null) {
 			request.setDefault(true);
 		}
-
-
 		request.setValid(true);
 		CustomerContactModel model = mapper.fromDTO(request);
 		repository.saveAndFlush(model);
 		setDefaultContact(model);
-		customer.setLastModifiedDate(new Date());
-		customer.setLastModifiedBy((SecurityUtil.getUsername()));
-		customerRepository.saveAndFlush(customer);
+		if (syncCustomerContactFields(customer, request)) {
+			customer.setLastModifiedDate(new Date());
+			customer.setLastModifiedBy((SecurityUtil.getUsername()));
+			customerRepository.saveAndFlush(customer);
+		}
 		return mapper.toDTO(model);
 	}
 
@@ -96,10 +97,37 @@ public class CustomerContactServiceImpl implements CustomerContactService {
 		if (updatedCustomer.isDefault()) {
 			setDefaultContact(contactModel);
 		}
-		customer.setLastModifiedDate(new Date());
-		customer.setLastModifiedBy((SecurityUtil.getUsername()));
-		customerRepository.saveAndFlush(customer);
+		if (syncCustomerContactFields(customer, request)) {
+			customer.setLastModifiedDate(new Date());
+			customer.setLastModifiedBy((SecurityUtil.getUsername()));
+			customerRepository.saveAndFlush(customer);
+		}
 		return mapper.toDTO(updatedCustomer);
+	}
+
+	private boolean syncCustomerContactFields(CustomerModel customer, CustomerContactDto.Create request) {
+		boolean changed = false;
+		if (!Objects.equals(customer.getPhone(), request.getPhone())) {
+			customer.setPhone(request.getPhone());
+			changed = true;
+		}
+		if (!Objects.equals(customer.getPostCode(), request.getPostCode())) {
+			customer.setPostCode(request.getPostCode());
+			changed = true;
+		}
+		if (!Objects.equals(customer.getEmail(), request.getEmail())) {
+			customer.setEmail(request.getEmail());
+			changed = true;
+		}
+		if (!Objects.equals(customer.getMobile(), request.getMobile())) {
+			customer.setMobile(request.getMobile());
+			changed = true;
+		}
+		if (!Objects.equals(customer.getAddress(), request.getAddress())) {
+			customer.setAddress(request.getAddress());
+			changed = true;
+		}
+		return changed;
 	}
 
 	public void setDefaultContact(CustomerContactModel contact) {

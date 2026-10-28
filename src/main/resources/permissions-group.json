@@ -37,7 +37,9 @@
         "R_INS_LC",
         "C_INS_RESEND_EMAIL",
         "R_INS_LOADING_PLACE",
-        "C_INS_SEND_NOTIFICATION"
+        "C_INS_SEND_NOTIFICATION",
+        "R_INS_NOTIFICATION",
+        "C_INS_NOTIFICATION"
       ]
     },
     {
@@ -86,7 +88,8 @@
         "C_INS_SEND_NOTIFICATION",
         "R_INS_GAAM",
         "C_INS_GAAM",
-        "D_INS_GAAM"
+        "D_INS_GAAM",
+        "R_INS_NOTIFICATION"
       ]
     },
     {
@@ -128,7 +131,8 @@
         "C_INS_RESEND_EMAIL",
         "R_INS_VAT",
         "R_INS_LOADING_PLACE",
-        "C_INS_SEND_NOTIFICATION"
+        "C_INS_SEND_NOTIFICATION",
+        "R_INS_NOTIFICATION"
       ]
     },
     {
@@ -202,7 +206,9 @@
         "D_INS_VAT",
         "R_INS_GAAM",
         "C_INS_GAAM",
-        "D_INS_GAAM"
+        "D_INS_GAAM",
+        "R_INS_NOTIFICATION",
+        "C_INS_NOTIFICATION"
       ]
     },
     {
@@ -231,7 +237,8 @@
         "R_INS_PRICING",
         "R_INS_BILL",
         "R_INS_LOADING_PLACE",
-        "D_INS_EXTRA_BILL"
+        "D_INS_EXTRA_BILL",
+        "R_INS_NOTIFICATION"
       ]
     },
     {
@@ -303,7 +310,9 @@
         "D_INS_BILL",
         "C_INS_NOTIFICATION",
         "R_INS_LOADING_PLACE",
-        "C_INS_LOADING_PLACE"
+        "C_INS_LOADING_PLACE",
+        "R_INS_NOTIFICATION",
+        "C_INS_NOTIFICATION"
       ]
     },
     {
@@ -330,7 +339,8 @@
         "R_INS_ISSUE_PLACE",
         "R_INS_PRICING",
         "R_INS_BILL",
-        "R_INS_LOADING_PLACE"
+        "R_INS_LOADING_PLACE",
+        "R_INS_NOTIFICATION"
       ]
     },
     {
@@ -361,7 +371,9 @@
         "R_INS_EXTRA_BILL",
         "D_INS_EXTRA_BILL",
         "C_INS_EXTRA_BILL",
-        "C_INS_SEND_NOTIFICATION"
+        "C_INS_SEND_NOTIFICATION",
+        "C_INS_NOTIFICATION",
+        "R_INS_NOTIFICATION"
       ]
     },
     {
@@ -404,7 +416,9 @@
         "C_INS_SEND_NOTIFICATION",
         "R_INS_GAAM",
         "C_INS_GAAM",
-        "D_INS_GAAM"
+        "D_INS_GAAM",
+        "R_INS_NOTIFICATION",
+        "C_INS_NOTIFICATION"
       ]
     }
   ]

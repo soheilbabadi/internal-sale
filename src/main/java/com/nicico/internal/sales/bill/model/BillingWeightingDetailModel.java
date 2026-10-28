@@ -27,8 +27,6 @@ public class BillingWeightingDetailModel extends BaseClassModel {
 	@SequenceGenerator(name = "SEQ_INS_BILLING", sequenceName = "SEQ_INS_BILLING", allocationSize = 1)
 	@Column(name = "ID")
 	private Long id;
-
-
 	@ManyToOne(targetEntity = RemittanceMasterModel.class, cascade = CascadeType.ALL)
 	@JoinColumn(name = "F_REMITTANCE_ID", referencedColumnName = "ID", insertable = false, updatable = false)
 	@EqualsAndHashCode.Exclude

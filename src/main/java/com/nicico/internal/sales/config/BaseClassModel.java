@@ -31,14 +31,14 @@ public abstract class BaseClassModel implements Serializable {
 	private static final long serialVersionUID = 8869654958678966384L;
 	@Temporal(TemporalType.TIMESTAMP)
 	@CreatedDate
-	@Column(name = "d_created_date", nullable = false, updatable = false)
+	@Column(name = "d_created_date", updatable = false)
 	private Date createdDate;
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "d_last_modified_date")
 	@org.hibernate.annotations.UpdateTimestamp
 	@LastModifiedDate
 	private Date lastModifiedDate;
-	@Column(name = "c_created_by", length = 250, nullable = false, updatable = false)
+	@Column(name = "c_created_by", length = 250, updatable = false)
 	@CreatedBy
 	private String createdBy;
 	@LastModifiedBy
@@ -50,6 +50,6 @@ public abstract class BaseClassModel implements Serializable {
 	private String description;
 	@Version
 	@NotAudited
-	@Column(name = "n_version", nullable = false)
+	@Column(name = "n_version")
 	private Integer version;
 }

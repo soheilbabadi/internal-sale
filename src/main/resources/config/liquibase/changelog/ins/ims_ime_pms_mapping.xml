@@ -15,8 +15,6 @@
         <createSequence sequenceName="SEQ_INS_PMS_IME_MAPPING"
                         startValue="1"
                         incrementBy="1"/>
-
-
     </changeSet>
     <changeSet id="20250805-02-create-table-ins-pms-ime-mapping-tbl" author="saeb">
         <preConditions onFail="CONTINUE">
@@ -24,8 +22,6 @@
                 <tableExists tableName="T_INS_PMS_IME_MAPPING"/>
             </not>
         </preConditions>
-
-
         <!-- Create Table -->
         <createTable tableName="T_INS_PMS_IME_MAPPING">
             <column name="ID" type="BIGINT">
@@ -79,8 +75,6 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-
-
     </changeSet>
     <changeSet id="20250805-03-create-table-ins-pms-ime-mapping-tbl-aud" author="saeb">
         <preConditions onFail="CONTINUE">

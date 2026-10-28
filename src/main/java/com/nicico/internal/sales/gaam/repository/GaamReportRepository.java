@@ -7,6 +7,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GaamReportRepository extends JpaRepository<GaamReportModel, Long>, JpaSpecificationExecutor<GaamReportModel> {
-
-
 }

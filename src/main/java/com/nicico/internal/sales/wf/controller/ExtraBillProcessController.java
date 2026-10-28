@@ -2,6 +2,7 @@ package com.nicico.internal.sales.wf.controller;
 
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.service.ExtraBillProcessService;
+import com.nicico.internal.sales.wf.detection.ExtraBillStepDetector;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import javax.validation.Valid;
 public class ExtraBillProcessController {
 
 	private final ExtraBillProcessService extraBillProcessService;
+	private final ExtraBillStepDetector extraBillStepDetector;
 
 	@Operation(
 			summary = "شروع فرآیند برات الکترونیک",
@@ -49,10 +51,15 @@ public class ExtraBillProcessController {
 	@Operation(summary = "بروزرسانی وضعیت برات الکترونیک", description = "این متد به صورت دستی وضعیت تمام برات های الکترونیک در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت برات الکترونیک و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید."
 	)
 	@GetMapping("/refresh-status")
-	public ResponseEntity<Void> refreshStatus() {
+	public ResponseEntity<HttpStatus> refreshStatus() {
 		extraBillProcessService.refreshStatus();
 		return ResponseEntity.ok().build();
 	}
-
+	@Operation(summary = "بروزرسانی وضعیت برات الکترونیک", description = "این متد به صورت دستی وضعیت تمام برات های الکترونیک در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت برات الکترونیک و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید.")
+	@GetMapping("/update-acknowledgments")
+	public ResponseEntity<HttpStatus> updateAllAcknowledgments() {
+		extraBillStepDetector.updateAllAcknowledgments();
+		return ResponseEntity.ok().build();
+	}
 
 }

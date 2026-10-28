@@ -65,9 +65,9 @@ public class IMETradeModel implements Serializable {
 	@Id
 	private Long id;
 	@Column(name = "broker_buy_wage")
-	private Float brokerBuyWage;
+	private Double brokerBuyWage;
 	@Column(name = "broker_sell_wage")
-	private Float brokerSellWage;
+	private Double brokerSellWage;
 	@Column(name = "buyer_broker_code")
 	private Integer buyerBrokerCode;
 	@Column(name = "buyer_name")
@@ -93,15 +93,15 @@ public class IMETradeModel implements Serializable {
 	@Column(name = "delivery_place_desc")
 	private String deliveryPlaceDesc;
 	@Column(name = "ime_buy_wage")
-	private Float imeBuyWage;
+	private Double imeBuyWage;
 	@Column(name = "ime_sell_wage")
-	private Float imeSellWage;
+	private Double imeSellWage;
 	@Column(name = "is_canceled")
 	private Boolean isCanceled;
 	@Column(name = "is_delay_penalty")
 	private Boolean isDelayPenalty;
 	@Column(name = "listing_fee")
-	private Float listingFee;
+	private Double listingFee;
 	@Column(name = "manfacturer_name")
 	private String manufacturerName;
 	@Column(name = "measure_unit_code")
@@ -117,9 +117,9 @@ public class IMETradeModel implements Serializable {
 	@Column(name = "buyer_broker_persian_name")
 	private String buyerBrokerPersianName;
 	@Column(name = "seo_buy_wage")
-	private Float seoBuyWage;
+	private Double seoBuyWage;
 	@Column(name = "seo_sell_wage")
-	private Float seoSellWage;
+	private Double seoSellWage;
 	@Column(name = "settlement_date", length = 10)
 	private String settlementDate;
 	@Column(name = "real_settelment_date", length = 10)
@@ -133,7 +133,7 @@ public class IMETradeModel implements Serializable {
 	@Column(name = "supplier_code")
 	private Integer supplierCode;
 	@Column(name = "total_price")
-	private Float totalPrice;
+	private Double totalPrice;
 	@Column(name = "unit_count")
 	private Integer unitCount;
 	@Column(name = "unit_price")

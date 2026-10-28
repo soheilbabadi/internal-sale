@@ -40,6 +40,8 @@ nicico:
   fms:
     base-url: http://apps.nicico.com/fms
     group-id: 68aee2f2f1e468475a30f24f
+  security:
+    sysPassword: e0ed4e456faa0c4ea2db6e15023966883158cdfd
 ui:
   landing-address: http://apps.nicico.com/internal-sales
   redirect-address: http://apps.nicico.com/internal-sales/
@@ -83,3 +85,35 @@ rabbitmq:
           response-routing-key: prd-response-customer
           retry-routing-key: retry-customer
           routing-key: customer
+
+schedule:
+  nosa:
+    lc:
+      cron: "${NOSA_SCHEDULER_CRON:0 */10 * * * ?}"
+    gaam:
+      cron: "${NOSA_SCHEDULER_CRON:0 */10 * * * ?}"
+    extrabill:
+      cron: "${NOSA_SCHEDULER_CRON:0 */10 * * * ?}"
+    customer:
+      cron: "${NOSA_SCHEDULER_CRON:0 */10 * * * ?}"
+    batch-size: 2
+    enabled: false
+
+
+accounting:
+  api:
+    base-url: http://apps.nicico.com/accounting/
+  detail:
+    person:
+      prefix: "02"
+      parent-digits: 1
+    company:
+      prefix: "01"
+      parent-digits: 2
+    financial-instrument:
+      letter-of-credit-main-code: "107/18"
+      letter-of-credit-parent-code: "107"
+      gam-main-code: "114/18"
+      gam-parent-code: "114"
+      electronic-promissory-note-main-code: "115/18"
+      electronic-promissory-note-parent-code: "115"

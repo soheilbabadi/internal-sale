@@ -15,7 +15,7 @@ import com.nicico.internal.sales.proforma.dto.ProformaDetailMapper;
 import com.nicico.internal.sales.proforma.dto.ProformaResponseDto;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
-import com.nicico.internal.sales.proforma.service.ProformaService;
+import com.nicico.internal.sales.proforma.service.ProformaContractService;
 import com.nicico.internal.sales.remittance.dto.RemittanceGoodItemDto;
 import com.nicico.internal.sales.remittance.dto.RemittanceMasterDto;
 import com.nicico.internal.sales.remittance.dto.RemittanceMasterMapper;
@@ -47,7 +47,7 @@ public class HistoryServiceImpl implements HistoryService {
 	private final LcMapper lcMapper;
 	private final RemittanceGoodItemMapper remittanceGoodItemMapper;
 	private final HistoryExtractMapper historyExtractMapper;
-	private final ProformaService proformaService;
+	private final ProformaContractService proformaContractService;
 
 	@Override
 	public HistoryDetailResponse getHistoryDetails(Long historyId) {
@@ -55,9 +55,7 @@ public class HistoryServiceImpl implements HistoryService {
 		var historyRecord = findHistoryRecord(historyId);
 		var proformaMaster = fetchProformaMaster(historyRecord.getMasterId());
 		var remittanceData = fetchRemittanceData(historyRecord.getRemittanceId());
-		ProformaResponseDto prformaResponse = proformaService.getDetailById(historyRecord.getMasterId());
-
-
+		ProformaResponseDto prformaResponse = proformaContractService.getDetailById(historyRecord.getMasterId());
 		return new HistoryDetailResponse(
 				prformaResponse,
 				fetchLcData(proformaMaster),
@@ -75,8 +73,6 @@ public class HistoryServiceImpl implements HistoryService {
 	public HistoryExtractMasterDto.Info findById(Long historyId) {
 		return historyExtractMapper.toDTO(findHistoryRecord(historyId));
 	}
-
-
 	private HistoryExtractMasterModel findHistoryRecord(Long historyId) {
 		return historyRepository.findFirstByIdOrderByMasterIdDesc(historyId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
@@ -132,8 +128,6 @@ public class HistoryServiceImpl implements HistoryService {
 					return RemittanceData.empty();
 				});
 	}
-
-
 	private boolean isInvalidId(Long id) {
 		return id == null || id <= 0;
 	}

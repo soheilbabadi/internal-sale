@@ -34,5 +34,3 @@ public enum Acknowledgment {
 		throw new InternalSaleCustomException.ValidationException("Invalid Acknowledgment: " + input);
 	}
 }
-
-

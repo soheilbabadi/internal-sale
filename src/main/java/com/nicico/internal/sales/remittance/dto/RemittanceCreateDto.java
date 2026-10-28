@@ -29,8 +29,8 @@ public class RemittanceCreateDto implements Serializable {
 	@NotNull(message = "محل صدور الزامی است")
 	@Positive(message = "شناسه محل صدور باید مثبت باشد")
 	private Long issuePlaceId;
-	@Schema(name = "netWeight", description = "وزن خالص خشک")
-	private Double netWeight = 0.0;
+	@Schema(name = "netWeight", description = "وزن")
+	private Double netWeight;
 
 	@Schema(name = "sourceType", description = "نوع حواله", example = "PROFORMA", required = true)
 	@NotNull(message = "نوع حواله الزامی است")

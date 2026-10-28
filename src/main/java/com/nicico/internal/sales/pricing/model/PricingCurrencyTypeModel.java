@@ -23,6 +23,6 @@ public class PricingCurrencyTypeModel extends BaseClassModel {
 	@SequenceGenerator(name = "seq_ins_price_currency", sequenceName = "seq_ins_price_currency", allocationSize = 1)
 	private long id;
 
-	@Column(name = "C_RATE_TYPE", nullable = false, length = 100)
+	@Column(name = "C_RATE_TYPE", length = 100)
 	private String rateType;
 }

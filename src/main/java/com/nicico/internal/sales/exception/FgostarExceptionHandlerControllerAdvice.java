@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public class FgostarExceptionHandlerControllerAdvice {
 
+	private static final String MSG_INTERNAL_SERVER_ERROR = "خطای داخلی سرور";
+
 	private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, HttpServletRequest request) {
 		log.warn("[{}] {} — {}", status.value(), request.getRequestURI(), message);
 		return ResponseEntity.status(status).body(new ErrorResponse(status, message, request.getRequestURI()));
@@ -47,15 +49,11 @@ public class FgostarExceptionHandlerControllerAdvice {
 			InternalSaleCustomException.ValidationException ex, HttpServletRequest request) {
 		return build(HttpStatus.NOT_ACCEPTABLE, ex.getMessage(), request);
 	}
-
-
 	@ExceptionHandler(InternalSaleCustomException.DuplicateEntityException.class)
 	public ResponseEntity<ErrorResponse> duplicateEntityException(
 			InternalSaleCustomException.ValidationException ex, HttpServletRequest request) {
 		return build(HttpStatus.NOT_ACCEPTABLE, ex.getMessage(), request);
 	}
-
-
 	@ExceptionHandler(InternalSaleCustomException.ResourceNotFoundException.class)
 	public ResponseEntity<ErrorResponse> resourceNotFoundException(
 			InternalSaleCustomException.ResourceNotFoundException ex, HttpServletRequest request) {
@@ -73,8 +71,6 @@ public class FgostarExceptionHandlerControllerAdvice {
 			AccessDeniedException ex, HttpServletRequest request) {
 		return build(HttpStatus.FORBIDDEN, ex.getMessage(), request);
 	}
-
-
 	/// /    @ExceptionHandler(InternalSaleCustomException.ResourceUnauthorizedException.class)
 	/// /    public ResponseEntity<ErrorResponse> resourceUnauthorizedException(
 	/// /            InternalSaleCustomException.ResourceUnauthorizedException ex, HttpServletRequest request) {
@@ -99,11 +95,29 @@ public class FgostarExceptionHandlerControllerAdvice {
 		return build(HttpStatus.NOT_ACCEPTABLE, ex.getMessage(), request);
 	}
 
+	@ExceptionHandler(InternalSaleCustomException.ApplicationServerException.class)
+	public ResponseEntity<ErrorResponse> applicationServerException(
+			InternalSaleCustomException.ApplicationServerException ex, HttpServletRequest request) {
+		return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
+	}
+
+	@ExceptionHandler(feign.FeignException.class)
+	public ResponseEntity<ErrorResponse> feignException(
+			feign.FeignException ex, HttpServletRequest request) {
+		String body = ex.contentUTF8();
+		String message = org.apache.commons.lang3.StringUtils.isNotBlank(body) ? body : ex.getMessage();
+		HttpStatus status = HttpStatus.resolve(ex.status());
+		if (status == null) {
+			status = HttpStatus.INTERNAL_SERVER_ERROR;
+		}
+		return build(status, message, request);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleUnexpected(
 			Exception ex, HttpServletRequest request) {
 		log.error("Unhandled exception at {}", request.getRequestURI(), ex);
-		return build(HttpStatus.INTERNAL_SERVER_ERROR, "خطای داخلی سرور", request);
+		return build(HttpStatus.INTERNAL_SERVER_ERROR, MSG_INTERNAL_SERVER_ERROR, request);
 	}
 
 	@Getter

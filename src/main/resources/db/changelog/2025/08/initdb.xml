@@ -247,6 +247,7 @@
             <column name="c_mobile" type="VARCHAR2(11)"/>
             <column name="c_coordinator" type="VARCHAR2(100)"/>
             <column name="c_address" type="VARCHAR2(4000)"/>
+            <column name="C_NOSA_CODE" type="VARCHAR2(50)"/>
         </createTable>
     </changeSet>
     <changeSet id="create-table-t-ins-customer-aud" author="soheil">
@@ -282,6 +283,7 @@
             <column name="c_mobile" type="VARCHAR2(11)"/>
             <column name="c_coordinator" type="VARCHAR2(100)"/>
             <column name="c_address" type="VARCHAR2(4000)"/>
+            <column name="C_NOSA_CODE" type="VARCHAR2(50)"/>
         </createTable>
     </changeSet>
     <changeSet id="create-table-t-ins-customer-contact" author="soheil">
@@ -1036,6 +1038,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="C_PROFORMA_FILE_ID" type="VARCHAR2(100)"/>
+
         </createTable>
     </changeSet>
     <changeSet id="create-table-t-ins-performa-good-item" author="soheil">
@@ -1082,6 +1085,7 @@
             <column name="c_lot_number" type="VARCHAR2(255)"/>
             <column name="n_credit_percentage" type="DECIMAL"/>
             <column name="f_performa_detail_id" type="BIGINT"/>
+
         </createTable>
     </changeSet>
     <changeSet id="create-table-t-ins-performa-master" author="soheil">
@@ -1720,6 +1724,11 @@
             <column name="C_LOADING_PORT" type="VARCHAR2(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="C_CONTRACT_DATE" type="VARCHAR2(20)"/>
+
+
+
+
             <column name="N_GOOD_ID" type="NUMBER(38,0)">
                 <constraints nullable="false"/>
             </column>

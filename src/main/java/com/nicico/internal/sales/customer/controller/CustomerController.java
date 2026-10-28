@@ -36,7 +36,7 @@ public class CustomerController {
 		return ResponseEntity.ok(save);
 	}
 
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_CUSTOMER')")
+	@PreAuthorize("@secUtil.hasAuthority('D_INS_CUSTOMER')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<HttpStatus> delete(@PathVariable Long id) {
 		service.delete(id);

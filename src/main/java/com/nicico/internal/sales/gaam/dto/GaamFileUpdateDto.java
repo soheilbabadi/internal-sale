@@ -17,8 +17,6 @@ public class GaamFileUpdateDto {
 
 	@Schema(description = "شناسه برات")
 	private long id;
-
-
 	@Schema(description = "شناسه فایل اصلاحیه")
 	private String dispatchAttachmentId;
 }

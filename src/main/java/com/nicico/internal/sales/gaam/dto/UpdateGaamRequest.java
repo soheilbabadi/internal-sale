@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.gaam.dto;
-
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,9 +27,6 @@ public class UpdateGaamRequest implements Serializable {
 	private Long agentBankId;
 
 	// ==================== فیلدهای اورق گام الکترونیک ====================
-
-	@Schema(description = "کد تفصیلی حسابداری", example = "123-456-789")
-	private String nosaCode;
 
 	@Schema(description = "کد سپام (شماره اورق گام)", example = "1234-5678-9012-3456")
 	private String sepamCode;

@@ -26,7 +26,7 @@ public class PricingFormulaModel extends BaseClassModel {
 	private Long id;
 
 	@Schema(description = "کد فرمول")
-	@Column(name = "c_formula_code", length = 100, nullable = false, unique = true)
+	@Column(name = "c_formula_code", length = 100, unique = true)
 	private String code;
 
 	@Schema(description = "نام فرمول")
@@ -36,6 +36,4 @@ public class PricingFormulaModel extends BaseClassModel {
 	@Schema(description = "عبارت SpEL")
 	@Column(name = "c_spel_expression", length = 4000)
 	private String spelExpression;
-
-
 }

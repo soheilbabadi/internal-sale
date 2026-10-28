@@ -21,8 +21,6 @@ public interface GoodsService {
 	void delete(Long id);
 
 	String getCleanName(long id);
-
-
 	Long findPmsIdByGoodName(String goodName);
 
 	SearchDTO.SearchRs<PreciousMetalDto.Info> searchPreciousMetal(SearchDTO.SearchRq request);

@@ -14,7 +14,7 @@ import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.proforma.service.ProformaValidationService;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
-import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
+import com.nicico.internal.sales.wf.enums.ProcessTitleEnum;
 import com.nicico.internal.sales.wf.repository.WorkflowRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,17 +30,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class ReversalProformaProcessServiceImpl implements ReversalProformaProcessService {
-	public static final String PROCESS_TITLE_REVERSAL = "REVERSAL";
 	public static final String REVERSAL_PROCESS_ID_DEFAULT = "-";
 	private final BpmsClientService bpmsClientService;
 	private final ProcessVariableProvider processVariableProvider;
 	private final ProformaValidationService proformaValidationService;
 	private final ProformaMasterRepository proformaMasterRepository;
-	private final ProcessUserAccessRepository processUserAccessRepository;
 	private final WorkflowRepository workflowRepository;
 	private final ProformaDetailRepository proformaDetailRepository;
-
-
 	@Override
 	public ProcessInstance startReversal(Long masterId) {
 
@@ -51,12 +47,10 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		var masterModel = proformaMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("قراردادی با ای مشخصات یافت نشد"));
 
-		var workflow = workflowRepository.findByProcessTitleIgnoreCase(PROCESS_TITLE_REVERSAL)
+		var workflow = workflowRepository.findByProcessTitleIgnoreCase(ProcessTitleEnum.REVERSAL.getValue())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("فرایند برگشت پیش فاکتور وجود ندارد"));
 
 		proformaValidationService.validateReversal(masterId);
-
-
 		if (masterModel.getProformaDetailModelLists().isEmpty()) {
 			throw new InternalSaleCustomException.ValidationException("برای این قرارداد هیچ پیش فاکتوری ثبت نشده است");
 		}
@@ -98,8 +92,6 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 			throw new InternalSaleCustomException.BpmsClientException("خطا در اتصال به کارتابل", new ArrayList<>(Collections.singletonList(ex.getMessage())));
 		}
 	}
-
-
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(true);
@@ -111,8 +103,6 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		taskActionDto.setApprove(false);
 		reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
-
-
 	private void reviewTask(ReviewTaskRequest reviewTaskRequest) {
 
 		try {
@@ -134,8 +124,6 @@ public class ReversalProformaProcessServiceImpl implements ReversalProformaProce
 		}
 
 	}
-
-
 	private void updateDetailStatuses(ProformaMasterModel masterModel, ProformaReversalStatus status) {
 		List<Long> detailIds = masterModel.getProformaDetailModelLists().stream()
 				.map(ProformaDetailModel::getId)

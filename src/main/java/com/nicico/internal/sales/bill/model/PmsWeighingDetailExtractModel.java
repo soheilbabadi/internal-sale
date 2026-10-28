@@ -51,8 +51,6 @@ public class PmsWeighingDetailExtractModel implements Serializable {
 	@Id
 	@Column(name = "ID")
 	private Long id;
-
-
 	@Column(name = "C_REMITTANCE_NO")
 	private String remittanceNo;
 
@@ -94,8 +92,6 @@ public class PmsWeighingDetailExtractModel implements Serializable {
 
 	@Column(name = "IS_FINAL")
 	private boolean isFinal;
-
-
 	@Column(name = "C_CONTRACT_NO")
 	private String contractNo;
 

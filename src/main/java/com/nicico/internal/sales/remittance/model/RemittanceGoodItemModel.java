@@ -56,5 +56,6 @@ public class RemittanceGoodItemModel extends BaseClassModel {
 	@ManyToOne(targetEntity = RemittanceMasterModel.class, cascade = CascadeType.ALL)
 	@JoinColumn(name = "F_REMITTANCE_ID", referencedColumnName = "ID")
 	@EqualsAndHashCode.Exclude
+	@ToString.Exclude
 	private RemittanceMasterModel remittanceMasterModel;
 }

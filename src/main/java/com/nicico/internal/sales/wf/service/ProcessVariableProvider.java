@@ -5,6 +5,7 @@ import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
+import com.nicico.internal.sales.wf.enums.ProcessTitleEnum;
 import com.nicico.internal.sales.wf.model.WorkflowModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 
@@ -44,9 +45,9 @@ public interface ProcessVariableProvider {
 	Map<String, Object> createLCRequestVariables(ProformaVariablesInput input);
 
 	Map<String, String> getLcUserAccess();
-
-
 	Map<String, String> getExtraBillUserAccess();
+
+	Map<String, String> getProcessVariablesByTitle(ProcessTitleEnum processTitle);
 
 	ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel model);
 

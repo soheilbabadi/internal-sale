@@ -34,8 +34,6 @@ public class LcValidationServiceImpl implements LcValidationService {
 	private static final String MSG_LC_ALREADY_CANCELED = "این اعتبار اسنادی قبلا ابطال شده است";
 	private static final String MSG_LC_MUST_BE_HANDLED_IN_WORKFLOW = "این اعتبار اسنادی باید از طریق کارتابل تعیین تکلیف شود";
 	private static final String MSG_REMITTANCE_ALREADY_ISSUED = "برای این اعتبار اسنادی حواله صادر شده است";
-
-
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final LcRepository lcRepository;
 	private final ProcessUserAccessRepository userAccessRepository;
@@ -59,8 +57,6 @@ public class LcValidationServiceImpl implements LcValidationService {
 			throw new InternalSaleCustomException.ValidationException(MSG_INVALID_DATA, errors);
 		}
 	}
-
-
 	private void validateProformaIssueType(ProformaMasterModel proforma, List<String> errors) {
 		if (proforma.getProformaIssueType() == ProformaIssueType.FROM_CREDIT_FACILITIES
 				|| proforma.getProformaIssueType() == ProformaIssueType.CASH) {
@@ -109,8 +105,6 @@ public class LcValidationServiceImpl implements LcValidationService {
 			}
 		}
 	}
-
-
 	@Override
 	public WorkflowModel getWorkflowByTitle() {
 		return workflowRepository.findByProcessTitleIgnoreCase(WORKFLOW_TITLE)
@@ -144,6 +138,4 @@ public class LcValidationServiceImpl implements LcValidationService {
 		}
 		return errors;
 	}
-
-
 }

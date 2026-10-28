@@ -20,15 +20,11 @@ public class PricingCommodityDto implements Serializable {
 	private static final long serialVersionUID = 9078828953143376738L;
 
 	private Long id;
-
-
 	@Schema(description = "روز هفته")
 	private String dayOfWeek;
 
 	@Schema(description = "تاریخ شمسی ")
 	private String persianShortDate;
-
-
 	@Schema(description = "تاریخ میلادی")
 	private Date shortDate;
 
@@ -70,8 +66,6 @@ public class PricingCommodityDto implements Serializable {
 
 	@Schema(description = "قیمت مولیبدن عصر (USD/پوند)")
 	private BigDecimal molybdenumPm;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@AllArgsConstructor

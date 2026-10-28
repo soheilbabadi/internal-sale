@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
-
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,8 +33,6 @@ public class ExportNotificationConfigDto implements Serializable {
 
 	@Schema(description = "آیا در سیستم لجستیک ذخیره شود؟", example = "true")
 	private Boolean sendPms = true;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@ApiModel("ExportNotificationConfigDto.Create")

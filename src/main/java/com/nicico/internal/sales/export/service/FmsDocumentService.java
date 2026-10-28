@@ -6,8 +6,6 @@ import com.fgostar.fms.sdk.model.FmsFile;
  * Service interface for managing document files (Proforma and Remittance) in FMS.
  */
 public interface FmsDocumentService {
-
-
 	/**
 	 * Gets the proforma PDF from FMS if it exists, otherwise generates, uploads, and returns it.
 	 */
@@ -17,8 +15,6 @@ public interface FmsDocumentService {
 	 * Gets the proforma PDF bytes. If not in FMS, generates, uploads, and returns bytes.
 	 */
 	byte[] getProformaPdfBytes(Long detailId);
-
-
 	FmsFile downloadProformaPdfFromFms(Long detailId);
 
 	FmsFile uploadRemittancePdfToFms(Long masterId);
@@ -37,6 +33,4 @@ public interface FmsDocumentService {
 	 * Performs a lightweight request to FMS to validate connectivity and authorization.
 	 */
 	boolean testConnection();
-
-
 }

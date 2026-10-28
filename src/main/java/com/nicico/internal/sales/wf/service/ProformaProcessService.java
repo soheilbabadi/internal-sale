@@ -10,13 +10,9 @@ public interface ProformaProcessService {
 	ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto);
 
 	ProcessInstance startProformaProcess(ProformaVariablesInput input);
-
-
 	ProcessInstance startProformaProcess(Long masterId);
 
 	void reviewTask(ReviewTaskRequest reviewTaskRequestDto);
-
-
 	void startFailedProcess();
 
 	void approveTask(TaskActionDto taskActionDto);

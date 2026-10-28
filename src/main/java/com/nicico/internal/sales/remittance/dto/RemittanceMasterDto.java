@@ -73,6 +73,10 @@ public class RemittanceMasterDto implements Serializable {
 
 	@Schema(description = "تاریخ قرارداد", name = "contractDate", example = "2023-09-15T00:00:00Z")
 	private Date contractDate;
+
+	@Schema(description = "تاریخ قرارداد", name = "contractDateJalali", example = "1404/01/01")
+	private String contractDateJalali;
+
 	@Schema(description = "شماره قرارداد", name = "contractNo", example = "CT20230915001")
 	private String contractNo;
 
@@ -136,8 +140,6 @@ public class RemittanceMasterDto implements Serializable {
 
 	@Schema(description = " محل صدور حواله", name = "issuePlaceId", example = "فروش تهران")
 	private String issuePlace;
-
-
 	@Schema(description = "شماره پیش فاکتور", name = "proformaNo", example = "10440000")
 	private String proformaNo;
 
@@ -162,12 +164,8 @@ public class RemittanceMasterDto implements Serializable {
 
 	@Schema(description = "شناسه معامله", name = "tradeId", example = "54321")
 	private Long tradeId;
-
-
 	@Schema(description = "جریمه تاخیر در تحویل", name = "isDelayPenalty", example = "false")
 	private boolean isDelayPenalty;
-
-
 	@Schema(name = "settlementType", description = "شناسه نوع تسویه")
 	private String settlementType;
 
@@ -176,8 +174,6 @@ public class RemittanceMasterDto implements Serializable {
 
 	@Schema(name = "pmsId", description = "شناسه لجستیک", example = "126-11")
 	private String pmsId;
-
-
 	@Schema(description = "شناسه کارگزار", name = "brokerId", example = "12")
 	private Long brokerId;
 
@@ -198,8 +194,6 @@ public class RemittanceMasterDto implements Serializable {
 
 	@Schema(description = "نماد کالا در بورس", name = "imeCommoditySymbol", example = "OIL")
 	private String imeCommoditySymbol;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@AllArgsConstructor
 	@Data

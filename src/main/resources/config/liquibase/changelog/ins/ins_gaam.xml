@@ -146,8 +146,6 @@
             <column name="C_PROCESS_ID" type="VARCHAR2(50)"/>
             <column name="N_CONTRACT_NO" type="BIGINT"/>
             <column name="F_TRADE_ID" type="BIGINT"/>
-
-
             <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)"/>
             <column name="IS_RECKONING_SEND" type="NUMBER(1)"/>
             <column name="D_RECKONING_SEND_DATE" type="DATETIME"/>
@@ -160,8 +158,6 @@
             <column name="N_EXTRA_BILL_OF_PERCENT" type="NUMBER(10,2)"/>
         </createTable>
     </changeSet>
-
-
     <changeSet id="20260719-06-idx-bank-bill-proforma-detail" author="soheil">
         <preConditions onFail="MARK_RAN">
             <and>

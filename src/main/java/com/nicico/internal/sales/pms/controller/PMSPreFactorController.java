@@ -31,8 +31,6 @@ public class PMSPreFactorController {
 		pmsPreFactorService.createPreFactorFromProformaMasterId(proformaMasterId, pmsUserName, resend);
 		return ResponseEntity.accepted().build();
 	}
-
-
 	@GetMapping("/send-pms/{proformaMasterId}")
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA')")
 	public ResponseEntity<HttpStatus> sendPms(@PathVariable Long proformaMasterId,

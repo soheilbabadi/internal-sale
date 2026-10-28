@@ -14,7 +14,7 @@ import com.nicico.internal.sales.lc.dto.request.UpdateStartedLcRequest;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
 import com.nicico.internal.sales.lc.service.LcIssueService;
 import com.nicico.internal.sales.lc.service.LcService;
-import com.nicico.internal.sales.nosa.LcNosaCodeService;
+
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ import java.util.*;
 @RequestMapping("/api/v1/ins/lc")
 public class LcController {
 	private final LcService lcService;
-	private final LcNosaCodeService lcNosaCodeService;
+
 	private final LcIssueService lcIssueService;
 
 	@Operation(
@@ -160,14 +160,6 @@ public class LcController {
 		return ResponseEntity.ok(lcService.getByProformaDetailId(detailId));
 	}
 
-	@Operation(
-			summary = "دریافت کد نوسا بانک",
-			description = "با دریافت شناسه بانک، کد نوسا (Nosa Code) مربوط به آن بانک را بازمی گرداند. این کد برای ارتباط با سامانه های بانکی مورد استفاده قرار می گیرد."
-	)
-	@GetMapping("/get-nosa-code/{bankId}")
-	public ResponseEntity<String> getNosaCode(@PathVariable Long bankId) {
-		return ResponseEntity.ok(lcNosaCodeService.getNosaCode(bankId));
-	}
 
 	@Operation(
 			summary = "به روزرسانی LC پذیرفته شده",
@@ -178,8 +170,6 @@ public class LcController {
 	public ResponseEntity<LcDto.Info> updateLc(@Valid @RequestBody UpdateAcceptedLcRequest updateAcceptedLcRequest) {
 		return ResponseEntity.ok(lcService.updateCurrentAcceptedLc(updateAcceptedLcRequest));
 	}
-
-
 	@Operation(
 			summary = "ارسال ایمیل تایید تسویه",
 			description = "برای اعتبار اسنادی مشخص، ایمیل تایید تسویه حساب به ذینفع و کارگزار ارسال می شود. این عملیات پس از اتمام فرآیند تسویه و تایید نهایی انجام می گردد."
@@ -199,13 +189,21 @@ public class LcController {
 	public ResponseEntity<List<LcDto.Info>> findUnsentReckoning() {
 		return ResponseEntity.ok(lcService.findUnsentReckoning());
 	}
-
-
 	@Operation(
 			summary = "جستجو در LCهای آماده برای تایید تسویه",
 			description = "امکان جستجو، فیلتر و مرتب سازی در LCهای آماده برای تایید تسویه را فراهم می کند. علاوه بر فیلترهای ارسالی کاربر، شرط contractDate بزرگتر از 1405/03/01 نیز به صورت پیش فرض اعمال می شود."
 	)
-	@PostMapping("/get-ready-reckoning")
+//	@PostMapping("/get-ready-reckoning")
+//	public ResponseEntity<SearchDTO.SearchRs<LcDto.Info>> findReadyReckoning(@RequestBody(required = false) SearchDTO.SearchRq searchRq,
+//	                                                                         @RequestParam(required = false) MultiValueMap<String, String> criteria) {
+//		if (criteria != null && !criteria.isEmpty()) {
+//			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
+//		}
+//
+//		return ResponseEntity.ok(lcService.findReadyReckoning(searchRq));
+//	}
+
+	@PostMapping("/search-ready-reckoning")
 	public ResponseEntity<SearchDTO.SearchRs<LcDto.Info>> findReadyReckoning(@RequestBody(required = false) SearchDTO.SearchRq searchRq,
 	                                                                         @RequestParam(required = false) MultiValueMap<String, String> criteria) {
 		if (criteria != null && !criteria.isEmpty()) {
@@ -215,10 +213,7 @@ public class LcController {
 		return ResponseEntity.ok(lcService.findReadyReckoning(searchRq));
 	}
 
-	@Operation(
-			summary = "ابطال اعتبار اسنادی",
-			description = "با دریافت درخواست ابطال شامل شناسه LC و دلیل ابطال، عملیات لغو اعتبار اسنادی انجام می شود. پس از ابطال، وضعیت LC به 'لغو شده' تغییر می یابد و عملیات بعدی غیرفعال می شود."
-	)
+	@Operation(summary = "ابطال اعتبار اسنادی", description = "با دریافت درخواست ابطال شامل شناسه LC و دلیل ابطال، عملیات لغو اعتبار اسنادی انجام می شود. پس از ابطال، وضعیت LC به 'لغو شده' تغییر می یابد و عملیات بعدی غیرفعال می شود.")
 	@PreAuthorize("@secUtil.hasAuthority('D_INS_LC')")
 	@PutMapping("/cancel-lc")
 	public ResponseEntity<?> cancelLc(@RequestBody LcCancelRequest request) {
@@ -226,10 +221,7 @@ public class LcController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@Operation(
-			summary = "لیست دلایل ابطال اعتبار اسنادی",
-			description = "لیست تمام دلایل قابل قبول برای ابطال اعتبار اسنادی را شامل کلید و مقدار (به فارسی) بازمی گرداند. این لیست برای نمایش در فرم های ابطال مورد استفاده قرار می گیرد."
-	)
+	@Operation(summary = "لیست دلایل ابطال اعتبار اسنادی", description = "لیست تمام دلایل قابل قبول برای ابطال اعتبار اسنادی را شامل کلید و مقدار (به فارسی) بازمی گرداند. این لیست برای نمایش در فرم های ابطال مورد استفاده قرار می گیرد.")
 	@PreAuthorize("@secUtil.hasAuthority('D_INS_LC')")
 	@GetMapping("/get-cancellation-reasons")
 	public List<Map<String, String>> getLcCancellationReasonsAsEnums() {
@@ -261,7 +253,6 @@ public class LcController {
 		return ResponseEntity.ok(lcService.getLcHistoryDetail(lcId));
 	}
 
-
 	@Operation(
 			summary = "تاریخچه تغییرات LC",
 			description = "لیست کامل تاریخچه تغییرات اعتبار اسنادی را شامل تمام ویرایش ها، به روزرسانی ها و تغییرات وضعیت به همراه زمان و کاربر انجام دهنده بازمی گرداند."
@@ -270,19 +261,6 @@ public class LcController {
 	public ResponseEntity<List<LcAuditDto>> getAuditHistory(@PathVariable Long lcId) {
 		return ResponseEntity.ok(lcService.getAuditHistory(lcId));
 	}
-
-
-	@Operation(
-			summary = "به روزرسانی تاییدیه دریافت LC",
-			description = "وضعیت تایید دریافت اعتبار اسنادی را برای LC مشخص به روزرسانی می کند. این عملیات زمانی انجام می شود که کاربر دریافت مدارک و اطلاعات LC را تایید نماید."
-	)
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
-	@PutMapping("/update-acknowledgment/{lcId}")
-	public ResponseEntity<Void> updateLcAcknowledgment(@PathVariable Long lcId) {
-		lcService.updateLcAcknowledgment(lcId);
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
-
 
 	@Operation(
 			summary = "گزارش تسک های کاربر",
@@ -293,17 +271,8 @@ public class LcController {
 		return ResponseEntity.ok(lcService.getUserTasksReport(lcId));
 	}
 
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
-	@PutMapping("/update-all-acknowledgment")
-	public ResponseEntity<Void> updateAllLcAcknowledgment() {
-		lcService.updateAllAcknowledgments();
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
-
 	@PostMapping("/search-issue-history")
-	public ResponseEntity<SearchDTO.SearchRs<LcIssueProviderDto.Info>> searchIssueHistory(
-
-			@RequestBody(required = false) SearchDTO.SearchRq searchRq, @RequestParam(required = false) MultiValueMap<String, String> criteria) {
+	public ResponseEntity<SearchDTO.SearchRs<LcIssueProviderDto.Info>> searchIssueHistory(@RequestBody(required = false) SearchDTO.SearchRq searchRq, @RequestParam(required = false) MultiValueMap<String, String> criteria) {
 		if (criteria != null && !criteria.isEmpty()) {
 			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
 		}

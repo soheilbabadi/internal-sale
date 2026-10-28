@@ -78,8 +78,6 @@ public class GoodsServiceImpl implements GoodsService {
 						MSG_GOOD_NOT_FOUND));
 		return goodsModel.getName().replace(goodsModel.getImeCommoditySymbol(), "").replace("_", "").trim();
 	}
-
-
 	@Override
 	public Long findPmsIdByGoodName(String goodName) {
 		return pmsMappingRepository.findAll().stream().max((a, b) -> {
@@ -125,10 +123,6 @@ public class GoodsServiceImpl implements GoodsService {
 	public void delete(long id) {
 		goodsRepository.deleteById(id);
 	}
-
-
-
-
 	@Override
 	public boolean isPreciousMetal(long goodId) {
 		return preciousMetalRepository.existsById(goodId);

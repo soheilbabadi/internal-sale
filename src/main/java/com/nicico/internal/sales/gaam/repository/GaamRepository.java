@@ -3,6 +3,7 @@ package com.nicico.internal.sales.gaam.repository;
 import com.nicico.internal.sales.gaam.model.GaamModel;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -41,6 +42,30 @@ public interface GaamRepository extends JpaRepository<GaamModel, Long>, JpaSpeci
 	);
 
 	List<GaamModel> findAllByProcessId(String processInstanceId);
+
+	Optional<GaamModel> findFirstByPmsBillId(String pmsBillId);
+
+	@Query(value = "SELECT g.* FROM T_INS_GAAM g " +
+			"INNER JOIN T_INS_PERFORMA_DETAIL pd ON g.F_PROFORMA_DETAIL_ID = pd.ID " +
+			"WHERE pd.C_PROFORMA_REVERSAL_STATUS != 'CANCELED' and g.C_ACKNOWLEDGMENT != 'CANCELED' " +
+			"AND g.F_PERFORMA_MASTER_ID = :proformaMasterId",
+			nativeQuery = true)
+	List<GaamModel> findByMasterId(@Param("proformaMasterId") Long proformaMasterId);
+
+	@Query("""
+			SELECT g FROM GaamModel g WHERE g.nosaCode IS NULL 
+			AND g.workflowApproveStatus in ( com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus.ACCEPTED) 
+			AND (g.sepamCode IS NOT NULL OR g.treasuryId IS NOT NULL)
+			ORDER BY g.id ASC
+			""")
+	List<GaamModel> findGaamsReadyForNosaAssignment(Pageable pageable);
+
+	@Query("""
+			SELECT count(g) FROM GaamModel g WHERE g.nosaCode IS NULL 
+			AND g.workflowApproveStatus in ( com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus.ACCEPTED) 
+			AND (g.sepamCode IS NOT NULL OR g.treasuryId IS NOT NULL)
+			""")
+	long countGaamsReadyForNosaAssignment();
 
 
 }

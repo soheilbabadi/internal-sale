@@ -15,8 +15,6 @@ public interface ProformaService {
 	SearchDTO.SearchRs<ProformaMasterDTO.Info> search(SearchDTO.SearchRq request);
 
 	SearchDTO.SearchRs<ProformaMasterDTO.Info> getByNationalCode(List<String> nationalCodes);
-
-
 	@Transactional
 	void clearAllProformaFileIds(String proformaNo);
 
@@ -50,8 +48,8 @@ public interface ProformaService {
 	List<ProformaMasterDTO.Info> getCancelable();
 
 	String getLotNumberByTradeId(Long tradeId);
-
-
 	@Transactional
 	void resetReversalByContractNo(Long contractNo);
+
+
 }

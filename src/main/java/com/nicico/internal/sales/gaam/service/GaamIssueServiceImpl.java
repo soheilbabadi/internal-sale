@@ -17,12 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class GaamIssueServiceImpl implements GaamIssueService {
-	private static final String MSG_PROFORMA_LC_ISSUE_NOT_FOUND = "رکورد پیش فاکتور صدور اعتبار اسنادی یافت نشد";
+	private static final String MSG_PROFORMA_LC_ISSUE_NOT_FOUND = "رکورد پیش فاکتور جهت صدور اعتبار پیدا نشد";
 	private final GaamIssueRepository repository;
 
 	private final GaamIssueMapper mapper;
-
-
 	@Override
 	public GaamIssueProviderDto.Info getById(Long id) {
 		GaamIssueProviderModel entity = repository.findById(id)
@@ -30,8 +28,6 @@ public class GaamIssueServiceImpl implements GaamIssueService {
 						MSG_PROFORMA_LC_ISSUE_NOT_FOUND));
 		return mapper.toDTO(entity);
 	}
-
-
 	@Override
 	public List<GaamIssueProviderDto.Info> getByMasterId(Long masterId) {
 		var entities = repository.findByMasterId(masterId);
@@ -39,8 +35,6 @@ public class GaamIssueServiceImpl implements GaamIssueService {
 				.map(mapper::toDTO)
 				.toList();
 	}
-
-
 	@Override
 	public SearchDTO.SearchRs<GaamIssueProviderDto.Info> search(SearchDTO.SearchRq request) {
 		return SearchUtil.search(repository, request, mapper::toDTO);

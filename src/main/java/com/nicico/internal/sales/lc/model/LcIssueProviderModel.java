@@ -33,6 +33,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		             tipd.C_PERFORMA_NO,
 		             tipd.N_FINAL_PRICE,
 		             tipd.D_PERFORMA_DATE,
+		             tipd.D_PERFORMA_DATE AS D_RECKONING_SEND_DATE,
 		             tipm.C_CONTRACT_DATE,
 		             tipm.N_CONTRACT_NO,
 		             tipm.C_NATIONAL_CODE,
@@ -64,13 +65,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		                            ON tipd.F_PERFORMA_MASTER_ID = tipm.ID
 		                  INNER JOIN TBL_IME_TRADE tit
 		                             ON tit.ID = tipm.F_TRADE_ID
-		         WHERE tipm.C_CONTRACT_DATE> '1405/03/01' AND tipm.C_PROFORMA_ISSUE_TYPE IN ('LETTER_OF_CREDIT_OPENING','GAM_BONDS')
-		
-		           AND NOT EXISTS (
-		             SELECT 1
-		             FROM TBL_IME_SETTLEMENT tis WHERE tis.PAYMENT_CODE = tipm.C_PAYMENT_CODE AND SETTLEMENT_TYPE IN('انفساخ','نقدی')
-		
-		         )
+		         WHERE tipm.C_CONTRACT_DATE> '1405/03/01' AND tipm.C_PROFORMA_ISSUE_TYPE IN ('LETTER_OF_CREDIT_OPENING')
 		           AND tipm.C_WORKFLOW_APPROVE_STATUS='ACCEPTED'
 		         AND NVL(til.C_WORKFLOW_APPROVE_STATUS, 'NOT_STARTED') != 'ACCEPTED'
 		
@@ -114,7 +109,7 @@ public class LcIssueProviderModel implements Serializable {
 	@Column(name = "N_CUSTOMER_ID")
 	private Long customerId;
 	@Schema(description = "نام مشتری")
-	@Column(name = "C_CUSTOMER_NAME", length = 255)
+	@Column(name = "C_CUSTOMER_NAME")
 	private String customerName;
 	@Schema(description = "کد اقتصادی")
 	@Column(name = "C_ECONOMIC_CODE", length = 12)
@@ -123,7 +118,7 @@ public class LcIssueProviderModel implements Serializable {
 	@Column(name = "N_GOOD_ID")
 	private Long goodId;
 	@Schema(description = "نام کالا")
-	@Column(name = "C_GOOD_NAME", length = 255)
+	@Column(name = "C_GOOD_NAME")
 	private String goodName;
 	@Schema(description = "درصد اعتباری")
 	@Column(name = "N_CREDIT_PERCENTAGE", precision = 5, scale = 2)
@@ -153,8 +148,6 @@ public class LcIssueProviderModel implements Serializable {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "C_WORKFLOW_APPROVE_STATUS", length = 100)
 	private WorkflowApproveStatus workflowApproveStatus;
-
-
 	@Column(name = "N_BROKER_ID")
 	private Long brokerId;
 
@@ -169,5 +162,7 @@ public class LcIssueProviderModel implements Serializable {
 
 	@Column(name = "C_IME_COMMODITY_SYMBOL", length = 100)
 	private String imeCommoditySymbol;
-
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "D_RECKONING_SEND_DATE")
+	private Date reckoningSendDate;
 }

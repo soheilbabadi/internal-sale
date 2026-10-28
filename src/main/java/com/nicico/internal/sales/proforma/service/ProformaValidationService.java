@@ -21,7 +21,6 @@ public interface ProformaValidationService {
 	boolean canStartReversal(Long contractNo);
 
 	List<String> validateCashSaleData(CashSaleCreateRequest requestDto);
-
-
+	List<String> validateCashDepositData(CashDepositCreateRequest requestDto);
 	List<String> validateMixedProforma(MixedProformaRequest requestDto);
 }

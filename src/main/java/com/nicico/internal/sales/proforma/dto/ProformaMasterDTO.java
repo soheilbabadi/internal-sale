@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.proforma.dto;
 
+import com.nicico.internal.sales.proforma.enums.DepositSlipType;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import io.swagger.annotations.ApiModel;
@@ -79,12 +80,8 @@ public class ProformaMasterDTO implements Serializable {
 
 	@Schema(description = "آیا فرایند ابطال به اتمام رسیده است یا خیر", name = "isReversalProcessFinal")
 	private Boolean isReversalProcessFinal;
-
-
 	@Schema(name = "contractDate", description = "تاریخ قرارداد", example = "1402/01/01")
 	private String contractDate;
-
-
 	@Schema(description = "شناسه کارگزار", name = "brokerId", example = "15")
 	private Long brokerId;
 
@@ -104,6 +101,15 @@ public class ProformaMasterDTO implements Serializable {
 
 	@Schema(description = "شناسه آگهی عرضه", name = "tradeId", example = "12")
 	private Long tradeId;
+
+	@Schema(description = "فیش واریزی با مالیات", name = "depositSlipWithTax", example = "0")
+	private BigDecimal depositSlipWithTax;
+	@Schema(description = "فیش واریزی بدون مالیات", name = "depositSlipWithoutTax", example = "0")
+	private BigDecimal depositSlipWithoutTax;
+
+	@Schema(description = "واریز با مالیات یا بدون مالیات", name = "depositSlipType", example = "WITH_TAX")
+	private DepositSlipType depositSlipType;
+
 
 	@EqualsAndHashCode(callSuper = true)
 	@AllArgsConstructor

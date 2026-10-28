@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -40,8 +39,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 	private static final String PROFORMA_TAG_TYPE_VALUE = "proforma";
 	private static final String PROFORMA_TAG_ID_CLASS_VALUE = "com.nicico.internal.sales.proforma.model.ProformaMasterModel";
-
-
 	private static final String PDF_CONTENT_TYPE = "application/pdf";
 
 	private static final String REMITTANCE_TAG_TYPE = "entityType";
@@ -64,8 +61,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 	@Value("${nicico.fms.group-id}")
 	private String fmsGroupId;
-
-
 	public FmsFile getOrCreateProformaPdf(Long detailId) {
 		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
 		ProformaDetailModel detailModel = proformaDetailRepository.findById(detailId)
@@ -85,8 +80,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		if (detailModel.getProformaMasterModel().getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED && detailModel.getProformaFileId() != null) {
 			return fmsFileService.download(fmsGroupId, detailModel.getProformaFileId(), credentials);
 		}
-
-
 //		Map<String, Object> searchTags = Map.of(
 //				PROFORMA_TAG_TYPE,
 //				PROFORMA_TAG_TYPE_VALUE,
@@ -112,8 +105,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		saveProformaFileIdToDetails(List.of(detailId), uuid);
 		log.info("منبع فایل پیش فاکتور {}: تازه ساخته و در FMS آپلود شد. uuid={}", detailId, uuid);
 		return new FmsFile(uuid, fileName, PDF_CONTENT_TYPE, pdfContent);
-
-
 //		return new FmsFile(UUID.randomUUID().toString(), fileName, PDF_CONTENT_TYPE, pdfContent);
 	}
 
@@ -151,41 +142,22 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 			return null;
 		}
 	}
-
-
 	public FmsFile getOrCreateRemittancePdf(Long masterId) {
 		FmsCredentials credentials = FmsCredentials.oauth(getCurrentUserToken());
 		var masterModel = remittanceMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("اطلاعات حواله وجود ندارد"));
 
-		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
-			return new FmsFile(UUID.randomUUID().toString(), masterModel + ".pdf", PDF_CONTENT_TYPE, exportDocService.exportRemittancePdf(masterId));
-		}
+//		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS) {
+//			// TODO(confirm) نام فایل بر اساس الگوی موجود در همین کلاس (remittance_{id}.pdf) اصلاح شد؛ قبلاً masterModel + ".pdf" بود که فراخوانی toString روی موجودیت، باعث StackOverflowError می‌شد
+//			return new FmsFile(UUID.randomUUID().toString(), "remittance_" + masterId + ".pdf", PDF_CONTENT_TYPE, exportDocService.exportRemittancePdf(masterId));
+//		}
 		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.CANCELED) {
 			throw new InternalSaleCustomException.ValidationException("حواله با شناسه " + masterModel.getId() + " ابطال شده است و نمی‌توان آن را صادر کرد.");
 
 		}
 
-		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED && masterModel.getRemittanceFileId() != null) {
-			return fmsFileService.download(fmsGroupId, masterModel.getRemittanceFileId(), credentials);
-		}
-
-
-//		Map<String, Object> searchTags = Map.of(
-//				REMITTANCE_TAG_TYPE,
-//				REMITTANCE_TAG_TYPE_VALUE,
-//				REMITTANCE_TAG_ID,
-//				masterId,
-//				REMITTANCE_TAG_ID_CLASS,
-//				REMITTANCE_TAG_ID_CLASS_VALUE
-//		);
-//
-//		FilePage page = fmsFileService.searchInGroup(fmsGroupId, searchTags, true, 0, 1, credentials);
-//
-//		if (!page.isEmpty()) {
-//			FileDto existing = page.getFiles().get(0);
-//			log.info("منبع فایل حواله {}: FMS (از قبل موجود بود). uuid={}", masterId, existing.getUuid());
-//			return fmsFileService.download(fmsGroupId, existing.getUuid(), credentials);
+//		if (masterModel.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED && masterModel.getRemittanceFileId() != null) {
+//			return fmsFileService.download(fmsGroupId, masterModel.getRemittanceFileId(), credentials);
 //		}
 
 		log.info("فایل حواله {} در FMS یافت نشد، در حال ساخت...", masterId);
@@ -199,8 +171,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		log.info("منبع فایل حواله {}: تازه ساخته و در FMS آپلود شد. uuid={}", masterId, uuid);
 		return new FmsFile(uuid, fileName, PDF_CONTENT_TYPE, pdfContent);
 	}
-
-
 	@Override
 	public byte[] getRemittancePdfBytes(Long masterId) {
 		return getOrCreateRemittancePdf(masterId).getContent();
@@ -213,8 +183,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 		fmsFileService.searchInGroup(fmsGroupId, Map.of("health-check", "true"), true, 0, 1, credentials);
 		return true;
 	}
-
-
 	/**
 	 * دریافت Bearer Token از درخواست جاری.
 	 */
@@ -237,8 +205,6 @@ public class FmsDocumentServiceImpl implements FmsDocumentService {
 
 		return token;
 	}
-
-
 	private String uploadProformaToFms(Long detailId, String fileName, byte[] pdfContent, FmsCredentials credentials) {
 
 		UploadRequest uploadRequest = UploadRequest.of(fmsGroupId, fileName, pdfContent)

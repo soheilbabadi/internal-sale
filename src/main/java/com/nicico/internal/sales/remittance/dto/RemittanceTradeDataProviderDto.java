@@ -80,8 +80,6 @@ public class RemittanceTradeDataProviderDto implements Serializable {
 
 	@Schema(description = "شماره لات")
 	private String lotNumber;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@AllArgsConstructor
 	@ApiModel("RemittanceTradeDataProviderDto.Info")

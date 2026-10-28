@@ -90,15 +90,11 @@ public class BillingServiceImpl {
 
 		return billingMaster.getSerialNo();
 	}
-
-
 	public void updatePenalty(UUID billingId) {
 
 		BillingMasterModel billingMasterModel = billingMasterRepository.findById(billingId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						MSG_PROFORMA_LC_ISSUE_NOT_FOUND));
-
-
 		billingMasterModel.setBillingStatus(BillingStatus.ISSUED);
 
 		SaleConditionModel saleConditionModel = saleConditionService.findByPaymentCodeModel(billingMasterModel.getRemittanceMaster().getPaymentCode());

@@ -1,14 +1,19 @@
 package com.nicico.internal.sales.remittance.service;
 
 import com.nicico.copper.core.SecurityUtil;
+import com.nicico.internal.sales.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
+import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
+import com.nicico.internal.sales.gaam.model.GaamModel;
+import com.nicico.internal.sales.gaam.repository.GaamRepository;
 import com.nicico.internal.sales.goods.model.GoodsBucketModel;
 import com.nicico.internal.sales.goods.service.GoodBucketService;
 import com.nicico.internal.sales.goods.service.GoodsService;
 import com.nicico.internal.sales.goods.special.repository.OfferTextRepository;
 import com.nicico.internal.sales.goods.special.service.OfferTextProcess;
-import com.nicico.internal.sales.customer.model.CustomerModel;
-import com.nicico.internal.sales.customer.repository.CustomerRepository;
+import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.loading.model.IssuePlaceModel;
@@ -24,14 +29,10 @@ import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.remittance.dto.RemittanceCreateDto;
 import com.nicico.internal.sales.remittance.enums.IssueSourceType;
 import com.nicico.internal.sales.remittance.enums.RemittanceSourceType;
-import com.nicico.internal.sales.remittance.model.RemittanceGoodItemModel;
-import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
-import com.nicico.internal.sales.remittance.model.RemittanceProformaDataProviderModel;
-import com.nicico.internal.sales.remittance.model.RemittanceTradeDataProviderModel;
-import com.nicico.internal.sales.remittance.repository.RemittanceDataProviderRepository;
+import com.nicico.internal.sales.remittance.model.*;
 import com.nicico.internal.sales.remittance.repository.RemittanceProformaDataProviderRepository;
+import com.nicico.internal.sales.remittance.repository.RemittanceSulfuricAcidDataProviderRepository;
 import com.nicico.internal.sales.remittance.repository.RemittanceTradeDataProviderRepository;
-import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,40 +63,44 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 	private static final String ERROR_TRADE_NOT_FOUND = "کالای مورد نظر وجود ندارد";
 	private static final String ERROR_ISSUE_PLACE_NOT_FOUND = "پرفورما مورد نظر وجود ندارد";
 	private static final String ERROR_PROFORMA_DETAIL_NOT_FOUND = "جزئیات پیش فاکتور وجود ندارد";
+	private static final String ERROR_GAAM_NOT_FOUND = "اوراق گام وجود ندارد";
+	private static final String ERROR_EXTRA_BILL_NOT_FOUND = "برات صادره وجود ندارد";
 	private static final String ERROR_SETTLEMENT_DATE_NOT_FOUND = "تاریخ تسویه معامله وجود ندارد";
 	private static final String ERROR_DELIVERY_DATE_NOT_FOUND = "تاریخ تحویل معامله وجود ندارد";
 	private static final String ERROR_NET_WEIGHT_REQUIRED = "برای کالاهای فلزات گرانبها وزن خالص باید بزرگتر از صفر باشد";
 	private final RemittanceTradeDataProviderRepository remittanceTradeDataProviderRepository;
 	private final RemittanceProformaDataProviderRepository remittanceProformaDataProviderRepository;
-	private final RemittanceDataProviderRepository remittanceDataProviderRepository;
+	private final RemittanceSulfuricAcidDataProviderRepository remittanceSulfuricAcidDataProviderRepository;
+
 	private final CustomerRepository customerRepository;
 	private final LoadingPlaceRepository loadingPlaceRepository;
 	private final IssuePlaceRepository issuePlaceRepository;
 	private final LcRepository lcRepository;
+	private final GaamRepository gaamRepository;
+	private final ExtraBillRepository extraBillRepository;
 	private final OfferTextProcess offerTextProcess;
 	private final GoodsService goodsService;
 	private final GoodBucketService goodBucketService;
 	private final RemittanceTaxService taxService;
 	private final ProformaMasterRepository proformaMasterRepository;
-	private final TradeExtractRepository tradeExtractRepository;
+	private final IMETradeRepository imeTradeRepository;
 	private final OfferTextRepository offerTextRepository;
-
 
 	@Override
 	public RemittanceMasterModel getRemittanceFromProforma(RemittanceCreateDto request) {
 		RemittanceProformaDataProviderModel proformaData = remittanceProformaDataProviderRepository.findFirstByIdOrderByIdDesc(request.getTradeId())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_PROFORMA_NOT_FOUND));
-		LcModel lc = lcRepository.findByProformaNo(proformaData.getProformaNo())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERROR_LC_NOT_FOUND));
+
+		if (request.getNetWeight() == null) request.setNetWeight(proformaData.getTotalQuantity().doubleValue());
 
 		ProformaMasterModel proformaMaster = proformaMasterRepository.findById(proformaData.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_PROFORMA_NOT_FOUND));
-		ProformaGoodItemModel goodItem = extractFirstGoodItem(proformaMaster.getProformaDetailModelLists()
-				.stream()
-				.filter(detail -> detail.getId() == (proformaData.getProformaDetailId()))
+		Long tradeId = request.getTradeId();
+		ProformaDetailModel proformaDetail = proformaMaster.getProformaDetailModelLists().stream()
+				.filter(detail -> detail.getId() == tradeId)
 				.findFirst()
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_PROFORMA_DETAIL_NOT_FOUND))
-		);
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_PROFORMA_DETAIL_NOT_FOUND));
+		ProformaGoodItemModel goodItem = extractFirstGoodItem(proformaDetail);
 		RemittanceMasterModel masterModel = buildBaseMasterModel(request, proformaData.getPaymentCode(), proformaData.getContractDate());
 		masterModel.setValidityDate(calculateValidityDate(request, true));
 		BeanUtils.copyProperties(proformaData, masterModel);
@@ -105,6 +110,7 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		GoodsBucketModel goodBucket = goodBucketService.findByPaymentCodeModel(proformaData.getPaymentCode());
 
 		ProformaIssueType proformaIssueType = proformaData.getProformaIssueType();
+
 
 		switch (proformaIssueType) {
 			case LETTER_OF_CREDIT_OPENING:
@@ -130,6 +136,7 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 				masterModel.setIssueSourceType(IssueSourceType.UNKNOWN);
 				break;
 		}
+		populateIssueDocumentData(masterModel, proformaData, proformaIssueType);
 		masterModel.setTradeId(proformaMaster.getTradeId());
 		masterModel.setCustomerId(proformaMaster.getCustomerId());
 		masterModel.setCustomerName(proformaMaster.getCustomerName());
@@ -143,16 +150,8 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		masterModel.setProcessFinal(false);
 		masterModel.setProformaMasterId(proformaMaster.getId());
 		masterModel.setProformaDetailId(proformaData.getProformaDetailId());
-		masterModel.setLcId(lc.getId());
-		masterModel.setLcNo(lc.getLcNo());
 		masterModel.setProformaNo(proformaData.getProformaNo());
 		masterModel.setProformaDate(proformaData.getProformaDate());
-		masterModel.setLcExpiryDate(lc.getLcExpiryDate());
-		masterModel.setSettlementDueDate(lc.getSettlementDueDate());
-		masterModel.setIssuerBankId(lc.getIssuerBankId());
-		masterModel.setIssuerBankName(lc.getIssuerBankName());
-		masterModel.setIssuerBankBranchCode(lc.getIssuerBankBranchCode());
-		masterModel.setIssuerBankBranchName(lc.getIssuerBankBranchName());
 		masterModel.setContractNo(String.valueOf(proformaMaster.getContractNo()));
 		masterModel.setDelayPenalty(proformaData.isDelayPenalty());
 		masterModel.setSellerBrokerName(proformaData.getSellerBrokerName());
@@ -177,8 +176,6 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		masterModel.setOfferDescription(proformaMaster.getOfferDescription());
 		masterModel.setImeCommoditySymbol(proformaMaster.getImeCommoditySymbol());
 		masterModel.setLotNumber(proformaData.getLotNumber());
-
-
 		GoodItemInput goodItemInput = new GoodItemInput(
 				proformaData.getGoodId(),
 				proformaData.getGoodName(),
@@ -204,10 +201,11 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		BigDecimal quantity = BigDecimal.valueOf(trade.getUnitCount());
 		BigDecimal cashQuantity = BigDecimal.valueOf(trade.getUnitCount());
 		double unitPriceCredit = trade.getUnitPrice();
-
-
 		String offerText = offerTextRepository.getDescriptionByPaymentCode(trade.getPaymentCode());
-		String goodName = "";
+		if (offerText == null) {
+			throw new InternalSaleCustomException.ResourceNotFoundException("متن آگهی عرضه برای این کد پرداخت وجود ندارد");
+		}
+		String goodName;
 
 		if (offerText.contains("مولیبدن سونگون")) {
 			goodName = "سولفور مولیبدن سونگون";
@@ -216,8 +214,6 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		} else {
 			goodName = goodBucket.getGoodName();
 		}
-
-
 		masterModel.setTradeId(trade.getId());
 		masterModel.setRemittanceUnitPriceCredit(BigDecimal.valueOf(unitPriceCredit));
 		masterModel.setCustomerId(customer.getId());
@@ -264,8 +260,6 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		masterModel.setOfferDescription(trade.getOfferDescription());
 		masterModel.setImeCommoditySymbol(trade.getImeCommoditySymbol());
 		masterModel.setLotNumber(offerTextProcess.extractLotNumber(trade.getOfferDescription()));
-
-
 		GoodItemInput goodItemInput = new GoodItemInput(
 				trade.getGoodId(),
 				trade.getGoodName(),
@@ -281,9 +275,84 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 	}
 
 	@Override
-	public String getLotnumber(Long tradeId, RemittanceSourceType sourceType) {
+	public RemittanceMasterModel getRemittanceFromSulfuricAcid(RemittanceCreateDto request) {
+		RemittanceSulfuricAcidDataProviderModel trade = getTradeSulfuricAcidById(request);
+		CustomerModel customer = customerRepository.findById(trade.getCustomerId())
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_CUSTOMER_NOT_FOUND));
+		GoodsBucketModel goodBucket = goodBucketService.getOnSpecificDateModel(trade.getGoodId(), DateUtility.toGregorianDate(trade.getContractDate()));
+		RemittanceMasterModel masterModel = buildBaseMasterModel(request, trade.getPaymentCode(), trade.getContractDate());
+		masterModel.setValidityDate(calculateValidityDate(request, false));
+		BeanUtils.copyProperties(trade, masterModel);
+		BigDecimal quantity = BigDecimal.valueOf(trade.getUnitCount());
+		BigDecimal cashQuantity = BigDecimal.valueOf(trade.getUnitCount());
+		double unitPriceCredit = trade.getUnitPrice();
+		String offerText = offerTextRepository.getDescriptionByPaymentCode(trade.getPaymentCode());
+		String goodName = goodBucket.getGoodName();
+		masterModel.setTradeId(trade.getId());
+		masterModel.setRemittanceUnitPriceCredit(BigDecimal.valueOf(unitPriceCredit));
+		masterModel.setCustomerId(customer.getId());
+		masterModel.setCustomerName(customer.getName());
+		masterModel.setEconomicCode(customer.getEconomicCode());
+		masterModel.setNationalCode(customer.getNationalCode());
+		masterModel.setPaymentCode(trade.getPaymentCode());
+		masterModel.setPackingId(goodBucket.getPackingId());
+		masterModel.setPackingName(goodBucket.getPackingName());
+		masterModel.setGoodId(goodBucket.getGoodId());
+		masterModel.setGoodName(goodName);
+		masterModel.setProcessFinal(false);
+		masterModel.setIssueSourceType(IssueSourceType.CASH);
+		masterModel.setProformaMasterId(DEFAULT_UNIT_ID);
+		masterModel.setProformaDetailId(DEFAULT_UNIT_ID);
+		masterModel.setLcId(DEFAULT_UNIT_ID);
+		masterModel.setLcNo(DEFAULT_PLACEHOLDER);
+		masterModel.setProformaNo(DEFAULT_PLACEHOLDER);
+		masterModel.setProformaDate(DEFAULT_DATE);
+		masterModel.setProformaIssueType(ProformaIssueType.CASH);
+		masterModel.setLcExpiryDate(DEFAULT_DATE);
+		masterModel.setSettlementDueDate(DEFAULT_DATE);
+		masterModel.setIssuerBankId(DEFAULT_UNIT_ID);
+		masterModel.setIssuerBankName(DEFAULT_PLACEHOLDER);
+		masterModel.setIssuerBankBranchCode(DEFAULT_PLACEHOLDER);
+		masterModel.setIssuerBankBranchName(DEFAULT_PLACEHOLDER);
+		masterModel.setTradingBankId(0L);
+		masterModel.setTradingBankTitle(DEFAULT_PLACEHOLDER);
+		masterModel.setTradingBankBranchTitle(DEFAULT_PLACEHOLDER);
+		masterModel.setIssueSourceType(IssueSourceType.CASH);
+		masterModel.setRemittanceQuantity(quantity);
+		masterModel.setRemittanceQuantityCash(cashQuantity);
+		masterModel.setRemittanceQuantityCredit(BigDecimal.ZERO);
+		masterModel.setRemittanceUnitPriceCash(BigDecimal.valueOf(trade.getUnitPrice()));
+		masterModel.setCashPercentage(HUNDRED);
+		masterModel.setCreditPercentage(BigDecimal.ZERO);
+		masterModel.setProcessFinal(false);
+
+		masterModel.setBrokerId(trade.getSellerBrokerId());
+		masterModel.setBrokerName(trade.getBuyerBrokerName());
+		masterModel.setBrokerNationalCode("-");
+		masterModel.setTotalQuantity(BigDecimal.valueOf(trade.getUnitCount()));
+		masterModel.setTotalFinalAmount(BigDecimal.valueOf(trade.getUnitPrice() * trade.getUnitCount()));
+		masterModel.setOfferDescription(trade.getOfferDescription());
+		masterModel.setImeCommoditySymbol(trade.getImeCommoditySymbol());
+		masterModel.setLotNumber(offerTextProcess.extractLotNumber(trade.getOfferDescription()));
+		GoodItemInput goodItemInput = new GoodItemInput(
+				trade.getGoodId(),
+				trade.getGoodName(),
+				Double.valueOf(trade.getUnitCount()),
+				trade.getUnitPrice(),
+				trade.getCashAmount(),
+				trade.getFinalAmount(),
+				trade.getPaymentCode()
+		);
+		RemittanceGoodItemModel goodItemModel = createGoodItem(request, goodItemInput);
+
+		return createRemittanceWithGoodItem(masterModel, goodItemModel);
+
+	}
+
+	@Override
+	public String getLotNumber(Long tradeId, RemittanceSourceType sourceType) {
 		if (sourceType == RemittanceSourceType.TRADE) {
-			var trade = tradeExtractRepository.findById(tradeId)
+			var trade = imeTradeRepository.findById(tradeId)
 					.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_TRADE_NOT_FOUND));
 			return extractLotNumber(trade.getOfferDescription());
 		} else {
@@ -308,12 +377,11 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_LOADING_PLACE_NOT_FOUND));
 		String lotNumber = extractLotNumber(paymentCode);
 		GoodsBucketModel goodBucket = goodBucketService.findByPaymentCodeModel(paymentCode);
-
-
 		RemittanceMasterModel masterModel = new RemittanceMasterModel();
 		masterModel.setRemittanceDate(new Date());
 		masterModel.setLotNumber(lotNumber);
 		masterModel.setContractDate(DateUtility.toGregorianDate(contractDate));
+		masterModel.setContractDateJalali(contractDate);
 		masterModel.setLoadingPort(loadingPlace.getPlaceTitle());
 		masterModel.setLoadingPortId(loadingPlace.getId());
 		masterModel.setIssuePlaceId(issuePlace.getId());
@@ -331,11 +399,8 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		masterModel.setTaxAmount(BigDecimal.valueOf(taxService.calculateTax(request)));
 		masterModel.setGoodId(goodBucket.getGoodId());
 		masterModel.setGoodName(goodBucket.getGoodName());
-
-
 		return masterModel;
 	}
-
 
 	private RemittanceGoodItemModel createGoodItem(RemittanceCreateDto request, GoodItemInput input) {
 		if (goodsService.isPreciousMetal(input.goodId)) {
@@ -405,6 +470,70 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 				offerTextProcess.findDescriptionByPaymentCode(paymentCode));
 	}
 
+	private void populateIssueDocumentData(RemittanceMasterModel masterModel,
+	                                       RemittanceProformaDataProviderModel proformaData,
+	                                       ProformaIssueType proformaIssueType) {
+		if (proformaIssueType == ProformaIssueType.LETTER_OF_CREDIT_OPENING) {
+			LcModel lc = findRemittanceLc(masterModel, proformaData);
+			masterModel.setLcId(lc.getId());
+			masterModel.setLcNo(lc.getLcNo());
+			masterModel.setIssuerBankId(lc.getIssuerBankId());
+			masterModel.setIssuerBankName(lc.getIssuerBankName());
+			masterModel.setIssuerBankBranchName(lc.getIssuerBankBranchName());
+			masterModel.setIssuerBankBranchCode(lc.getIssuerBankBranchCode());
+			masterModel.setLcExpiryDate(lc.getLcExpiryDate());
+			masterModel.setSettlementDueDate(lc.getSettlementDueDate());
+		} else if (proformaIssueType == ProformaIssueType.GAM_BONDS) {
+			GaamModel gaam = findRemittanceGaam(masterModel);
+			masterModel.setLcNo(gaam.getSepamCode());
+			masterModel.setIssuerBankId(gaam.getIssuerBankId());
+			masterModel.setIssuerBankName(gaam.getIssuerBankName());
+			masterModel.setIssuerBankBranchName(gaam.getBranchName());
+			masterModel.setIssuerBankBranchCode(gaam.getBranchCode());
+			masterModel.setLcExpiryDate(gaam.getDueDate());
+			masterModel.setSettlementDueDate(gaam.getDueDate());
+		} else if (proformaIssueType == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
+			ExtraBankBillModel extraBill = findRemittanceExtraBill(masterModel);
+			masterModel.setLcNo(extraBill.getSepamCode());
+			masterModel.setIssuerBankId(extraBill.getIssuerBankId());
+			masterModel.setIssuerBankName(extraBill.getIssuerBankName());
+			masterModel.setIssuerBankBranchName(extraBill.getBranchName());
+			masterModel.setIssuerBankBranchCode(extraBill.getBranchCode());
+			masterModel.setLcExpiryDate(extraBill.getDueDate());
+			masterModel.setSettlementDueDate(extraBill.getDueDate());
+		} else {
+			masterModel.setLcNo(DEFAULT_PLACEHOLDER);
+			masterModel.setIssuerBankId(DEFAULT_UNIT_ID);
+			masterModel.setIssuerBankName(DEFAULT_PLACEHOLDER);
+			masterModel.setIssuerBankBranchName(DEFAULT_PLACEHOLDER);
+			masterModel.setIssuerBankBranchCode(DEFAULT_PLACEHOLDER);
+			masterModel.setLcExpiryDate(DEFAULT_DATE);
+			masterModel.setSettlementDueDate(DEFAULT_DATE);
+		}
+	}
+
+	private LcModel findRemittanceLc(RemittanceMasterModel masterModel, RemittanceProformaDataProviderModel proformaData) {
+		if (masterModel.getLcId() != null) {
+			return lcRepository.findById(masterModel.getLcId())
+					.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_LC_NOT_FOUND));
+		}
+		return lcRepository.findByProformaNo(proformaData.getProformaNo())
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_LC_NOT_FOUND));
+	}
+
+	private GaamModel findRemittanceGaam(RemittanceMasterModel masterModel) {
+		return gaamRepository.findByMasterId(masterModel.getProformaMasterId())
+				.stream()
+				.findFirst()
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_GAAM_NOT_FOUND));
+	}
+
+	private ExtraBankBillModel findRemittanceExtraBill(RemittanceMasterModel masterModel) {
+		return extraBillRepository.findByMasterId(masterModel.getProformaMasterId())
+				.stream()
+				.findFirst()
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_EXTRA_BILL_NOT_FOUND));
+	}
 
 	private ProformaGoodItemModel extractFirstGoodItem(ProformaDetailModel proformaDetail) {
 		var items = proformaDetail.getProformaGoodItemModels();
@@ -419,11 +548,17 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_TRADE_NOT_FOUND));
 	}
 
+
+	private RemittanceSulfuricAcidDataProviderModel getTradeSulfuricAcidById(RemittanceCreateDto request) {
+		return remittanceSulfuricAcidDataProviderRepository.findFirstByIdOrderByContractDateDesc(request.getTradeId())
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_TRADE_NOT_FOUND));
+	}
+
 	@Override
 	public Date lastDeliveryDeadlineProforma(RemittanceCreateDto request) {
 
-		var dataProviderModel = remittanceDataProviderRepository.findById(request.getTradeId());
-//                .orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_TRADE_NOT_FOUND));
+		var dataProviderModel = imeTradeRepository.findById(request.getTradeId());
+
 
 		if (dataProviderModel.isEmpty()) return new Date();
 		Date settlement = DateUtility.toGregorianDate(dataProviderModel.get().getSettlementDate());
@@ -445,7 +580,6 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		return new Date();
 
 	}
-
 
 	private Date calculateValidityDate(RemittanceCreateDto request, boolean isProforma) {
 		return isProforma ? lastDeliveryDeadlineProforma(request) : lastDeliveryDeadlineTrade(request);

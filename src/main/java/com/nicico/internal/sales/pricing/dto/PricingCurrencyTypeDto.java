@@ -15,8 +15,6 @@ public class PricingCurrencyTypeDto implements Serializable {
 
 	private long id;
 	private String rateType;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@AllArgsConstructor

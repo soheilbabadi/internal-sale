@@ -1,6 +1,5 @@
 package com.nicico.internal.sales.accounting.dto;
 
-import com.fgostar.accounting.sdk.dto.DetailDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -228,6 +228,4 @@
             <comment>Rollback is not provided - manual intervention required</comment>
         </rollback>
     </changeSet>
-
-
 </databaseChangeLog>

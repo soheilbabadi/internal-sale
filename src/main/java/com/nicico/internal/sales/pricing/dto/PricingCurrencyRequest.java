@@ -26,6 +26,4 @@ public class PricingCurrencyRequest {
 
 	@Schema(description = "نرخ EUR/IRR(فروش)")
 	private BigDecimal eurIrrSell;
-
-
 }

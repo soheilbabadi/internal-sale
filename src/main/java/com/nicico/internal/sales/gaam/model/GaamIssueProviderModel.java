@@ -79,13 +79,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		
 		    WHERE tipm.C_PROFORMA_ISSUE_TYPE = 'GAM_BONDS'
 		      AND tipm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
-		
-		      AND NOT EXISTS (
-		          SELECT 1
-		          FROM TBL_IME_SETTLEMENT tis
-		          WHERE tis.PAYMENT_CODE = tipm.C_PAYMENT_CODE
-		            AND tis.SETTLEMENT_TYPE IN ('انفساخ', 'نقدی')
-		      )
+	
 		
 		)
 		SELECT fm.*
@@ -133,7 +127,7 @@ public class GaamIssueProviderModel implements Serializable {
 	@Column(name = "N_CUSTOMER_ID")
 	private Long customerId;
 	@Schema(description = "نام مشتری")
-	@Column(name = "C_CUSTOMER_NAME", length = 255)
+	@Column(name = "C_CUSTOMER_NAME")
 	private String customerName;
 	@Schema(description = "کد اقتصادی")
 	@Column(name = "C_ECONOMIC_CODE", length = 12)
@@ -142,7 +136,7 @@ public class GaamIssueProviderModel implements Serializable {
 	@Column(name = "N_GOOD_ID")
 	private Long goodId;
 	@Schema(description = "نام کالا")
-	@Column(name = "C_GOOD_NAME", length = 255)
+	@Column(name = "C_GOOD_NAME")
 	private String goodName;
 	@Schema(description = "درصد اعتباری")
 	@Column(name = "N_CREDIT_PERCENTAGE", precision = 5, scale = 2)
@@ -172,8 +166,6 @@ public class GaamIssueProviderModel implements Serializable {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "C_WORKFLOW_APPROVE_STATUS", length = 100)
 	private WorkflowApproveStatus workflowApproveStatus;
-
-
 	@Column(name = "N_BROKER_ID")
 	private Long brokerId;
 

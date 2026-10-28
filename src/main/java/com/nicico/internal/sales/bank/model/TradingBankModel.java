@@ -30,13 +30,13 @@ public class TradingBankModel extends BaseClassModel {
 	@Schema(name = "شناسه بانک")
 	private long id;
 	@Schema(name = "نام بانک")
-	@Column(name = "C_BANK_TITLE", nullable = false)
+	@Column(name = "C_BANK_TITLE")
 	private String bankTitle;
 	@Schema(name = "عنوان شعبه")
-	@Column(name = "C_BRANCH_TITLE", nullable = false)
+	@Column(name = "C_BRANCH_TITLE")
 	private String bankBranchTitle;
 	@Schema(name = "کد شعبه")
-	@Column(name = "C_BRANCH_CODE", nullable = false)
+	@Column(name = "C_BRANCH_CODE")
 	private String branchCode;
 	@Schema(name = "حساب سپرده")
 	@Column(name = "c_account_number", length = 100)

@@ -17,12 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class ExtraBillIssueServiceImpl implements ExtraBillIssueService {
-	private static final String MSG_PROFORMA_LC_ISSUE_NOT_FOUND = "رکورد پیش فاکتور صدور اعتبار اسنادی یافت نشد";
+	private static final String MSG_PROFORMA_LC_ISSUE_NOT_FOUND = "رکورد پیش فاکتور جهت صدور اعتبار پیدا نشد";
 	private final ExtraBillIssueRepository repository;
 
 	private final ExtraBillIssueMapper mapper;
-
-
 	@Override
 	public ExtraBillIssueProviderDto.Info getById(Long id) {
 		ExtraBillIssueProviderModel entity = repository.findById(id)

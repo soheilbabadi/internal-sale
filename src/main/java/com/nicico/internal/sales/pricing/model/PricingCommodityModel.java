@@ -35,15 +35,15 @@ public class PricingCommodityModel extends BaseClassModel {
 	private Long id;
 
 	@Schema(description = "روز هفته")
-	@Column(name = "DAY_OF_WEEK", nullable = false)
+	@Column(name = "DAY_OF_WEEK")
 	private String dayOfWeek;
 
 	@Schema(description = "تاریخ شمسی ")
-	@Column(name = "PERSIAN_SHORT_DATE", nullable = false, unique = true)
+	@Column(name = "PERSIAN_SHORT_DATE", unique = true)
 	private String persianShortDate;
 
 	@Schema(description = "تاریخ میلادی")
-	@Column(name = "SHORT_DATE", nullable = false, unique = true)
+	@Column(name = "SHORT_DATE", unique = true)
 	private Date shortDate;
 
 	@Schema(description = "قیمت مس (USD/MT)")

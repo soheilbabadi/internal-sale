@@ -41,8 +41,6 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 		var workflow = processVariableProvider.getRemittanceWorkflowByTitle();
 		var masterModel = remittanceMasterRepository.findById(remittanceId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("حواله وجود ندارد"));
-
-
 		RemittanceVariablesInput input =processVariableProvider.buildRemittanceVariablesInput(masterModel);
 		StartProcessWithDataDTO startProcessDto = new StartProcessWithDataDTO();
 		startProcessDto.setProcessDefinitionKey(workflow.getDefinitionKey());
@@ -123,8 +121,6 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 			throw new InternalSaleCustomException.ValidationException("خطا در انجام تسک", List.of(ex.getMessage()));
 		}
 	}
-
-
 	private void reviewTask(ReviewTaskRequest reviewTaskRequest) {
 		bpmsClientService.reviewTask(reviewTaskRequest);
 
@@ -145,8 +141,6 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 					remittanceMasterRepository.save(masterModel);
 				});
 			}
-
-
 		} catch (Exception ex) {
 			throw new InternalSaleCustomException.BpmsClientException("خطا در اتصال به کارتابل", new ArrayList<>(Collections.singletonList(ex.getMessage())));
 		} finally {
@@ -170,8 +164,6 @@ public class RemittanceProcessServiceImpl implements RemittanceProcessService {
 			}
 		}
 	}
-
-
 	public void refreshOne(Long masterId) {
 		RemittanceMasterModel master = remittanceMasterRepository.findById(masterId)
 				.orElseThrow(() -> new EntityNotFoundException("RemittanceMasterModel not found: " + masterId));

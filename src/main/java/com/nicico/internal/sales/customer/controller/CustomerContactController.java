@@ -42,8 +42,6 @@ public class CustomerContactController {
 		var update = service.update(id, request);
 		return ResponseEntity.ok(update);
 	}
-
-
 	@PostMapping("/search/{customerId}")
 	public ResponseEntity<SearchDTO.SearchRs<CustomerContactDto.Create>> filterByCustomer(@PathVariable Long customerId, @RequestBody(required = false) SearchDTO.SearchRq searchRq, @RequestParam(required = false) MultiValueMap<String, String> criteria) {
 		if (!Arrays.isNullOrEmpty(criteria.keySet().toArray()))

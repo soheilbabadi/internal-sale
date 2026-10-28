@@ -11,11 +11,7 @@ import com.nicico.internal.sales.bank.model.TradingBankModel;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
 import com.nicico.internal.sales.bank.repository.TradingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
-import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
-import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
-import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
-import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.lc.dto.*;
 import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.lc.dto.request.LcCancelRequest;
@@ -27,7 +23,7 @@ import com.nicico.internal.sales.lc.model.LcModel;
 import com.nicico.internal.sales.lc.repository.LcAuditRepository;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.lc.repository.LcRevokingReadyRepository;
-import com.nicico.internal.sales.nosa.LcNosaCodeService;
+import com.nicico.internal.sales.nosa.NosaCodeService;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
@@ -35,9 +31,10 @@ import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
-import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
+import com.nicico.internal.sales.wf.detection.ProcessHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -60,16 +57,13 @@ public class LcServiceImpl implements LcService {
 	private static final String MSG_SALES_CONTRACT_NOT_FOUND = "قرارداد فروش وجود ندارد";
 	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور وجود ندارد";
 	private static final String MSG_TRADING_BANK_NOT_FOUND = "شعبه بانک وجود ندارد";
-	private static final String ERROR_TRADE_NOT_FOUND = "کالای مورد نظر وجود ندارد";
 	private static final String MSG_ISSUING_BANK_NOT_FOUND = "بانک گشایش کننده وجود ندارد";
-	private static final String MSG_ISSUING_BANK_NOT_FOUND_FOR_LC = "برای این اعتبار اسنادی بانک گشایش کننده وجود ندارد";
 	private static final String MSG_LC_DATE_EMPTY = "تاریخ گشایش اعتبار اسنادی نمی تواند خالی باشد";
 	private static final String MSG_LC_DATE_BEFORE_PROFORMA = "تاریخ گشایش اعتبار اسنادی نمی تواند قبل از تاریخ پیش فاکتور باشد";
 	private static final String MSG_LC_DISPATCH_FILE_REQUIRED = "برای این اعتبار اسنادی فایل ابلاغیه فروش الزامی است";
-	private static final String MSG_BROKER_EMAIL_MISSING = "اطلاعات تماس ایمیل کارگزار  موجود نمی باشد.";
 	private static final int PAYMENT_DEFERRAL_NONE = 0;
 	private static final String MSG_ITEM_CANCELED_BEFORE = "این آیتم قبلا باطل شده است و امکان ابطال مجدد وجود ندارد";
-
+	private final AccountingDetailService accountingDetailService;
 	private final LcRepository lcRepository;
 	private final LcAuditRepository lcAuditRepository;
 	private final LcMapper lcMapper;
@@ -77,63 +71,17 @@ public class LcServiceImpl implements LcService {
 	private final LcValidationService lcValidationService;
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final ProformaDetailRepository proformaDetailRepository;
-	private final ProcessStatusDeterminerService processStatusDeterminerService;
+	private final ProcessHistoryService processHistoryService;
 	private final IssuingBankRepository issuingBankRepository;
 	private final TradingBankRepository tradingBankRepository;
 	private final NotificationService notificationService;
-	private final BrokerRepository brokerRepository;
-	private final IMETradeRepository imeTradeRepository;
-	private final LcNosaCodeService lcNosaCodeService;
 	private final LcRevokingReadyRepository lcRevokingReadyRepository;
-	private final ExtraBillRepository extraBillRepository;
-	private final AccountingDetailService accountingDetailService;
+	private final CreditHelper creditHelper;
+	private final NosaCodeService nosaCodeService;
 
 
-//	public void appendCancellationRecord(LcModel model, String cancellationRecord) {
-//		String existingDesc = model.getDescription() != null ? model.getDescription() : "";
-//		if (!existingDesc.isEmpty()) {
-//			model.setDescription(existingDesc + "\n\n" + cancellationRecord);
-//		} else {
-//			model.setDescription(cancellationRecord);
-//		}
-//	}
-
-	public void markAllAsReckoning(Long proformaMasterId) {
-		List<com.nicico.internal.sales.extrabill.model.ExtraBankBillModel> billModels =
-				extraBillRepository.findAllByProformaMasterId(proformaMasterId);
-
-		if (billModels == null || billModels.isEmpty()) {
-			log.warn("No ExtraBill items found for proformaMasterId: {}", proformaMasterId);
-			return;
-		}
-
-
-		for (ExtraBankBillModel item : billModels) {
-			boolean oldReckoningSend = item.isReckoningSend();
-			if (!oldReckoningSend) {
-				Date newReckoningSendDate = new Date();
-				item.setReckoningSend(true);
-				item.setReckoningSendDate(newReckoningSendDate);
-				item.setAcknowledgment(Acknowledgment.RECKONING);
-
-			}
-		}
-	}
-
-//	public BrokerEmailRequest buildExtraBillBrokerEmailRequest(ProformaMasterModel proformaMaster, BrokerModel broker) {
-//		markAllAsReckoning(proformaMaster.getId());
-//
-//		BrokerEmailRequest request = new BrokerEmailRequest();
-//		request.setContractNo(proformaMaster.getContractNo());
-//		request.setContractDate(proformaMaster.getContractDate());
-//		request.setQuantity(proformaMaster.getTotalQuantity().longValue());
-//		request.setCustomerName(proformaMaster.getCustomerName());
-//		request.setGoodName(proformaMaster.getGoodName());
-//		request.setBrokerName(broker.getName());
-//		request.setBrokerEmail(broker.getEmail());
-//
-//		return request;
-//	}
+	@Value("${schedule.nosa.enabled}")
+	private boolean isSchedule;
 
 
 	public void updateLcDetailsIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
@@ -146,9 +94,7 @@ public class LcServiceImpl implements LcService {
 		if (request.getLcExpiryDate() != null) {
 			lc.setLcExpiryDate(request.getLcExpiryDate());
 		}
-		if (request.getNosaCode() != null) {
-			lc.setNosaCode(request.getNosaCode());
-		}
+
 		if (request.getSettlementDueDate() != null) {
 			lc.setSettlementDueDate(request.getSettlementDueDate());
 		}
@@ -164,7 +110,6 @@ public class LcServiceImpl implements LcService {
 	}
 
 	public BrokerEmailRequest buildLcBrokerEmailRequest(ProformaDetailModel detail, BrokerModel broker) {
-
 		var proformaMaster = proformaMasterRepository.findById(detail.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						"قرارداد فروش وجود ندارد "));
@@ -180,16 +125,6 @@ public class LcServiceImpl implements LcService {
 		return request;
 	}
 
-
-	public BrokerModel fetchBrokerForTrade(Long tradeId) {
-		var sellerBrokerCode = imeTradeRepository.findSellerBrokerCodeById(tradeId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-						ERROR_TRADE_NOT_FOUND));
-		return brokerRepository.findById(sellerBrokerCode)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
-						MSG_BROKER_EMAIL_MISSING));
-	}
-
 	public void markAllLcsAsReckoning(Long proformaMasterId) {
 		List<LcModel> lcItems = lcRepository.findByMasterId(proformaMasterId);
 
@@ -197,24 +132,18 @@ public class LcServiceImpl implements LcService {
 			log.warn("No LC items found for proformaMasterId: {}", proformaMasterId);
 			return;
 		}
-
-
 		for (LcModel lcItem : lcItems) {
-			boolean oldReckoningSend = lcItem.isReckoningSend();
-			if (!oldReckoningSend) {
-				Date newReckoningSendDate = new Date();
+			if (!lcItem.isReckoningSend()) {
 				lcItem.setReckoningSend(true);
-				lcItem.setReckoningSendDate(newReckoningSendDate);
-				lcItem.setAcknowledgment(Acknowledgment.RECKONING);
+				lcItem.setReckoningSendDate(new Date());
 			}
+			lcItem.setAcknowledgment(Acknowledgment.RECKONING);
 		}
 		lcRepository.saveAllAndFlush(lcItems);
 	}
 
 	@Override
 	public LcDto.Info updateStartedLc(UpdateStartedLcRequest lcRequest) {
-
-
 		LcModel lcModel = findLcModel(lcRequest.getProformaId());
 		ProformaDetailModel detailModel = findProformaDetail(lcRequest.getProformaId());
 
@@ -230,7 +159,6 @@ public class LcServiceImpl implements LcService {
 		LcModel savedLc = lcRepository.saveAndFlush(lcModel);
 		return lcMapper.toDTO(savedLc);
 	}
-
 
 	@Override
 	public Date calculateExpireDate(UpdateStartedLcRequest lcRequest) {
@@ -253,27 +181,21 @@ public class LcServiceImpl implements LcService {
 
 	@Override
 	public LcDto.Info updateCurrentAcceptedLc(UpdateAcceptedLcRequest updateAcceptedLcRequest) {
-
 		LcModel lc = lcRepository.findByProformaNo(updateAcceptedLcRequest.getProformaNo())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_LC_NOT_FOUND));
 
 		ProformaDetailModel proformaDetail = findProformaDetail(lc.getProformaDetailId());
-
 		validateAndAdjustLcDate(updateAcceptedLcRequest, proformaDetail);
-
 		updateTradingBankIfPresent(lc, updateAcceptedLcRequest);
 		updateIssuingBankIfPresent(lc, updateAcceptedLcRequest);
 		updateLcDetailsIfPresent(lc, updateAcceptedLcRequest);
-
 		LcModel savedLc = lcRepository.save(lc);
 		return lcMapper.toDTO(savedLc);
 	}
 
-
 	@Override
 	public LcFilesDto updateLcFiles(LcFilesDto lcFilesDto) {
-
 		LcModel lcModel = lcRepository.findFirstByProformaDetailIdOrderByCreatedDateDesc(lcFilesDto.getProformaId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_LC_NOT_FOUND));
@@ -281,7 +203,7 @@ public class LcServiceImpl implements LcService {
 		validateDispatchFileRequirement(lcModel, lcFilesDto.getDispatchFileId());
 		lcModel.setNotificationDocumentId(lcFilesDto.getNotificationFileId());
 		lcModel.setDispatchAttachmentId(lcFilesDto.getDispatchFileId());
-//		lcModel.setNosaCode(lcFilesDto.getNosaCode());
+
 		if (lcFilesDto.getDispatchFileId() != null) {
 			lcModel.setDispatchAttachmentId(lcFilesDto.getDispatchFileId());
 		}
@@ -289,14 +211,12 @@ public class LcServiceImpl implements LcService {
 		return lcFilesDto;
 	}
 
-
 	@Override
 	public List<LcDto.Info> getAllLcDataByProformaMasterId(Long proformaMasterId) {
 		var lcModels = lcRepository.findAllByProformaMasterId(proformaMasterId);
 		if (lcModels.isEmpty()) {
 			return List.of();
 		}
-
 		return lcModels.stream().map(lcMapper::toDTO).toList();
 	}
 
@@ -344,7 +264,7 @@ public class LcServiceImpl implements LcService {
 
 		markAllLcsAsReckoning(lcModel.getProformaMasterId());
 		ProformaDetailModel detail = findProformaDetail(lcModel.getProformaDetailId());
-		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		var broker = creditHelper.fetchBrokerForTrade(masterModel.getTradeId());
 		BrokerEmailRequest emailRequest = buildLcBrokerEmailRequest(detail, broker);
 		String emailContent = generateLcBrokerEmailContent(emailRequest);
 		sendLcBrokerReckoningEmail(emailRequest, emailContent);
@@ -372,14 +292,8 @@ public class LcServiceImpl implements LcService {
 
 	@Override
 	public ProcessInstanceHistory getLcHistoryDetail(Long lcId) {
-		return processStatusDeterminerService.getLcHistoryDetail(lcId);
+		return processHistoryService.getLcHistoryDetail(lcId);
 	}
-
-	@Override
-	public void updateLcAcknowledgment(Long lcId) {
-		processStatusDeterminerService.updateLcAcknowledgment(lcId);
-	}
-
 
 	@Override
 	public String generateLcBrokerEmailContent(long lcId) {
@@ -392,18 +306,15 @@ public class LcServiceImpl implements LcService {
 
 		markAllLcsAsReckoning(lcModel.getProformaMasterId());
 		ProformaDetailModel detail = lcRepository.getDetailByLcId(lcId).get();
-		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		var broker = creditHelper.fetchBrokerForTrade(masterModel.getTradeId());
 		BrokerEmailRequest emailRequest = buildLcBrokerEmailRequest(detail, broker);
 		return generateLcBrokerEmailContent(emailRequest);
 	}
 
-
 	@Override
 	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long lcId) {
-		updateLcAcknowledgment(lcId);
-		return processStatusDeterminerService.getLcSummaryReport(lcId);
+		return processHistoryService.getLcSummaryReport(lcId);
 	}
-
 
 	@Override
 	public void cancel(LcCancelRequest request) {
@@ -411,7 +322,7 @@ public class LcServiceImpl implements LcService {
 		LcModel lcModel = lcRepository.findById(request.getLcId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_LC_NOT_FOUND));
 
-		if(lcModel.getWorkflowApproveStatus()==WorkflowApproveStatus.REVERSAL){
+		if (lcModel.getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL) {
 			throw new InternalSaleCustomException.ValidationException(MSG_ITEM_CANCELED_BEFORE);
 		}
 		List<LcModel> lcModelList = lcRepository.findByMasterId(lcModel.getProformaMasterId());
@@ -454,11 +365,6 @@ public class LcServiceImpl implements LcService {
 		}
 	}
 
-	@Override
-	public void updateAllAcknowledgments() {
-		processStatusDeterminerService.updateAllLcAcknowledgments();
-	}
-
 
 	public LcModel findLcModel(Long proformaId) {
 		return lcRepository.findFirstByProformaDetailIdOrderByCreatedDateDesc(proformaId)
@@ -471,7 +377,6 @@ public class LcServiceImpl implements LcService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_PROFORMA_NOT_FOUND));
 	}
-
 
 	public void validateAndAdjustLcDate(UpdateStartedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
 		if (lcRequest.getLcDate() == null) {
@@ -491,7 +396,6 @@ public class LcServiceImpl implements LcService {
 			throw new InternalSaleCustomException.ValidationException(MSG_LC_DATE_BEFORE_PROFORMA);
 		}
 	}
-
 
 	public void validateAndAdjustLcDate(UpdateAcceptedLcRequest lcRequest, ProformaDetailModel proformaDetail) {
 		if (lcRequest.getLcDate() == null) {
@@ -550,7 +454,6 @@ public class LcServiceImpl implements LcService {
 		lcModel.setIssuerBankName(issuingBank.getBankName());
 		lcModel.setIssuerBankBranchName(issuingBank.getBranchName());
 		lcModel.setIssuerBankBranchCode(issuingBank.getBranchCode());
-		lcModel.setNosaCode(lcNosaCodeService.getNosaCode(issuingBank.getId()));
 
 		// Additional configuration
 		lcModel.setCreditExpirePeriod(proformaDetail.getCreditExpirePeriod());
@@ -559,6 +462,7 @@ public class LcServiceImpl implements LcService {
 		lcModel.setRequireDispatchFile(lcRequest.getRequireDispatchFile());
 		lcModel.setLcAttachmentId(lcRequest.getLcAttachmentId());
 		lcModel.setAcknowledgment(Acknowledgment.RECKONING);
+		if (!isSchedule) lcModel.setNosaCode(nosaCodeService.generateLcNosaCode(issuingBank.getId()));
 
 	}
 
@@ -568,7 +472,6 @@ public class LcServiceImpl implements LcService {
 					MSG_LC_DISPATCH_FILE_REQUIRED);
 		}
 	}
-
 
 	private void updateTradingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
 		if (request.getTradingBankId() != null) {
@@ -580,7 +483,6 @@ public class LcServiceImpl implements LcService {
 			lc.setTradingBankId(tradingBank.getId());
 		}
 	}
-
 
 	private void updateIssuingBankIfPresent(LcModel lc, UpdateAcceptedLcRequest request) {
 		if (request.getIssuerBankId() != null) {
@@ -603,12 +505,16 @@ public class LcServiceImpl implements LcService {
 	@Transactional
 	@Override
 	public String createDetail(Long id) {
+
 		LcModel lc = lcRepository.findById(id)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_LC_NOT_FOUND));
 
+
+
+
 		Long issuerBankId = lc.getIssuerBankId();
 		if (issuerBankId == null) {
-			throw new InternalSaleCustomException.ValidationException(MSG_ISSUING_BANK_NOT_FOUND_FOR_LC);
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUING_BANK_NOT_FOUND);
 		}
 
 		var bank = issuingBankRepository.findById(issuerBankId)
@@ -619,12 +525,14 @@ public class LcServiceImpl implements LcService {
 		String yearSuffix = DateUtility.currentYearLast2();
 		String detailName = buildLcDetailName(lc, bank);
 
+		if (!isSchedule) return nosaCodeService.generateLcNosaCode(issuerBankId);
+
 		var response = accountingDetailService.generateAndCreateFinancialInstrumentDetail(
 				FinancialInstrumentType.LETTER_OF_CREDIT,
 				bankCode,
 				yearSuffix,
 				detailName,
-				null
+				"LC_" + id
 		);
 
 		if (response != null && response.getCode() != null) {

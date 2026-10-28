@@ -1,9 +1,12 @@
 package com.nicico.internal.sales.wf.dto;
 
+import com.nicico.internal.sales.wf.enums.ProcessTitleEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
@@ -17,8 +20,10 @@ public class ProcessUserAccessRequest implements Serializable {
 	private static final long serialVersionUID = 1264024630987938008L;
 	@Schema(description = "شناسه کاربر", example = "1", name = "userId")
 	private Long userId;
+
+	@Enumerated(EnumType.STRING)
 	@Schema(description = "عنوان فرایند", example = "فروش داخلی", name = "sale")
-	private String processTitle;
+	private ProcessTitleEnum processTitle;
 	@Schema(description = "عنوان متغیر فرایند", example = "Proforma", name = "processVariable")
 	private String processVariable;
 

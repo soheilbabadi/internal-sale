@@ -9,7 +9,8 @@ import com.nicico.bpmsclient.model.flowable.task.TaskInfo;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.bpmsclient.model.request.TaskSearchDto;
 import com.nicico.internal.sales.wf.dto.WorkflowDto;
-import com.nicico.internal.sales.wf.enums.*;
+import com.nicico.internal.sales.wf.enums.ProcessTitleEnum;
+import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProcessService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @CrossOrigin(origins = "*")
@@ -37,6 +34,7 @@ import java.util.stream.Stream;
 public class ProcessGeneralController {
 
 	private final ProcessService processService;
+	private final ProcessVariableProvider processVariableProvider;
 
 	@Operation(summary = "دریافت تسک های یک فرآیند", description = "لیست تسک های مرتبط با یک نمونه فرآیند را برمی گرداند")
 	@GetMapping("/instance-tasks/{processInstanceId}")
@@ -46,65 +44,12 @@ public class ProcessGeneralController {
 
 	@Operation(summary = "دریافت متغیرهای فرآیند", description = "لیست متغیرهای تعریف شده برای نوع فرآیند موردنظر را برمی گرداند")
 	@GetMapping("/get-process-variable/{processTitle}")
-	public ResponseEntity<Map<String, String>> getProformaProcessVariable(@PathVariable String processTitle) {
-
-		Supplier<Stream<? extends Enum<?>>> enumSupplier;
-		switch (processTitle.toUpperCase()) {
-			case "PREINVOICE":
-				enumSupplier = () -> Arrays.stream(ProformaProcessVariable.values());
-				break;
-			case "LC":
-				enumSupplier = () -> Arrays.stream(LcProcessVariable.values());
-				break;
-			case "REVERSAL":
-				enumSupplier = () -> Arrays.stream(ReversalProcessVariable.values());
-				break;
-			case "REMITTANCE":
-				enumSupplier = () -> Arrays.stream(RemittanceProcessVariable.values());
-				break;
-
-			case "EXTRA_BILL":
-				enumSupplier = () -> Arrays.stream(ExtraBillProcessVariable.values());
-				break;
-			case "GAAM_BOUND":
-				enumSupplier = () -> Arrays.stream(GaamProcessVariable.values());
-				break;
-			default:
-				return ResponseEntity.notFound().build();
+	public ResponseEntity<Map<String, String>> getProformaProcessVariable(@PathVariable ProcessTitleEnum processTitle) {
+		Map<String, String> processVariables = processVariableProvider.getProcessVariablesByTitle(processTitle);
+		if (processVariables.isEmpty()) {
+			return ResponseEntity.notFound().build();
 		}
-
-		Map<String, String> response = enumSupplier.get().collect(Collectors.toMap(
-				Enum::name,
-				e -> {
-					if (e instanceof ProformaProcessVariable) {
-						return ((ProformaProcessVariable) e).getValue();
-					}
-					if (e instanceof LcProcessVariable) {
-						return ((LcProcessVariable) e).getValue();
-					}
-					if (e instanceof ReversalProcessVariable) {
-						return ((ReversalProcessVariable) e).getValue();
-					}
-					if (e instanceof CashSaleProcessVariable) {
-						return ((CashSaleProcessVariable) e).getValue();
-					}
-					if (e instanceof RemittanceProcessVariable) {
-						return ((RemittanceProcessVariable) e).getValue();
-					}
-
-					if (e instanceof ExtraBillProcessVariable) {
-						return ((ExtraBillProcessVariable) e).getValue();
-					}
-
-					if (e instanceof GaamProcessVariable) {
-						return ((GaamProcessVariable) e).getValue();
-					}
-
-					return null;
-				}
-		));
-
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok(processVariables);
 	}
 
 	@Operation(
@@ -184,8 +129,6 @@ public class ProcessGeneralController {
 		processService.rejectTask(taskId);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-
-
 	@Operation(summary = "جستجوی کارتابل", description = "جستجو در تسک های کارتابل بر اساس فیلترهای ارسالی")
 	@PostMapping("/search-task-inbox")
 	public ResponseEntity<GridDTO> searchInbox(

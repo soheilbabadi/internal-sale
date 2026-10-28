@@ -27,8 +27,6 @@ public class PMSCreateCustomerDto {
 	private String nationalCode;
 
 	private String postalCode;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@AllArgsConstructor
 	@NoArgsConstructor

@@ -67,6 +67,9 @@ public class TradeExtractDto {
 	@Schema(description = "متن آگهی عرضه", name = "offerDescription", example = "کیفیت عالی")
 	private String offerDescription;
 
+	@Schema(name = "settlementDate", description = "تاریخ تسویه")
+	private String settlementDate;
+
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@ApiModel("TradeExtractDto.Create")

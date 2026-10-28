@@ -18,8 +18,6 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 	private final LcRepository lcRepository;
 	private final ExtraBillRepository extraBillRepository;
 	private final IssuingBankRepository issuingBankRepository;
-
-
 	/**
 	 * Generates LC NosaCode with format:
 	 * '107/18' + base bank code + jalaYear two right digit + 3 digit sequence
@@ -47,8 +45,6 @@ public class NosaCodeServiceImpl implements NosaCodeService {
 		var bank = issuingBankRepository.findById(issuerBankId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_ISSUING_BANK_NOT_FOUND));
-
-
 		String prefix = String.format("%s%s%s", EXTRA_BILL_PREFIX_BASE, DateUtility.currentYearLast2(), bank.getBankCode());
 		String lastNosaCode = extraBillRepository.findLastNosaCodeByBankIdAndPrefix(issuerBankId, prefix);
 		if (lastNosaCode == null) {

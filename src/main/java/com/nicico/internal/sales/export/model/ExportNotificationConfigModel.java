@@ -27,25 +27,19 @@ public class ExportNotificationConfigModel extends BaseClassModel {
 	@Column(name = "ID")
 	@Schema(description = "شناسه یکتا", example = "1")
 	private Long id;
-
-
 	@Enumerated(EnumType.STRING)
-	@Column(name = "C_ENTITY_TYPE", nullable = false, length = 30)
+	@Column(name = "C_ENTITY_TYPE", length = 30)
 	@Schema(description = "نوع موجودیت (پیش فاکتور، اعتبار اسنادی، حواله فروش)", example = "PROFORMA")
 	private EntityTypeEnum entityType;
 
-	@Column(name = "B_SEND_EMAIL", nullable = false)
+	@Column(name = "B_SEND_EMAIL")
 	@Schema(description = "آیا ایمیل ارسال شود؟", example = "true")
 	private Boolean sendEmail = true;
 
-	@Column(name = "B_SEND_SMS", nullable = false)
+	@Column(name = "B_SEND_SMS")
 	@Schema(description = "آیا پیامک ارسال شود؟", example = "false")
 	private Boolean sendSms = false;
-
-
-	@Column(name = "B_SEND_PMS", nullable = false)
+	@Column(name = "B_SEND_PMS")
 	@Schema(description = "آیا در سیستم لجستیک ذخیره شود؟", example = "true")
 	private Boolean sendPms = true;
-
-
 }

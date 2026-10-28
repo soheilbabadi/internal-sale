@@ -41,7 +41,7 @@ FROM (SELECT tit.id,
              tit.COMMODITY_CODE                                     AS N_IME_COMMODITY_ID,
              tig.C_IME_COMMODITY_SYMBOL,
              tit.CONTRACT_DATE                                      AS C_CONTRACT_DATE,
-             tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO      AS C_CONTRACT_NO,
+             tit.CONTRACT_NO || LPAD(tit.CONTRACT_DETAIL_NO, 3, '0')      AS C_CONTRACT_NO,
              tit.BUYER_BROKER_CODE                                  AS N_BUYER_BROKER_ID,
              buyerBroker.PERSIAN_NAME                               AS C_BUYER_BROKER_NAME,
              tit.SELLER_BROKER_CODE                                 AS N_SELLER_BROKER_ID,
@@ -82,7 +82,7 @@ FROM (SELECT tit.id,
                INNER JOIN T_INS_GOODS_BUCKET tigb ON tig.ID = tigb.N_GOOD_ID
                LEFT JOIN TBL_IME_PS_BROKERS sellerBroker ON sellerBroker.ID = tit.SELLER_BROKER_CODE
                LEFT JOIN TBL_IME_PS_BROKERS buyerBroker ON buyerBroker.ID = tit.BUYER_BROKER_CODE
-      WHERE TIT.CONTRACT_DATE > '1405/01/01'
+      WHERE TIT.CONTRACT_DATE > '1405/04/01'
         AND TIT.CURRENCY_CODE = 1
         AND (tit.PAYMENT_CODE, tit.CONTRACT_NO, tit.CONTRACT_DETAIL_NO) IN
             (SELECT PAYMENT_CODE, CONTRACT_NO, CONTRACT_DETAIL_NO FROM TBL_IME_SETTLEMENT))

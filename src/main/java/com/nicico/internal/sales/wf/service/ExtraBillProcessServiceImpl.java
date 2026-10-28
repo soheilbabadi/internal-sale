@@ -15,8 +15,8 @@ import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
-import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
+import com.nicico.internal.sales.wf.detection.ExtraBillStepDetector;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.enums.ExtraBillProcessVariable;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
@@ -42,21 +42,21 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 	private static final String PROCESS_ID_PLACEHOLDER = "-";
 	private static final String MSG_PROFORMA_NOT_ACCEPTED = "پیش فاکتور در وضعیت تایید شده نیست";
 	private static final String MSG_PROFORMA_MASTER_NOT_FOUND = "قرارداد فروش وجود ندارد";
-	private static final String MSG_PROFORMA_DETAIL_CANCELED = " پیش فاکتور ابطال شده است";
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
 	private final ProcessVariableProvider processVariableProvider;
 	private final ExtraBillRepository extraBillRepository;
 	private final LcRepository lcRepository;
-	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
+	private final ExtraBillStepDetector acknowledgmentDeterminer;
 	private final ProcessUserAccessRepository processUserAccessRepository;
-	private final ProformaDetailRepository proformaDetailRepository;
+	private final ExtraBillStepDetector extraBillStepDetector;
 
 	@Override
 	@Transactional
 	public ProcessInstance startProcess(Long masterId) {
 
-
+		refreshStatus();
+		extraBillStepDetector.updateAllAcknowledgments();
 		validateAccess();
 		ProformaMasterModel proformaMaster = proformaMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(PROFORMA_NOT_FOUND_MESSAGE));
@@ -67,8 +67,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		extraBillRepository.saveAll(billModels);
 		return processInstance;
 	}
-
-
 	@Override
 	@Transactional
 	public ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto) {
@@ -81,8 +79,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		}
 		return null;
 	}
-
-
 	// -------------------------------------------------------------------------
 	// Process start helpers
 	// -------------------------------------------------------------------------
@@ -95,36 +91,21 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		if (master.getWorkflowApproveStatus() != WorkflowApproveStatus.ACCEPTED) {
 			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_NOT_ACCEPTED);
 		}
-
-		ProformaDetailModel detail = proformaDetailRepository.findById(master.getProformaDetailModelLists().get(0).getId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(PROFORMA_NOT_FOUND_MESSAGE));
-
-		if (detail.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
-			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_CANCELED);
-		}
-
-
 		List<LcModel> lcs = lcRepository.findAllByProformaMasterId(masterId);
-
-		long activeLcCount = lcs.stream()
-				.filter(lc -> lc.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED)
-				.count();
+		long activeLcCount = lcs.stream().filter(lc -> lc.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED || lc.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS).count();
 
 		if (activeLcCount > 0) {
 			throw new InternalSaleCustomException.ValidationException(LC_ALREADY_EXISTS);
 		}
-
 		List<ExtraBankBillModel> bills = extraBillRepository.findAllByProformaMasterId(masterId);
-
 		long nonCanceledCount = bills.stream()
-				.filter(bill -> bill.getWorkflowApproveStatus() != WorkflowApproveStatus.CANCELED)
-				.count();
+				.filter(bill -> bill.getWorkflowApproveStatus() == WorkflowApproveStatus.ACCEPTED || bill.getWorkflowApproveStatus() == WorkflowApproveStatus.IN_PROGRESS).count();
 
 		if (nonCanceledCount > 0) {
 			throw new InternalSaleCustomException.ValidationException(PROFORMA_DUPLICATE_START);
 		}
-
 	}
+
 	private List<ExtraBankBillModel> buildExtraBankBills(ProformaMasterModel proformaMaster, ProcessInstance processInstance) {
 
 		List<ExtraBankBillModel> billModels = new ArrayList<>();
@@ -139,25 +120,19 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			bankBillModel.setAcknowledgment(Acknowledgment.RECKONING);
 			bankBillModel.setTradeId(proformaMaster.getTradeId());
 			bankBillModel.setContractNo(proformaMaster.getContractNo());
-			billModels.add(bankBillModel);
+			if (detailModel.getProformaReversalStatus() != ProformaReversalStatus.CANCELED)
+				billModels.add(bankBillModel);
 		}
 
 		return billModels;
 	}
 
-
 	private StartProcessWithDataDTO buildStartProcessDto(ProformaMasterModel proformaMaster) {
 		StartProcessWithDataDTO dto = new StartProcessWithDataDTO();
 		dto.setProcessDefinitionKey(processVariableProvider.getExtraBillWorkflowByTitle().getDefinitionKey());
 		dto.setVariables(processVariableProvider.createExtraBillRequestVariables(processVariableProvider.buildExtraBillVariablesInput(proformaMaster)));
-
 		return dto;
 	}
-
-
-	// -------------------------------------------------------------------------
-	// Task actions
-	// -------------------------------------------------------------------------
 
 	@Override
 	@Transactional
@@ -166,7 +141,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		ReviewTaskRequest reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(taskActionDto);
 		reviewTask(reviewTaskRequest);
 	}
-
 
 	@Override
 	@Transactional
@@ -204,7 +178,7 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 		bills.forEach(bill -> {
 			bill.setAcknowledgment(bill.getAcknowledgment() == Acknowledgment.RECKONING
 					? Acknowledgment.REMITTANCE
-					: acknowledgmentDeterminer.determine(bill));
+					: acknowledgmentDeterminer.detectStep(bill));
 
 			if (acceptedFinally) {
 				bill.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
@@ -212,8 +186,6 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			}
 		});
 	}
-
-
 	@Override
 	public boolean canStartProcess() {
 
@@ -224,15 +196,11 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 						&& ExtraBillProcessVariable.BillDraftRegistration.name().equalsIgnoreCase(access.getProcessVariable()));
 
 	}
-
-
 	private void validateAccess() {
 		if (!canStartProcess()) {
 			throw new InternalSaleCustomException.AccessDeniedException(ACCESS_DENIED_MESSAGE);
 		}
 	}
-
-
 	@Override
 	public void refreshStatus() {
 		var masterIds = extraBillRepository
@@ -249,13 +217,11 @@ public class ExtraBillProcessServiceImpl implements ExtraBillProcessService {
 			}
 		}
 	}
-
-
 	public void refreshOne(Long masterId) {
 		ExtraBankBillModel master = extraBillRepository.findById(masterId)
 				.orElseThrow(() -> new EntityNotFoundException("ExtraBankBillModel not found: " + masterId));
 
-		Acknowledgment determined = acknowledgmentDeterminer.determine(master);
+		Acknowledgment determined = acknowledgmentDeterminer.detectStep(master);
 		if (master.getAcknowledgment() != determined) {
 			master.setAcknowledgment(determined);
 		}

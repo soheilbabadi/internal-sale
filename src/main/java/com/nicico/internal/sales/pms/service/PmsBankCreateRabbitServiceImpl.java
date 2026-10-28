@@ -31,8 +31,6 @@ public class PmsBankCreateRabbitServiceImpl implements PmsBankCreateRabbitServic
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
 		if (exportConfig.getSendPms() == false) return;
-
-
 		if (bank.getBaseBankId() != null && issuingBankWithPmsIdRepository
 				.findFirstByPmsBaseBankIdAndBranchCodeAndPmsLcBankIdNotNull(bank.getBaseBankId(), bank.getBranchCode())
 				.isPresent())

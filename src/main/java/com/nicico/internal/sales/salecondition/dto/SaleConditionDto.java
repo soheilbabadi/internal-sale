@@ -49,8 +49,6 @@ public class SaleConditionDto implements Serializable {
 
 	@Schema(description = "درصد اضافه اوراق گام")
 	private BigDecimal extraGamCertificatePercent;
-
-
 	@ApiModel("SaleConditionDto.Info")
 	public static class Info extends SaleConditionDto {
 		@Serial

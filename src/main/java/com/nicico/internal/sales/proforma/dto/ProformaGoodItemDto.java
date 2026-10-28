@@ -18,10 +18,12 @@ import java.util.Date;
 public class ProformaGoodItemDto implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 1071096340568594886L;
-	@Schema(description = "شناسه کالا", name = "goodsId", example = "2001")
-	private long goodsId;
-	@Schema(description = "نام کالا", name = "goodsName", example = "Laptop")
-	private String goodsName;
+	@Schema(description = "شناسه", name = "id", example = "1")
+	private Long id;
+	@Schema(description = "شناسه کالا", name = "goodId", example = "2001")
+	private long goodId;
+	@Schema(description = "نام کالا", name = "goodName", example = "Laptop")
+	private String goodName;
 	@Schema(description = "نام واحد شمارش", name = "unitName", example = "Piece")
 	private String unitName;
 	@Schema(description = "شناسه واحد شمارش", name = "unitId", example = "3001")
@@ -60,6 +62,12 @@ public class ProformaGoodItemDto implements Serializable {
 	private BigDecimal creditQuantity;
 	@Schema(description = "درصد اعتباری", name = "commissionPercentage", example = "10")
 	private BigDecimal creditPercentage;
+	@Schema(description = "شناسه آیتم پرفرما", name = "proformaDetailId", example = "1")
+	private Long proformaDetailId;
+//	@Schema(description = "فیش واریزی با مالیات", name = "depositSlipWithTax", example = "0")
+//	private BigDecimal depositSlipWithTax;
+//	@Schema(description = "فیش واریزی بدون مالیات", name = "depositSlipWithoutTax", example = "0")
+//	private BigDecimal depositSlipWithoutTax;
 
 	@EqualsAndHashCode(callSuper = true)
 	@AllArgsConstructor

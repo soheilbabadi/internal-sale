@@ -19,8 +19,6 @@ public class CustomerContactDto implements Serializable {
 	private static final long serialVersionUID = -5004064808385095447L;
 	@Schema(description = "شناسه", example = "1")
 	private Long id;
-
-
 	@Schema(description = "شماره تماس", example = "021-12345678")
 	private String phone;
 

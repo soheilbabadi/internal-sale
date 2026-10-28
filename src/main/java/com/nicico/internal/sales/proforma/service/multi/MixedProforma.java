@@ -12,8 +12,6 @@ public class MixedProforma {
 
 	private static final String MSG_INVALID_DATA = "اطلاعات پیش فاکتور نادرست است";
 	private final ProformaValidationService proformaValidationService;
-
-
 	public String issueMix(MixedProformaRequest mixedProformaRequest) {
 		var errors = proformaValidationService.validateMixedProforma(mixedProformaRequest);
 		if (!errors.isEmpty()) {

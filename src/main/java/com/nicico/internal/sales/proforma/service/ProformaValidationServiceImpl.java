@@ -70,15 +70,13 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 	private final VatRepository taxVatRepository;
 	private final CustomerRepository customerRepository;
 	private final ProformaMasterRepository proformaMasterRepository;
-	private final TradeExtractStartProformaRepository tradeExtractRepository;
+	private final TradeExtractStartProformaRepository tradeExtractStartProformaRepository;
 	private final PreciousMetalRepository preciousMetalRepository;
 	private final LcRepository lcRepository;
 	private final ProcessVariableProvider processVariableProvider;
 	private final GoodBucketService goodBucketService;
 	private final PMSCustomerService pMSCustomerService;
 	private final GoodsService goodsService;
-
-
 	@Override
 	public List<String> validateProformaData(PerfomaCreateRequest requestDto) {
 		var tradeExtract = requireTradeExtract(requestDto.getTradeId());
@@ -118,8 +116,6 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 	@Override
 	public List<String> validateProformaData(PreciousMetalProfomaCreateRequest requestDto) {
 		var tradeExtract = requireTradeExtract(requestDto.getTradeId());
-
-
 		List<String> errors = new ArrayList<>();
 		if (requestDto.getOrderDate() == null) {
 			errors.add(MSG_ORDER_DATE_REQUIRED);
@@ -165,6 +161,27 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 	}
 
 	@Override
+	public List<String> validateCashDepositData(CashDepositCreateRequest requestDto) {
+		var tradeExtract = requireTradeExtract(requestDto.getTradeId());
+
+		List<String> errors = new ArrayList<>();
+
+		errors.addAll(validateCommonProformaData(tradeExtract.getPaymentCode()));
+		if (isContractExists(Long.valueOf(tradeExtract.getContractNo()))) {
+			errors.add(MSG_CONTRACT_EXISTS);
+		}
+
+		tradeExtractStartProformaRepository.findFirstByPaymentCodeOrderByIdDesc(tradeExtract.getPaymentCode())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PAYMENT_CODE_NOT_FOUND));
+		errors.addAll(validateVat());
+		errors.addAll(validateGoodBucket(tradeExtract.getPaymentCode()));
+		errors.addAll(validateCustomer(tradeExtract.getPaymentCode()));
+
+		throwIfErrors(errors);
+		return errors;
+	}
+
+	@Override
 	public List<String> validateMixedProforma(MixedProformaRequest requestDto) {
 		var tradeExtract = requireTradeExtract(requestDto.getTradeId());
 
@@ -196,8 +213,6 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 			errors.add(MSG_CONTRACT_NO_PROFORMA);
 			throw new InternalSaleCustomException.ValidationException(MSG_INVALID_DATA, errors);
 		}
-
-
 //		if (proforma.get().getIsProcessFinal() && ) {
 //			throw new InternalSaleCustomException.ValidationException(MSG_GENERAL_NO_REVERSAL, errors);
 //		}
@@ -262,7 +277,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 	}
 
 	private List<String> validateCommonProformaData(String paymentCode) {
-		tradeExtractRepository.findFirstByPaymentCodeOrderByIdDesc(paymentCode)
+		tradeExtractStartProformaRepository.findFirstByPaymentCodeOrderByIdDesc(paymentCode)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PAYMENT_CODE_NOT_FOUND));
 
 		List<String> errors = new ArrayList<>();
@@ -284,7 +299,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 	private List<String> validateGoodBucket(String paymentCode) {
 		List<String> errors = new ArrayList<>();
 
-		var commodityCode = tradeExtractRepository.findFirstByPaymentCodeOrderByIdDesc(paymentCode)
+		var commodityCode = tradeExtractStartProformaRepository.findFirstByPaymentCodeOrderByIdDesc(paymentCode)
 				.orElse(null);
 		var goodOptional = goodsRepository.findByImeCommodityId(commodityCode.getCommodityCode());
 		GoodsBucketModel goodBucket = goodBucketService.findByPaymentCodeModel(paymentCode);
@@ -368,7 +383,7 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 	}
 
 	private TradeExtractStartProformaModel requireTradeExtract(Long tradeId) {
-		return tradeExtractRepository.findById(tradeId)
+		return tradeExtractStartProformaRepository.findFirstByIdOrderByMasterIdDesc(tradeId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_TRADE_NOT_FOUND));
 	}
 
@@ -391,6 +406,4 @@ public class ProformaValidationServiceImpl implements ProformaValidationService 
 			throw new InternalSaleCustomException.ValidationException(MSG_INVALID_DATA, errors);
 		}
 	}
-
-
 }

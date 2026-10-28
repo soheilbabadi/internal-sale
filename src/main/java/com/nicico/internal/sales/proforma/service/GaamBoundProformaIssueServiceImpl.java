@@ -20,6 +20,7 @@ import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 import com.nicico.internal.sales.util.date.DateUtility;
+import com.nicico.internal.sales.wf.detection.GaamStepDetector;
 import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
@@ -52,11 +53,11 @@ public class GaamBoundProformaIssueServiceImpl implements GaamBoundProformaIssue
 	private final ProformaContractService proformaContractService;
 	private final ProformaSerialService proformaSerialService;
 	private final ProcessVariableProvider processVariableProvider;
-
-
+	private final GaamStepDetector gaamStepDetector;
 	@Override
 	@Transactional
 	public String create(PerfomaCreateRequest requestDto) {
+		gaamStepDetector.updateAllAcknowledgments();
 		log.debug("Creating Gaam bound proforma for tradeId: {}", requestDto.getTradeId());
 
 		if (!proformaProcessService.canStartProcess()) {
@@ -176,6 +177,9 @@ public class GaamBoundProformaIssueServiceImpl implements GaamBoundProformaIssue
 				.offerDescription(tradeModel.getOfferDescription())
 				.settlementType(SettlementType.UNKNOWN.name())
 				.contractNo(requestDto.getContractNo())
+				.depositSlipWithTax(BigDecimal.ZERO)
+				.depositSlipWithoutTax(BigDecimal.ZERO)
+				.depositSlipType(null)
 				.build();
 	}
 

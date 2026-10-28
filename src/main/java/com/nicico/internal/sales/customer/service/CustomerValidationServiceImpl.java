@@ -93,8 +93,6 @@ public class CustomerValidationServiceImpl implements CustomerValidationService 
 	@Override
 	public List<String> validateCreateCustomerContact(CustomerContactDto.Create requestDto) {
 		List<String> errors = new ArrayList<>();
-
-
 		if (requestDto.getPhone() == null || requestDto.getPhone().isBlank()) {
 			errors.add(MSG_CONTACT_PHONE_REQUIRED);
 		}
@@ -176,8 +174,6 @@ public class CustomerValidationServiceImpl implements CustomerValidationService 
 			throw new InternalSaleCustomException.ValidationException(MSG_INVALID_DATA, errors);
 		}
 	}
-
-
 	private boolean hasSimilarName(String name) {
 		return customerRepository.findAll().stream().anyMatch(customer -> TextUtility.getSimilarity(customer.getName(), name) > 99.0);
 	}

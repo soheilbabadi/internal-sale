@@ -48,8 +48,6 @@ class PMSRemittanceController {
 		service.update(remittanceMasterId, pmsUserName);
 		return ResponseEntity.ok().build();
 	}
-
-
 	@GetMapping("/send-pms/{remittanceMasterId}")
 	@PreAuthorize("@secUtil.hasAuthority('C_PMS_REMITTANCE')")
 

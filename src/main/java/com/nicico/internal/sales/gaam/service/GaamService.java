@@ -14,13 +14,9 @@ public interface GaamService {
 	SearchDTO.SearchRs<GaamReportDto.Info> searchIssueHistory(SearchDTO.SearchRq request);
 
 	List<GaamDto.Info> saveAll(List<GaamRequest> requests);
-
-
 	GaamDto.Info save(GaamRequest request);
 
 	List<GaamDto.Info> getByMasterId(Long proformaMasterId);
-
-
 	GaamDto.Info updateGaamFiles(GaamFileUpdateDto updateDto);
 
 	void sendReckoningEmail(Long gaamId);

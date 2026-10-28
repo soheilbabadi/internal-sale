@@ -5,7 +5,6 @@ import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.lc.dto.LcIssueProviderDto;
 import com.nicico.internal.sales.lc.service.LcIssueService;
-import com.nicico.internal.sales.trade.service.TradeExtractService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,6 @@ import java.util.List;
 @RequestMapping("/api/v1/ins/lc/lc-issue")
 public class LcIssueController {
 	private final LcIssueService service;
-	private final TradeExtractService tradeExtractService;
 
 	@Operation(
 			summary = "دریافت اطلاعات اعتبارات اسنادی قابل صدور",
@@ -42,21 +40,6 @@ public class LcIssueController {
 	public ResponseEntity<List<LcIssueProviderDto.Info>> getByMasterId(@PathVariable Long masterId) {
 		return ResponseEntity.ok(service.getByMasterId(masterId));
 	}
-
-//    @Operation(
-//            summary = "دریافت لیست تمام ارائه دهندگان صدور LC",
-//            description = "لیست کامل تمام ارائه دهندگان صدور اعتبار اسنادی را به صورت صفحه بندی شده بازمی گرداند. این متد امکان مرتب سازی بر اساس فیلدهای مختلف مانند شناسه، نام بانک و تاریخ ایجاد را فراهم می کند."
-//    )
-//    @GetMapping("/all")
-//    public ResponseEntity<Page<LcIssueProviderDto.Info>> getAll(
-//            @RequestParam(defaultValue = "0") Integer pageIndex,
-//            @RequestParam(defaultValue = "10") Integer pageSize,
-//            @RequestParam(defaultValue = "id") String sortColumn,
-//            @RequestParam(defaultValue = "ASC") Sort.Direction sortDirection) {
-//        log.info("Getting all proforma LC issue providers - page: {}, size: {}, sort: {}", pageIndex, pageSize, sortColumn);
-//        Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by(sortDirection, sortColumn));
-//        return ResponseEntity.ok(service.getAll(pageable));
-//    }
 
 	@Operation(
 			summary = "جستجوی اعتبارات اسنادی قابل صدور",

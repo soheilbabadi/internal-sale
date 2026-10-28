@@ -16,8 +16,6 @@ public final class BpmsExceptionHandler {
 	private BpmsExceptionHandler() {
 
 	}
-
-
 	public static <T> T executeWithCustomHandling(ThrowingSupplier<T> supplier, String errorMessage) {
 		try {
 			return supplier.get();
@@ -45,8 +43,6 @@ public final class BpmsExceptionHandler {
 			);
 		}
 	}
-
-
 	@FunctionalInterface
 	public interface ThrowingSupplier<T> {
 		T get() throws Exception;
@@ -56,6 +52,4 @@ public final class BpmsExceptionHandler {
 	public interface ThrowingRunnable {
 		void run() throws Exception;
 	}
-
-
 }

@@ -38,8 +38,6 @@ public final class ProformaModelHelper {
 	private static final String DEFAULT_LOT_NUMBER = "-";
 	private static final String SARCHESHMEH = "سرچشمه";
 	private static final String EMPTY_STRING = "";
-
-
 	private ProformaModelHelper() {
 	}
 
@@ -134,8 +132,6 @@ public final class ProformaModelHelper {
 				sumItems(goodItems, ProformaGoodItemModel::getQuantity)
 		);
 	}
-
-
 	public static CashGoodItemCalculation calculateCashGoodItem(
 			IMETradeModel tradeModel,
 			GoodsBucketModel goodsBucketModel,
@@ -172,6 +168,7 @@ public final class ProformaModelHelper {
 			creditQuantity = (quantity * creditPercent) / 100.0;
 			cashQuantity = quantity - creditQuantity;
 			double additionalValue = (goodsBucketModel.getCommission() + 100) / 100.0;
+
 			unitPriceCredit = (long) Math.ceil(unitPrice * additionalValue);
 			creditAmount = Math.round(creditQuantity * unitPriceCredit);
 			cashAmount = Math.round(cashQuantity * unitPrice);
@@ -340,8 +337,6 @@ public final class ProformaModelHelper {
 
 		return new CashCreditPercentages(cashPercentage, creditPercentage);
 	}
-
-
 	public static String processGoodName(GoodsModel goodsModel, String description) {
 		String cleanName = getCleanName(goodsModel);
 
@@ -429,6 +424,9 @@ public final class ProformaModelHelper {
 				.settlementType(settlementType != null ? settlementType : SettlementType.UNKNOWN.name())
 				.isProcessFinal(false)
 				.isReversalProcessFinal(false)
+				.depositSlipWithTax(BigDecimal.ZERO)
+				.depositSlipWithoutTax(BigDecimal.ZERO)
+				.depositSlipType(null)
 				.build();
 	}
 
@@ -479,8 +477,6 @@ public final class ProformaModelHelper {
 				.gamCertificateCount(gaamcount)
 				.build();
 	}
-
-
 	// ==================== CONVERSION METHODS ====================
 
 	public static ProformaDetailDto toDetailDTO(ProformaDetailModel model) {
@@ -516,8 +512,8 @@ public final class ProformaModelHelper {
 		}
 		ProformaGoodItemDto dto = new ProformaGoodItemDto();
 		BeanUtils.copyProperties(model, dto);
-		dto.setGoodsName(model.getGoodName());
-		dto.setGoodsId(model.getGoodId());
+		dto.setGoodName(model.getGoodName());
+		dto.setGoodId(model.getGoodId());
 		dto.setUnitName(UNIT_NAME);
 		return dto;
 	}
@@ -630,8 +626,6 @@ public final class ProformaModelHelper {
 	}
 
 	// ==================== MASTER VALIDATION ====================
-
-
 	/**
 	 * جمع آوری مقادیر از لیست ProformaDetailModel ها و گرد کردن با RoundingMode.HALF_UP
 	 * اگر اعشار 0.5 یا بیشتر باشد، بالا گرد می شود
@@ -717,8 +711,6 @@ public final class ProformaModelHelper {
 
 		return BigDecimal.ZERO;
 	}
-
-
 	public record Totals(BigDecimal totalCashAmount,
 	                     BigDecimal totalQuantity,
 	                     BigDecimal totalCreditAmount,

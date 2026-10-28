@@ -16,8 +16,6 @@ public enum EntityTypeEnum {
 	EntityTypeEnum(String persianName) {
 		this.persianName = persianName;
 	}
-
-
 	public static EntityTypeEnum fromString(String text) {
 		for (EntityTypeEnum type : EntityTypeEnum.values()) {
 			if (type.name().equalsIgnoreCase(text) ||

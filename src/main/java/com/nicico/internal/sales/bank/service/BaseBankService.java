@@ -13,6 +13,4 @@ public interface BaseBankService {
 
 	@Transactional
 	int updateAllBaseNosaCodes();
-
-
 }

@@ -8,6 +8,7 @@ import com.nicico.internal.sales.proforma.dto.PerfomaCreateRequest;
 import com.nicico.internal.sales.proforma.dto.PerformerCreateRevealRequest;
 import com.nicico.internal.sales.proforma.dto.ProformaCreationContext;
 import com.nicico.internal.sales.proforma.dto.ProformaModelResponse;
+import com.nicico.internal.sales.proforma.dto.ProformaResponseDto;
 import com.nicico.internal.sales.salecondition.model.SaleConditionModel;
 
 import java.math.BigDecimal;
@@ -46,5 +47,5 @@ public interface ProformaContractService {
 
 	String getCleanName(GoodsModel goodsModel);
 
-
+	ProformaResponseDto getDetailById(long id);
 }

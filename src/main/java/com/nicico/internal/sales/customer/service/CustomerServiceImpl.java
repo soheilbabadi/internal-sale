@@ -3,6 +3,11 @@ package com.nicico.internal.sales.customer.service;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
+import com.nicico.internal.sales.accounting.dto.CreateCompanyDetailDto;
+import com.nicico.internal.sales.accounting.dto.CreatePersonDetailDto;
+import com.nicico.internal.sales.accounting.dto.DetailDto;
+import com.nicico.internal.sales.accounting.service.AccountingDetailService;
+import com.nicico.internal.sales.accounting.util.NationalCodeValidator;
 import com.nicico.internal.sales.customer.dto.CustomerDTO;
 import com.nicico.internal.sales.customer.dto.CustomerMapper;
 import com.nicico.internal.sales.customer.model.CustomerModel;
@@ -13,11 +18,15 @@ import com.nicico.internal.sales.util.TextUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -27,7 +36,7 @@ public class CustomerServiceImpl implements CustomerService {
 	private final CustomerMapper customerMapper;
 	private final TradeExtractService tradeExtractService;
 	private final CustomerValidationService customerValidationService;
-
+	private final AccountingDetailService accountingDetailService;
 
 	@Override
 	public SearchDTO.SearchRs<CustomerDTO.Info> search(SearchDTO.SearchRq request) {
@@ -101,4 +110,53 @@ public class CustomerServiceImpl implements CustomerService {
 				TextUtility.getSimilarity(customer.getName(), name) > 85.0)
 				.map(customerMapper::toDTO).toList();
 	}
+
+	@Override
+	@Transactional
+	public String saveAccDetailCode(Long id) {
+		var model = customerRepository.findById(id)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						"اطلاعات مشتری پیدا نشد"));
+
+		if (StringUtils.isBlank(model.getNationalCode())) {
+			throw new InternalSaleCustomException.ValidationException("شناسه یا کد ملی مشتری نمی تواند خالی باشد");
+		}
+
+		String normalizedNationalCode = NationalCodeValidator.normalize(model.getNationalCode());
+		boolean isCompany = NationalCodeValidator.isCompany(normalizedNationalCode);
+
+		Optional<DetailDto> existingDetail = isCompany
+				? accountingDetailService.findDetailForCompany(normalizedNationalCode)
+				: accountingDetailService.findDetailForPerson(normalizedNationalCode);
+
+		if (existingDetail.isPresent()) {
+			String detailCode = existingDetail.get().getCode();
+			if (!Objects.equals(model.getNosaCode(), detailCode)) {
+				model.setNosaCode(detailCode);
+				customerRepository.save(model);
+			}
+			return detailCode;
+		}
+
+		DetailDto createdDetail;
+		if (isCompany) {
+			CreateCompanyDetailDto req = CreateCompanyDetailDto.builder()
+					.companyName(model.getName())
+					.nationalId(normalizedNationalCode)
+					.detailNameLatin(model.getNameEn())
+					.build();
+			createdDetail = accountingDetailService.createDetailForCompany(req);
+		} else {
+			CreatePersonDetailDto req = CreatePersonDetailDto.builder()
+					.fullName(model.getName())
+					.nationalCode(normalizedNationalCode)
+					.build();
+			createdDetail = accountingDetailService.createDetailForPerson(req);
+		}
+
+		model.setNosaCode(createdDetail.getCode());
+		customerRepository.save(model);
+		return createdDetail.getCode();
+	}
+
 }

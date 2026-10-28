@@ -40,7 +40,6 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    SELECT
 		        ROW_NUMBER() OVER (ORDER BY tipm.ID) AS ID,
 		        tipm.ID AS N_MASTER_ID,
-		
 		        tipd.C_PERFORMA_NO,
 		        tipd.N_FINAL_PRICE,
 		        tipd.D_PERFORMA_DATE,
@@ -69,23 +68,13 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		        tipm.C_IME_COMMODITY_SYMBOL,
 		        NVL(tipm.C_WORKFLOW_APPROVE_STATUS, 'NOT_STARTED')
 		            AS C_WORKFLOW_APPROVE_STATUS
-		
 		    FROM T_INS_PERFORMA_MASTER tipm
-		
 		    INNER JOIN first_detail tipd
 		        ON tipd.F_PERFORMA_MASTER_ID = tipm.ID
 		       AND tipd.RN = 1
 		
 		    WHERE tipm.C_PROFORMA_ISSUE_TYPE = 'EXTRA_BILL_OF_EXCHANGE'
 		      AND tipm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'
-		
-		      AND NOT EXISTS (
-		          SELECT 1
-		          FROM TBL_IME_SETTLEMENT tis
-		          WHERE tis.PAYMENT_CODE = tipm.C_PAYMENT_CODE
-		            AND tis.SETTLEMENT_TYPE IN ('انفساخ', 'نقدی')
-		      )
-		
 		      AND NOT EXISTS (
 		          SELECT 1
 		          FROM T_INS_EXTRA_BANK_BILL tipbb
@@ -99,8 +88,8 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    SELECT 1
 		    FROM T_INS_EXTRA_BANK_BILL tpbb
 		    WHERE tpbb.F_PERFORMA_MASTER_ID = fm.N_MASTER_ID
-		      AND tpbb.C_WORKFLOW_APPROVE_STATUS IN ('ACCEPTED','IN_PROGRESS')  
-		)	
+		      AND tpbb.C_WORKFLOW_APPROVE_STATUS IN ('ACCEPTED','IN_PROGRESS')
+		)
 		""")
 public class ExtraBillIssueProviderModel implements Serializable {
 	@Serial
@@ -138,7 +127,7 @@ public class ExtraBillIssueProviderModel implements Serializable {
 	@Column(name = "N_CUSTOMER_ID")
 	private Long customerId;
 	@Schema(description = "نام مشتری")
-	@Column(name = "C_CUSTOMER_NAME", length = 255)
+	@Column(name = "C_CUSTOMER_NAME")
 	private String customerName;
 	@Schema(description = "کد اقتصادی")
 	@Column(name = "C_ECONOMIC_CODE", length = 12)
@@ -147,7 +136,7 @@ public class ExtraBillIssueProviderModel implements Serializable {
 	@Column(name = "N_GOOD_ID")
 	private Long goodId;
 	@Schema(description = "نام کالا")
-	@Column(name = "C_GOOD_NAME", length = 255)
+	@Column(name = "C_GOOD_NAME")
 	private String goodName;
 	@Schema(description = "درصد اعتباری")
 	@Column(name = "N_CREDIT_PERCENTAGE", precision = 5, scale = 2)
@@ -177,8 +166,6 @@ public class ExtraBillIssueProviderModel implements Serializable {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "C_WORKFLOW_APPROVE_STATUS", length = 100)
 	private WorkflowApproveStatus workflowApproveStatus;
-
-
 	@Column(name = "N_BROKER_ID")
 	private Long brokerId;
 

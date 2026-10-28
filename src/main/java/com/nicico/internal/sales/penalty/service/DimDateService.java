@@ -20,8 +20,6 @@ public interface DimDateService {
 	List<DimDateDto.Info> getAllBetween(Date startDate, Date endDate);
 
 	List<DimDateDto.Info> getDatesByPersianYearAndMonth(Long persianYear, Long persianMonth);
-
-
 	List<DimDateDto.Info> getHolidayByYear(int year);
 
 	DimDateDto.Info addWorkingDays(Date date, int workingDays);

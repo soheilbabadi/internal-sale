@@ -23,7 +23,7 @@ public class BaseEntity<ID extends Serializable> implements Serializable {
 	@Serial
 	private static final long serialVersionUID = 5420748073454814337L;
 	@Id
-	@Column(name = "id", unique = true, nullable = false)
+	@Column(name = "id", unique = true)
 	@GeneratedValue(generator = DEFAULT_SEQ_GEN)
 	protected ID id;
 }

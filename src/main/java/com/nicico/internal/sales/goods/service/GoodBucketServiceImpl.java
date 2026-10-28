@@ -41,8 +41,6 @@ public class GoodBucketServiceImpl implements GoodBucketService {
 	private final GoodsRepository goodsRepository;
 	private final GoodsBucketMapper goodsBucketMapper;
 	private final IMETradeRepository imeTradeRepository;
-
-
 	// ---------- Query methods ----------
 	@Override
 	public GoodsBucketModel getOnSpecificDateModel(long goodId, Date targetDate) {
@@ -173,6 +171,4 @@ public class GoodBucketServiceImpl implements GoodBucketService {
 	private int calculatePackingId(String packingName) {
 		return packingName != null ? packingName.trim().toLowerCase().hashCode() : 0;
 	}
-
-
 }

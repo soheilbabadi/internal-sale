@@ -21,8 +21,6 @@ public interface ProformaDetailRepository extends JpaRepository<ProformaDetailMo
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Query(value = "UPDATE T_INS_PERFORMA_DETAIL D SET D.C_SETTLEMENT_TYPE = (SELECT M.C_SETTLEMENT_TYPE  FROM T_INS_PERFORMA_MASTER M WHERE M.ID = D.F_PERFORMA_MASTER_ID  AND d.C_SETTLEMENT_TYPE = 'UNKNOWN') WHERE EXISTS (SELECT 1 FROM T_INS_PERFORMA_MASTER M WHERE M.ID = D.F_PERFORMA_MASTER_ID AND m.C_SETTLEMENT_TYPE != 'UNKNOWN')", nativeQuery = true)
 	void updateSettlementTypeFromTradeSettlement();
-
-
 	List<ProformaDetailModel> findAllByProformaMasterId(long masterId);
 
 	@Transactional

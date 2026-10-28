@@ -66,8 +66,6 @@ public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundS
 	private final ProcessVariableProvider processVariableProvider;
 
 	// ==================== PUBLIC SERVICE METHODS ====================
-
-
 	@Transactional
 	@Override
 	public String create(PreciousMetalProfomaCreateRequest requestDto) {
@@ -93,8 +91,6 @@ public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundS
 		log.info("Precious metal proforma created successfully with contractNo: {}", model.getContractNo());
 		return model.getContractNo().toString();
 	}
-
-
 	private ProformaMasterModel createProformaMaster(PreciousMetalProfomaCreateRequest requestDto) {
 		log.debug("Creating proforma master for precious metal");
 
@@ -108,8 +104,6 @@ public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundS
 		log.info("Proforma master created successfully with id: {}", masterModel.getId());
 		return masterModel;
 	}
-
-
 	private ProformaModelResponse getContractDetail(PreciousMetalProfomaCreateRequest requestDto) {
 		log.debug("Getting contract detail for precious metal, tradeId: {}", requestDto.getTradeId());
 		TradeExtractModel tradeExtract = tradeExtractRepository.findById(requestDto.getTradeId())
@@ -225,6 +219,9 @@ public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundS
 				.settlementType(SETTLEMENT_TYPE_DEFAULT)
 				.isProcessFinal(false)
 				.isReversalProcessFinal(false)
+				.depositSlipWithTax(BigDecimal.ZERO)
+				.depositSlipWithoutTax(BigDecimal.ZERO)
+				.depositSlipType(null)
 				.build();
 	}
 
@@ -279,8 +276,6 @@ public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundS
 
 		return buildPreciousMetalGoodItem(calc);
 	}
-
-
 	private void calculateAndSetExtraAmount(ProformaDetailModel detailModel, BigDecimal totalPrice, SaleConditionModel saleConditionModel) {
 		if (saleConditionModel == null) {
 			return;
@@ -322,6 +317,4 @@ public class PreciousMetalGaamBoundServiceImp implements PreciousMetalGaamBoundS
 				.netQuantity(calc.netQuantity())
 				.build();
 	}
-
-
 }

@@ -17,4 +17,7 @@ public interface CustomerService {
 	void importTradeData();
 
 	List<CustomerDTO.Info> findSimilarNames(String name);
+
+	String saveAccDetailCode(Long id);
 }
+

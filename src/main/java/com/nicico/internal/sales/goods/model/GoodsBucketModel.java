@@ -44,7 +44,7 @@ public class GoodsBucketModel extends BaseClassModel {
 	private BigDecimal cashPercentage;
 	@Column(name = "N_COMMISSION")
 	private Double commission;
-	@Column(name = "D_START_DATE", nullable = false)
+	@Column(name = "D_START_DATE")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date startDate;
 	@Column(name = "D_EXPIRE_DATE")

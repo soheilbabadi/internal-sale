@@ -36,20 +36,14 @@ public class PricingCurrencyServiceImpl implements PricingCurrencyService {
 	public SearchDTO.SearchRs<PricingCurrencyDto.Info> search(SearchDTO.SearchRq request) {
 		return SearchUtil.search(repository, request, mapper::toDTO);
 	}
-
-
 	@Override
 	public PricingCurrencyDto.Info save(PricingCurrencyRequest request) {
 		int[] dateParts = DateUtility.extractPersianDateParts(request.getPersianShortDate());
 		Long year = (long) dateParts[0];
 		Long month = (long) dateParts[1];
 		Long day = (long) dateParts[2];
-
-
 		var dateRecord = dimDateRepository.findByPersianYearAndPersianMonthAndPersianDay(year, month, day)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_ISSUING_DATE_NOT_VALID));
-
-
 		var priceType = pricingCurrencyTypeRepository.findTopByOrderByIdDesc()
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_PRICE_TYPE_NOT_VALID));
 
@@ -79,8 +73,6 @@ public class PricingCurrencyServiceImpl implements PricingCurrencyService {
 		var savedModel = pricingCurrencyTypeRepository.save(pricingCurrencyTypeModel);
 		return typeMapper.toDTO(savedModel);
 	}
-
-
 	@Override
 	public BigDecimal getAverageUsdRateForLastDay() {
 		PricingCurrencyModel lastRecord = repository.findTopByOrderByShortDateDesc()
@@ -121,6 +113,4 @@ public class PricingCurrencyServiceImpl implements PricingCurrencyService {
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_PRICE_TYPE_NOT_VALID));
 		return priceType.getRateType();
 	}
-
-
 }

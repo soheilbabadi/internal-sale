@@ -22,13 +22,13 @@ public interface IMETradeRepository extends JpaRepository<IMETradeModel, Long>, 
 
 	Optional<IMETradeModel> findFirstByIdOrderByIdDesc(Long id);
 
-	@Query(value = "SELECT DISTINCT tit.COMMODITY_CODE as commodityCode, " + "       c.PERSIAN_NAME as persianName, " + "       c.SYMBOL as symbol " + "FROM TBL_IME_TRADE tit " + "INNER JOIN TBL_IME_PS_COMMODITIES c ON c.ID = tit.COMMODITY_CODE " + "WHERE tit.COMMODITY_CODE NOT IN (SELECT DISTINCT tig.N_IME_COMMODITY_ID FROM T_INS_GOODS tig) " + "  AND tit.CONTRACT_DATE > '1405/01/01'", nativeQuery = true)
+	@Query(value = "SELECT DISTINCT tit.COMMODITY_CODE as commodityCode, " + "       c.PERSIAN_NAME as persianName, " + "       c.SYMBOL as symbol " + "FROM TBL_IME_TRADE tit " + "INNER JOIN TBL_IME_PS_COMMODITIES c ON c.ID = tit.COMMODITY_CODE " + "WHERE tit.COMMODITY_CODE NOT IN (SELECT DISTINCT tig.N_IME_COMMODITY_ID FROM T_INS_GOODS tig) " + "  AND tit.CONTRACT_DATE > '1405/04/01'", nativeQuery = true)
 	List<CommodityProjection> findDistinctCommoditiesNotInGoods();
-
-
 	@Query(value = """
 			SELECT tit.SELLER_BROKER_CODE FROM tbl_ime_trade tit INNER JOIN TBL_IME_PS_BROKERS broker
 			    ON tit.BUYER_BROKER_CODE = broker.ID  WHERE tit.ID = :tradeId FETCH FIRST 1 ROW ONLY
 			""", nativeQuery = true)
 	Optional<Long> findSellerBrokerCodeById(@Param("tradeId") Long tradeId);
+
+	Optional<IMETradeModel> findFirstByContractNoAndContractDetailNoOrderByIdDesc(Integer contractNo, Integer contractDetailNo);
 }

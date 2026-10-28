@@ -55,6 +55,4 @@ public class LoadingExtractController {
 		service.deleteById(id);
 		return ResponseEntity.ok().build();
 	}
-
-
 }

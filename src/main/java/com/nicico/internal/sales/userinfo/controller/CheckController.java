@@ -2,9 +2,11 @@ package com.nicico.internal.sales.userinfo.controller;
 
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.export.service.FmsDocumentService;
+import com.nicico.internal.sales.schedule.RemittanceScheduler;
 import com.nicico.internal.sales.userinfo.dto.UserInfoDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.env.Environment;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/check")
@@ -22,6 +25,7 @@ public class CheckController {
 	private final Environment env;
 	private final JdbcTemplate jdbcTemplate;
 	private final FmsDocumentService fmsDocumentService;
+	private final RemittanceScheduler remittanceScheduler;
 	@Value("${nicico.version}")
 	private String apiVersion;
 
@@ -77,6 +81,19 @@ public class CheckController {
 			}
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+		}
+	}
+
+
+	@PostMapping("/trigger-remittance")
+	public ResponseEntity<String> triggerRemittanceScheduler() {
+		try {
+			remittanceScheduler.processRemittanceData();
+			return ResponseEntity.ok("Remittance scheduler.sql triggered successfully");
+		} catch (Exception e) {
+			log.error("Error triggering remittance scheduler.sql manually", e);
+			return ResponseEntity.internalServerError()
+					.body("Failed to trigger scheduler.sql: " + e.getMessage());
 		}
 	}
 }

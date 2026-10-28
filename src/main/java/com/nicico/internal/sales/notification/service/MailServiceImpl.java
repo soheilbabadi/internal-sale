@@ -26,7 +26,7 @@ public class MailServiceImpl implements MailService {
 	private String mailServiceUrl;
 
 	@Override
-	public HttpResponse<String> sendMail(EmailRequest emailRequest, String pathOfPdf) {
+	public void sendMail(EmailRequest emailRequest, String pathOfPdf) {
 		String boundary = "----Boundary" + UUID.randomUUID();
 		Path filePath = Path.of(pathOfPdf);
 		String jsonPayload = """
@@ -55,18 +55,17 @@ public class MailServiceImpl implements MailService {
 		System.arraycopy(part3, 0, requestBody, part1.length + fileBytes.length, part3.length);
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(mailServiceUrl)).header("Content-Type", "multipart/form-data; boundary=" + boundary).POST(HttpRequest.BodyPublishers.ofByteArray(requestBody)).build();
 		HttpClient client = HttpClient.newHttpClient();
-		HttpResponse<String> response = null;
 		try {
-			response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			client.send(request, HttpResponse.BodyHandlers.ofString());
 		} catch (Exception e) {
 			log.error(e.getMessage());
+			return;
 		}
-		log.info("{}-----{}", request.toString(), response.toString());
-		return response;
+		log.info(request.toString());
 	}
 
 	@Override
-	public HttpResponse<String> sendMail(EmailRequest emailRequest) {
+	public void sendMail(EmailRequest emailRequest) {
 		String boundary = "----Boundary" + UUID.randomUUID();
 
 		String jsonPayload = """
@@ -88,16 +87,13 @@ public class MailServiceImpl implements MailService {
 
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(mailServiceUrl)).header("Content-Type", "multipart/form-data; boundary=" + boundary).POST(HttpRequest.BodyPublishers.ofByteArray(requestBody)).build();
 		HttpClient client = HttpClient.newHttpClient();
-		HttpResponse<String> response = null;
 		try {
-			response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			client.send(request, HttpResponse.BodyHandlers.ofString());
 		} catch (Exception e) {
 			log.error(e.getMessage());
+			return;
 		}
-		log.info("{}-----{}", request.toString(), response.toString());
-		return response;
+		log.info(request.toString());
 
 	}
-
-
 }

@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.extrabill.dto;
-
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,8 +21,6 @@ public class ProformaBankBillRequest implements Serializable {
 	@NotNull(message = "شناسه  نمی تواند خالی باشد")
 	@Schema(description = "شناسه برات ثبت شده")
 	private Long id;
-
-
 	@NotNull(message = "شناسه بانک صادرکننده نمی تواند خالی باشد")
 	@Schema(description = "نام بانک صادر کننده برات")
 	private Long issuerBankId;
@@ -32,14 +28,6 @@ public class ProformaBankBillRequest implements Serializable {
 	@NotNull(message = "شناسه بانک عامل نمی تواند خالی باشد")
 	@Schema(description = "شناسه بانک عامل")
 	private Long agentBankId;
-
-//	@NotBlank(message = "کد تفصیلی نمی تواند خالی باشد")
-//	@Schema(description = "کد تفصیلی")
-//	private String nosaCode;
-//
-
-
-
 
 	@NotBlank(message = "کد سپام نمی تواند خالی باشد")
 	@Schema(description = "کد سپام")
@@ -63,6 +51,4 @@ public class ProformaBankBillRequest implements Serializable {
 
 	@Schema(description = "شناسه فایل پیوست برات")
 	private String extraBillFileId;
-
-
 }

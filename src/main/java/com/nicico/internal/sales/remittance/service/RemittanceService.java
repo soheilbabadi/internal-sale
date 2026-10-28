@@ -14,8 +14,10 @@ public interface RemittanceService {
 	RemittanceMasterDto.Info createFromTrade(RemittanceCreateDto request);
 
 	RemittanceMasterDto.Info createFromProforma(RemittanceCreateDto request);
+	RemittanceMasterDto.Info createFromSulfuricAcid(RemittanceCreateDto request);
 
 	SearchDTO.SearchRs<RemittanceTradeDataProviderDto.Info> searchFromTrade(SearchDTO.SearchRq request);
+	SearchDTO.SearchRs<RemittanceTradeDataProviderDto.Info> searchFromSulfuricAcid(SearchDTO.SearchRq request);
 
 	SearchDTO.SearchRs<RemittanceProformaDataProviderDto.Info> searchFromProforma(SearchDTO.SearchRq request);
 

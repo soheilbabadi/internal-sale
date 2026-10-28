@@ -37,5 +37,3 @@ public class CreateFinancialInstrumentDetailDto implements Serializable {
 	@Schema(description = "Optional submission ID for Accounting tracking", example = "123456")
 	private String submissionId;
 }
-
-

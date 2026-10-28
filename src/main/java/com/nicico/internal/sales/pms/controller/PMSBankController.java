@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("@secUtil.hasAuthority('R_INS_BANK')")
 public class PMSBankController {
 	private final PmsBankCreateRabbitService service;
-
-
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_BANK')")
 	@GetMapping("/{insIssueBankId}")
 	public ResponseEntity<HttpStatus> create(@PathVariable Long insIssueBankId) {

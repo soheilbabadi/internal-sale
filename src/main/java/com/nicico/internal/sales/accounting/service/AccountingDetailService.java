@@ -1,9 +1,6 @@
 package com.nicico.internal.sales.accounting.service;
 
-import com.fgostar.accounting.sdk.dto.DetailDto;
-import com.fgostar.accounting.sdk.dto.EOperator;
-import com.nicico.internal.sales.accounting.dto.CreateCompanyDetailDto;
-import com.nicico.internal.sales.accounting.dto.CreatePersonDetailDto;
+import com.nicico.internal.sales.accounting.dto.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -123,22 +120,21 @@ public interface AccountingDetailService {
 	 *
 	 * @param request Financial instrument detail data
 	 */
-	void createDetailForFinancialInstrument(
-			com.nicico.internal.sales.accounting.dto.CreateFinancialInstrumentDetailDto request);
+	void createDetailForFinancialInstrument(CreateFinancialInstrumentDetailDto request);
 
 	/**
 	 * Generates next sequence, creates the detail account in Accounting with retry policy and submissionId,
 	 * and returns the creation result.
 	 *
 	 * @param instrumentType Instrument type (Letter of Credit, GAM, Electronic Promissory Note)
-	 * @param twoDigitCode 2-digit user/branch sub-code
-	 * @param yearSuffix Optional 2-digit Shamsi year
-	 * @param detailName Optional detail account name (defaults to instrument title + twoDigitCode if blank)
-	 * @param submissionId Optional submission ID for Accounting tracking
+	 * @param twoDigitCode   2-digit user/branch sub-code
+	 * @param yearSuffix     Optional 2-digit Shamsi year
+	 * @param detailName     Optional detail account name (defaults to instrument title + twoDigitCode if blank)
+	 * @param submissionId   Optional submission ID for Accounting tracking
 	 * @return FinancialInstrumentCreateResponseDto containing result, code, detailNumber, and created detail
 	 */
-	com.nicico.internal.sales.accounting.dto.FinancialInstrumentCreateResponseDto generateAndCreateFinancialInstrumentDetail(
-			com.nicico.internal.sales.accounting.dto.FinancialInstrumentType instrumentType,
+	FinancialInstrumentCreateResponseDto generateAndCreateFinancialInstrumentDetail(
+			FinancialInstrumentType instrumentType,
 			String twoDigitCode,
 			String yearSuffix,
 			String detailName,

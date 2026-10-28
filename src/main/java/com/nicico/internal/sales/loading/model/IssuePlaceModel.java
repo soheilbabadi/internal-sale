@@ -22,8 +22,8 @@ public class IssuePlaceModel extends BaseClassModel {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_INS_LOADING")
 	@SequenceGenerator(name = "SEQ_INS_LOADING", sequenceName = "SEQ_INS_LOADING", allocationSize = 1)
 	private Long id;
-	@Column(name = "C_PLACE_TITLE", unique = true, nullable = false)
+	@Column(name = "C_PLACE_TITLE", unique = true)
 	private String placeTitle;
-	@Column(name = "C_PLACE_VALUE", unique = true, nullable = false)
+	@Column(name = "C_PLACE_VALUE", unique = true)
 	private String placeValue;
 }

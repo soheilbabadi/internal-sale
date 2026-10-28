@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.penalty.service;
-
-
 import com.nicico.copper.common.util.date.DateUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.penalty.dto.PenaltyDto;

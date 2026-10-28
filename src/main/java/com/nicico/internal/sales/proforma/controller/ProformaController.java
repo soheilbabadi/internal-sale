@@ -11,10 +11,12 @@ import com.nicico.internal.sales.notification.service.SmsNotificationService;
 import com.nicico.internal.sales.proforma.dto.*;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.SettlementType;
+import com.nicico.internal.sales.proforma.service.ExtraBillProformaIssueService;
 import com.nicico.internal.sales.proforma.service.PreciousMetalService;
 import com.nicico.internal.sales.proforma.service.ProformaService;
+import com.nicico.internal.sales.proforma.service.cash.CashDepositReceiptSaleService;
 import com.nicico.internal.sales.proforma.service.cash.CashSaleService;
-import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
+import com.nicico.internal.sales.wf.detection.ProcessHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,23 +47,23 @@ public class ProformaController {
 	private final PreciousMetalService proformaContractPreciousMetalService;
 	private final NotificationService notificationService;
 	private final SmsNotificationService smsNotificationService;
-	private final ProcessStatusDeterminerService processStatusDeterminerService;
+	private final ProcessHistoryService processHistoryService;
 	private final CashSaleService cashSaleService;
 	private final FmsDocumentService fmsDocumentService;
-
-
+	private final CashDepositReceiptSaleService cashDepositReceiptSaleService;
+	private final ExtraBillProformaIssueService extraBillProformaIssueService;
 	// ==================== TASK HISTORY ====================
 
 	@Operation(summary = "تاریخچه تسک", description = "گزارش خلاصه از تاریخچه فرآیند")
 	@GetMapping("/get-task-history/{masterId}")
 	public ResponseEntity<?> getUserTasksReport(@PathVariable Long masterId) {
-		return ResponseEntity.ok(processStatusDeterminerService.getProformaSummaryReport(masterId));
+		return ResponseEntity.ok(processHistoryService.getProformaSummaryReport(masterId));
 	}
 
 	@Operation(summary = "تاریخچه کامل تسک", description = "گزارش کامل و جزییات تاریخچه فرآیند")
 	@GetMapping("/get-task-history-detail/{masterId}")
 	public ResponseEntity<?> getLcHistoryDetail(@PathVariable Long masterId) {
-		return ResponseEntity.ok(processStatusDeterminerService.getProformaHistoryDetail(masterId));
+		return ResponseEntity.ok(processHistoryService.getProformaHistoryDetail(masterId));
 	}
 
 	// ==================== SEARCH ====================
@@ -132,7 +134,6 @@ public class ProformaController {
 		return ResponseEntity.ok(proformaService.create(dto));
 	}
 
-
 	@Operation(summary = "حذف پیش فاکتور", description = "حذف پیش فاکتورها بر اساس شناسه قرارداد اصلی")
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA')")
 	@DeleteMapping("/{id}")
@@ -140,7 +141,6 @@ public class ProformaController {
 		proformaService.delete(id);
 		return ResponseEntity.ok().build();
 	}
-
 
 	@Operation(
 			summary = "ثبت فاکتور فروش نقدی",
@@ -178,6 +178,19 @@ public class ProformaController {
 		return ResponseEntity.ok().build();
 	}
 
+	@Operation(summary = "برای پر کردن مقادیر اولیه فیش واریزی از آگهی عرضه استفاده می شود")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA')")
+	@PostMapping("/cash-deposit-suggestion")
+	public ResponseEntity<?> suggestCashDeposit(@RequestBody CashSaleCreateRequest dto) {
+		return ResponseEntity.ok(cashDepositReceiptSaleService.generateSuggestion(dto));
+	}
+
+	@Operation(summary = "پس از پر کردن مقادیر اولیه فیش واریزی و تعیین متد با مالیات/بدون مالیات، این متد جهت شروع فرایند استفاده می شود")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA')")
+	@PostMapping("/cash-deposit-create")
+	public ResponseEntity<?> createCashDeposit(@RequestBody CashDepositCreateRequest dto) {
+		return ResponseEntity.ok(cashDepositReceiptSaleService.create(dto));
+	}
 	// ==================== UTILITY ====================
 
 	@Operation(summary = "تشخیص فلز گرانبها", description = "بررسی می کند که آیا کالای مربوطه جزو فلزات گرانبها است یا خیر")
@@ -267,7 +280,6 @@ public class ProformaController {
 		}
 	}
 
-
 	@Operation(summary = "خروجی FMS پیش فاکتور", description = "فایل FMS پیش فاکتور را پس از تبدیل فایل Word مربوطه برمی گرداند.")
 	@GetMapping("/export-fms/{id}")
 	public ResponseEntity<FmsFile> exportProformaFms(@PathVariable long id) {
@@ -297,4 +309,13 @@ public class ProformaController {
 		proformaService.clearAllProformaFileIds(proformaNo);
 		return ResponseEntity.ok().build();
 	}
+
+	@Operation(summary = "محاسبه مجدد مقادیر پیش فاکتور برات", description = "بازنشانی مقادیر مالی پیش فاکتور برات الکترونیک")
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_PROFORMA')")
+	@PutMapping("/recalculate-extrabill/{contractNo}")
+	public ResponseEntity<ProformaResponseDto> recalculateExtraBill(@PathVariable Long contractNo) {
+		return ResponseEntity.ok(extraBillProformaIssueService.updateProformaExtraBillPercent(contractNo));
+	}
+
+
 }

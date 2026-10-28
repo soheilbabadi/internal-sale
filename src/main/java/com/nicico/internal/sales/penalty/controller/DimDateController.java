@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.penalty.controller;
-
-
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.penalty.dto.DimDateDto;
 import com.nicico.internal.sales.penalty.service.DimDateService;

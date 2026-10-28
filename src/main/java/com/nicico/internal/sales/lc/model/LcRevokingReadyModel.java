@@ -33,14 +33,14 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Subselect("""
 		
 		SELECT * FROM T_INS_LC til WHERE til.C_CONTRACT_DATE >'1405/03/01' AND til.C_LC_NO IS NOT NULL
-		AND til.C_WORKFLOW_APPROVE_STATUS NOT IN ('REVERSAL','CANCELED') AND til.C_ACKNOWLEDGMENT NOT IN ('REMITTANCE','FINISHED','CANCELED')
+		AND til.C_WORKFLOW_APPROVE_STATUS NOT IN ('REVERSAL','CANCELED') 
 		AND  NOT EXISTS (
 		    SELECT 1
 		    FROM TBL_IME_SETTLEMENT tis
 		    WHERE tis.PAYMENT_CODE = til.C_PAYMENT_CODE
 		      AND tis.SETTLEMENT_TYPE IN ('انفساخ', 'نقدی')
 		)
-		
+			AND til.C_LC_NO IS NOT NULL
 		""")
 public class LcRevokingReadyModel implements Serializable {
 	@Serial
@@ -50,7 +50,7 @@ public class LcRevokingReadyModel implements Serializable {
 	private Long id;
 
 	@Schema(description = "شماره پیش فاکتور")
-	@Column(name = "C_PERFORMA_NO", nullable = false)
+	@Column(name = "C_PERFORMA_NO")
 	private String performaNo;
 
 	@Schema(description = "تاریخ پیش فاکتور")
@@ -60,8 +60,6 @@ public class LcRevokingReadyModel implements Serializable {
 	@Schema(description = "تاریخ قرارداد")
 	@Column(name = "C_CONTRACT_DATE", length = 20)
 	private String contractDate;
-
-
 	@Column(name = "N_CONTRACT_NO", unique = true)
 	private Long contractNo;
 
@@ -95,15 +93,15 @@ public class LcRevokingReadyModel implements Serializable {
 	private String tradingBankBranchTitle;
 
 	@Schema(description = "سررسید انقضای اعتبار-ماه")
-	@Column(name = "N_CREDIT_EXPIRE_PERIOD", nullable = false)
+	@Column(name = "N_CREDIT_EXPIRE_PERIOD")
 	private Integer creditExpirePeriod;
 
 	@Schema(description = "مهلت پرداخت وجه اعتبار اسنادی-روز")
-	@Column(name = "N_PAYMENT_DEFERRAL", nullable = false)
+	@Column(name = "N_PAYMENT_DEFERRAL")
 	private Integer paymentDeferral;
 
 	@Schema(description = "مدت اعتبار پیش فاکتور-روز")
-	@Column(name = "N_DEADLINE_DAYS", nullable = false)
+	@Column(name = "N_DEADLINE_DAYS")
 	private Integer deadlineDays = 7;
 
 	@Enumerated(EnumType.STRING)
@@ -111,19 +109,19 @@ public class LcRevokingReadyModel implements Serializable {
 	private WorkflowApproveStatus workflowApproveStatus;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "C_ACKNOWLEDGMENT", length = 50, nullable = false)
+	@Column(name = "C_ACKNOWLEDGMENT", length = 50)
 	@Schema(description = "تاییدیه نوع تسویه و نوع حواله")
 	private Acknowledgment acknowledgment = Acknowledgment.UNKNOWN;
 
 	@Schema(description = "ایمیل تاییدیه ارسال شده است یا خیر")
-	@Column(name = "IS_RECKONING_SEND", nullable = false)
+	@Column(name = "IS_RECKONING_SEND")
 	private boolean isReckoningSend = false;
 
 	@Schema(description = "تاریخ ارسال ایمیل تاییدیه", name = "reckoningSendDate")
 	@Column(name = "D_RECKONING_SEND_DATE")
 	private Date reckoningSendDate;
 
-	@Column(name = "C_PROCESS_ID", length = 50, nullable = false)
+	@Column(name = "C_PROCESS_ID", length = 50)
 	private String processId;
 
 	@Column(name = "D_LC_EXPIRY_DATE")
@@ -202,8 +200,6 @@ public class LcRevokingReadyModel implements Serializable {
 	@Column(name = "C_CANCELLATION_REASON", length = 50)
 	@Enumerated(EnumType.STRING)
 	private LcCancellationReason lcCancellationReason;
-
-
 	@Column(name = "N_BROKER_ID")
 	private Long brokerId;
 
@@ -212,13 +208,9 @@ public class LcRevokingReadyModel implements Serializable {
 
 	@Column(name = "C_BROKER_NATIONAL_CODE", length = 100)
 	private String brokerNationalCode;
-
-
 	@Schema(description = "مقدار کل")
 	@Column(name = "N_TOTAL_QUANTITY")
 	private BigDecimal totalQuantity;
-
-
 	@Schema(description = "قیمت نهایی")
 	@Column(name = "N_TOTAL_FINAL_AMOUNT")
 	private BigDecimal totalFinalAmount;
@@ -236,8 +228,6 @@ public class LcRevokingReadyModel implements Serializable {
 	@Schema(description = "نام مشتری", name = "customerName", example = "مهدی حسینی")
 	@Column(name = "C_CUSTOMER_NAME")
 	private String customerName;
-
-
 	@Column(name = "N_GOOD_ID")
 	@Schema(description = "شناسه کالا", name = "goodId")
 	private Long goodId;
@@ -245,6 +235,4 @@ public class LcRevokingReadyModel implements Serializable {
 	@Schema(description = "نام کالا", name = "goodName")
 	@Column(name = "C_GOOD_NAME", length = 100)
 	private String goodName;
-
-
 }

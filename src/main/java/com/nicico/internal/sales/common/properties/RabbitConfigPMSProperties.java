@@ -30,6 +30,4 @@ public class RabbitConfigPMSProperties {
 		private String updateResponseQueue;
 		private String updateResponseRoutingKey;
 	}
-
-
 }

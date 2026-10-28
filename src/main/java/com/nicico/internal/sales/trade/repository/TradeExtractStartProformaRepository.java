@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface TradeExtractStartProformaRepository extends JpaRepository<TradeExtractStartProformaModel, Long>, JpaSpecificationExecutor<TradeExtractStartProformaModel> {
 
 	Optional<TradeExtractStartProformaModel> findFirstByPaymentCodeOrderByIdDesc(String paymentCode);
+	Optional<TradeExtractStartProformaModel> findFirstByIdOrderByMasterIdDesc(Long id);
 }

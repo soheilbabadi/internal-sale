@@ -36,6 +36,22 @@ public class OfferTextProcessImpl implements OfferTextProcess {
 			"#[^#]*?((?:[A-Za-z]+-)?\\d+(?:-\\d+)*)#"
 	);
 
+	/**
+	 * Matches a lot number that was written before the delimiters instead of inside them,
+	 * e.g. "M-01# #" (should have been "#M-01#").
+	 */
+	private static final Pattern MISPLACED_LOT_PATTERN = Pattern.compile(
+			"^\\s*([A-Za-z]+-\\d+(?:-\\d+)*)\\s*#\\s*#"
+	);
+
+	/**
+	 * Anything that is not a Latin letter, digit, '#' or '-'.
+	 * Removes Persian/Arabic letters, direction marks, punctuation, and all whitespace.
+	 */
+	private static final Pattern NON_LOT_CHARS_PATTERN = Pattern.compile(
+			"[^A-Za-z0-9#\\-]+"
+	);
+
 	// ==================== Constants ====================
 
 	private static final double DEFAULT_COMMISSION = 5.0;
@@ -44,8 +60,6 @@ public class OfferTextProcessImpl implements OfferTextProcess {
 	private static final String WITHOUT_SELENIUM = "بدون سلنیوم";
 	private static final String WITH_SELENIUM = "با سلنیوم";
 	private final OfferTextRepository offerTextRepository;
-
-
 	@Override
 	public String findDescriptionByPaymentCode(String paymentCode) {
 		return offerTextRepository.getDescriptionByPaymentCode(paymentCode);
@@ -81,8 +95,6 @@ public class OfferTextProcessImpl implements OfferTextProcess {
 				? matcher.group(1).replaceAll("\\s+", EMPTY_STRING)
 				: EMPTY_STRING;
 	}
-
-
 	@Override
 	public String hasSelenium(String text) {
 		String normalized = normalize(text);
@@ -95,14 +107,17 @@ public class OfferTextProcessImpl implements OfferTextProcess {
 
 	/**
 	 * Extracts lot number enclosed in # delimiters.
-	 * Supported formats: #1234#, #42345-5345#, #L-3213#
+	 * Supported formats: #1234#, #42345-5345#, #L-3213#, #شماره بشکه 9768-9757#
+	 * Also handles a misplaced lot number such as "M-01# #".
 	 */
 	@Override
 	public String extractLotNumber(String text) {
-		Matcher matcher = LOT_NUMBER_PATTERN.matcher(normalize(text));
+		String cleaned = keepLotChars(normalize(text));
+		cleaned = fixLotDelimiters(cleaned);
+
+		Matcher matcher = LOT_NUMBER_PATTERN.matcher(cleaned);
 		return matcher.find() ? matcher.group(1).trim() : DASH;
 	}
-	// ==================== Private Helpers ====================
 
 	private String normalize(String input) {
 		if (input == null) return EMPTY_STRING;
@@ -111,6 +126,21 @@ public class OfferTextProcessImpl implements OfferTextProcess {
 				.replaceAll("\\u200C", "")
 				.replaceAll("\\s+", " ")
 				.trim();
+	}
+
+	/**
+	 * Keeps only Latin letters, digits, '#' and '-' (used for lot number extraction only).
+	 * All spaces are removed as well.
+	 */
+	private String keepLotChars(String input) {
+		return NON_LOT_CHARS_PATTERN.matcher(input).replaceAll(EMPTY_STRING);
+	}
+
+	/**
+	 * Converts "M-01# #" to "#M-01#".
+	 */
+	private String fixLotDelimiters(String input) {
+		return MISPLACED_LOT_PATTERN.matcher(input).replaceFirst("#$1#");
 	}
 
 	private String convertArabicNumerals(String input) {

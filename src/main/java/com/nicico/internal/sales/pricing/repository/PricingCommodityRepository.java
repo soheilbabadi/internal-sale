@@ -11,8 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface PricingCommodityRepository extends JpaRepository<PricingCommodityModel, Long>, JpaSpecificationExecutor<PricingCommodityModel> {
-
-
 	Optional<PricingCommodityModel> findByShortDate(Date shortDate);
 
 	Optional<PricingCommodityModel> findByPersianShortDate(String persianShortDate);
@@ -28,6 +26,4 @@ public interface PricingCommodityRepository extends JpaRepository<PricingCommodi
 	boolean existsByPersianShortDate(String persianShortDate);
 
 	void deleteByShortDate(Date shortDate);
-
-
 }

@@ -11,8 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface IssuingBankRepository extends JpaRepository<IssuingBankModel, Long>, JpaSpecificationExecutor<IssuingBankModel> {
-
-
 	//	Optional<IssuingBankModel> findFirstByFixedBranchCodeAndBaseBankModel_BankTitle(String branchCode, String bankName);
 	@Query(value = """
 			  SELECT ib.*

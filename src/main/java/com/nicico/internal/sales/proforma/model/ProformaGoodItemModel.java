@@ -67,5 +67,11 @@ public class ProformaGoodItemModel extends BaseClassModel {
 	private ProformaDetailModel proformaDetailModel;
 	@Column(name = "F_PERFORMA_DETAIL_ID")
 	private Long proformaDetailId;
+//
+//	@Column(name = "N_DEPOSIT_SLIP_WITH_TAX")
+//	private BigDecimal depositSlipWithTax = BigDecimal.ZERO;
+//
+//	@Column(name = "N_DEPOSIT_SLIP_WITHOUT_TAX")
+//	private BigDecimal depositSlipWithoutTax = BigDecimal.ZERO;
 }
 

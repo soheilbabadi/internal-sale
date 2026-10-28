@@ -11,8 +11,9 @@ public interface RemittanceDataProvider {
 	RemittanceMasterModel getRemittanceFromProforma(RemittanceCreateDto request);
 
 	RemittanceMasterModel getRemittanceFromTrade(RemittanceCreateDto request);
+	RemittanceMasterModel getRemittanceFromSulfuricAcid(RemittanceCreateDto request);
 
-	String getLotnumber(Long tradeId, RemittanceSourceType sourceType);
+	String getLotNumber(Long tradeId, RemittanceSourceType sourceType);
 
 	String extractLotNumber(String paymentCode);
 

@@ -27,6 +27,8 @@ public interface ProformaMasterRepository extends JpaRepository<ProformaMasterMo
 
 	List<ProformaMasterModel> findAllByContractNoOrderByIdDesc(Long contractNo);
 
+	Optional<ProformaMasterModel> findFirstByContractNoOrderByIdDesc(Long contractNo);
+
 	boolean existsByContractNoAndWorkflowApproveStatusIn(Long contractNo, List<WorkflowApproveStatus> statuses);
 
 	Optional<ProformaMasterModel> findFirstByPaymentCodeOrderByIdDesc(String paymentCode);
@@ -34,7 +36,7 @@ public interface ProformaMasterRepository extends JpaRepository<ProformaMasterMo
 	@Query(value = "SELECT tipm.* FROM T_INS_PERFORMA_MASTER tipm " +
 			"WHERE tipm.F_TRADE_ID IN ( " +
 			"  SELECT tit.ID FROM TBL_IME_TRADE tit " +
-			"  WHERE tit.CONTRACT_DATE > '1405/01/01' " +
+			"  WHERE tit.CONTRACT_DATE > '1405/04/01' " +
 			"    AND tit.CURRENCY_CODE = 1 " +
 			"    AND (tit.PAYMENT_CODE, tit.CONTRACT_NO, tit.CONTRACT_DETAIL_NO) IN ( " +
 			"      SELECT PAYMENT_CODE, CONTRACT_NO, CONTRACT_DETAIL_NO FROM TBL_IME_SETTLEMENT " +
@@ -47,11 +49,25 @@ public interface ProformaMasterRepository extends JpaRepository<ProformaMasterMo
 	void syncSettlementTypeFromDetails();
 
 	Optional<ProformaMasterModel> findByContractNoAndWorkflowApproveStatus(Long contractNo, WorkflowApproveStatus workflowApproveStatus);
-
-
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@Query("select p from ProformaMasterModel p where p.id = :id")
 	Optional<ProformaMasterModel> findByIdForUpdate(@Param("id") Long id);
 
 	Optional<Object> findFirstByContractNoAndWorkflowApproveStatusOrderByIdDesc(Long contractNo, WorkflowApproveStatus workflowApproveStatus);
+
+	// ==================== TRADE ID FIX ====================
+
+	@Query(value = "SELECT DISTINCT tipm.F_TRADE_ID FROM T_INS_PERFORMA_MASTER tipm " +
+			"WHERE tipm.N_CONTRACT_NO = :contractNo AND tipm.F_TRADE_ID IS NOT NULL",
+			nativeQuery = true)
+	List<Long> findTradeIdsByContractNo(@Param("contractNo") Long contractNo);
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Transactional
+	@Query(value = "UPDATE T_INS_PERFORMA_MASTER m SET m.F_TRADE_ID = :newTradeId " +
+			"WHERE m.F_TRADE_ID = :oldTradeId AND m.N_CONTRACT_NO = :contractNo",
+			nativeQuery = true)
+	int updateTradeId(@Param("contractNo") Long contractNo,
+					  @Param("oldTradeId") Long oldTradeId,
+					  @Param("newTradeId") Long newTradeId);
 }

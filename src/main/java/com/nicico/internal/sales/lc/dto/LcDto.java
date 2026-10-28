@@ -29,8 +29,6 @@ public class LcDto implements Serializable {
 
 	@Schema(description = "شماره قرارداد")
 	private Long contractNo;
-
-
 	@Schema(description = "تاریخ قرارداد")
 	private String contractDate;
 
@@ -98,8 +96,6 @@ public class LcDto implements Serializable {
 	private Date cancelDate;
 	@Schema(description = "دلیل ابطال")
 	private LcCancellationReason lcCancellationReason;
-
-
 	private Long brokerId;
 	private String brokerName;
 	private String brokerNationalCode;
@@ -120,8 +116,6 @@ public class LcDto implements Serializable {
 
 	@Schema(description = "نام کالا", name = "goodName")
 	private String goodName;
-
-
 	@Schema(description = "کد مشتری", name = "customerId", example = "1")
 	private Long customerId;
 	@Schema(description = "نام مشتری", name = "customerName", example = "مهدی حسینی")

@@ -13,6 +13,4 @@ public interface RemittanceWeighingDetailRepository extends JpaRepository<PmsWei
 	List<PmsWeighingDetailExtractModel> findAllByRemittanceNo(String remittanceNo);
 
 	List<PmsWeighingDetailExtractModel> findAllByContractNo(String remittanceNo);
-
-
 }

@@ -23,8 +23,6 @@ public class CreateCompanyDetailDto implements Serializable {
 
 	@Schema(description = "English/Latin company name", example = "National Iranian Copper Industries Co.")
 	private String detailNameLatin;
-
-
 	@Schema(description = "Note / Description", example = "تفصیلی شخص حقوقی")
 	private String note;
 }

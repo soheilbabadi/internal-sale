@@ -14,8 +14,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -27,7 +25,7 @@ public class PricingCurrencyDto implements Serializable {
 	private long id;
 
 	@Schema(description = "تاریخ شمسی  (مثال: 1403/01/29)")
-	@Column(name = "PERSIAN_SHORT_DATE", nullable = false, length = 20, unique = true)
+	@Column(name = "PERSIAN_SHORT_DATE", length = 20, unique = true)
 	private String persianShortDate;
 
 	@Schema(description = "تاریخ میلادی")

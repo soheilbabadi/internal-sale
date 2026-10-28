@@ -14,6 +14,4 @@ public interface ExportNotificationConfigService {
 	ExportNotificationConfigDto.Info save(ExportNotificationConfigDto.Create request);
 
 	void initializeDefaultConfigurations();
-
-
 }

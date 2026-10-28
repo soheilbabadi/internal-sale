@@ -26,8 +26,6 @@ import java.util.List;
 //@Tag(name = "معاملات", description = "استخراج و جستجوی اطلاعات معاملات")
 public class TradeExtractController {
 	private final TradeExtractService service;
-
-
 	@Operation(summary = "جستجوی معاملات")
 	@PostMapping("/search")
 	public ResponseEntity<SearchDTO.SearchRs<TradeExtractDto.Info>> search(@RequestBody(required = false) SearchDTO.SearchRq searchRq, @RequestParam(required = false) MultiValueMap<String, String> criteria) {
@@ -35,8 +33,6 @@ public class TradeExtractController {
 			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
 		return ResponseEntity.ok(service.search(searchRq));
 	}
-
-
 	@Operation(summary = "جستجوی معاملات قابل شروع پیش فاکتور")
 	@PostMapping("/search-proforma-startable")
 	public ResponseEntity<SearchDTO.SearchRs<TradeExtractDto.Info>> searchProformaStartable(@RequestBody(required = false) SearchDTO.SearchRq searchRq, @RequestParam(required = false) MultiValueMap<String, String> criteria) {

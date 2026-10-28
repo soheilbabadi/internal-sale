@@ -66,8 +66,6 @@ public class GaamIssueProviderDto implements Serializable {
 	private String proformaIssueType;
 	@Schema(description = "وضعیت در فرایند", name = "workflowApproveStatus", example = "PENDING")
 	private WorkflowApproveStatus workflowApproveStatus;
-
-
 	@Schema(description = "شناسه کارگزار", name = "brokerId", example = "12")
 	private Long brokerId;
 
@@ -76,15 +74,11 @@ public class GaamIssueProviderDto implements Serializable {
 
 	@Schema(description = "شناسه ملی کارگزار", name = "brokerNationalCode", example = "12345678900")
 	private String brokerNationalCode;
-
-
 	@Schema(description = "متن آگهی عرضه", name = "offerDescription", example = "کیفیت عالی")
 	private String offerDescription;
 
 	@Schema(description = "نماد کالا در بورس", name = "imeCommoditySymbol", example = "OIL")
 	private String imeCommoditySymbol;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@AllArgsConstructor
 	@Data

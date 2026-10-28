@@ -7,6 +7,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BaseBankRepository extends JpaRepository<BaseBankModel, Long>, JpaSpecificationExecutor<BaseBankModel> {
-
-
 }

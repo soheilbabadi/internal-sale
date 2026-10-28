@@ -2,6 +2,7 @@ package com.nicico.internal.sales.wf.controller;
 
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.service.LcProcessService;
+import com.nicico.internal.sales.wf.detection.LcStepDetector;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,20 +22,14 @@ import javax.validation.Valid;
 public class LcProcessController {
 
 	private final LcProcessService lcProcessService;
-
-	@Operation(
-			summary = "شروع فرآیند LC",
-			description = "با دریافت شناسه پیش فاکتور اصلی (Master ID)،  فرایند ایجاد اعتبار اسنادی را آغاز می کند. این عملیات شامل ایجاد تسک های اولیه، تنظیم وضعیت اولیه LC و شروع جریان کاری مطابق با قوانین و ضوابط تعیین شده می باشد."
-	)
+	private final LcStepDetector lcStepDetector;
+	@Operation(summary = "شروع فرآیند LC", description = "با دریافت شناسه پیش فاکتور اصلی (Master ID)،  فرایند ایجاد اعتبار اسنادی را آغاز می کند. این عملیات شامل ایجاد تسک های اولیه، تنظیم وضعیت اولیه LC و شروع جریان کاری مطابق با قوانین و ضوابط تعیین شده می باشد.")
 	@PostMapping("/start-lc/{masterId}")
 	public ResponseEntity<?> startLcProcess(@PathVariable Long masterId) {
 		return ResponseEntity.ok(lcProcessService.startLcProcess(masterId));
 	}
 
-	@Operation(
-			summary = "تایید تسک",
-			description = "این متد برای تایید یک تسک در  فرایند LC استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت LC به روزرسانی می شود."
-	)
+	@Operation(summary = "تایید تسک", description = "این متد برای تایید یک تسک در  فرایند LC استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت LC به روزرسانی می شود.")
 	@PutMapping("/approve-task")
 	public ResponseEntity<HttpStatus> approveTask(@RequestBody @Valid TaskActionDto taskActionDto) {
 		lcProcessService.approveTask(taskActionDto);
@@ -48,15 +43,17 @@ public class LcProcessController {
 		return ResponseEntity.ok().build();
 	}
 
-	@Operation(
-			summary = "بروزرسانی وضعیت LC",
-			description = "این متد به صورت دستی وضعیت تمام اعتبارات اسنادی در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت LC و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید."
-	)
+	@Operation(summary = "بروزرسانی وضعیت LC", description = "این متد به صورت دستی وضعیت تمام اعتبارات اسنادی در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت LC و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید.")
 	@GetMapping("/refresh-status")
-	public ResponseEntity<Void> refreshStatus() {
+	public ResponseEntity<HttpStatus> refreshStatus() {
 		lcProcessService.refreshStatus();
 		return ResponseEntity.ok().build();
 	}
 
-
+	@Operation(summary = "بروزرسانی وضعیت LC", description = "این متد به صورت دستی وضعیت تمام اعتبارات اسنادی در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت LC و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید.")
+	@GetMapping("/update-acknowledgments")
+	public ResponseEntity<HttpStatus> updateAllAcknowledgments() {
+		lcStepDetector.updateAllAcknowledgments();
+		return ResponseEntity.ok().build();
+	}
 }

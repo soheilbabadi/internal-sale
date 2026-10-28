@@ -7,6 +7,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProformaBankBillReportRepository extends JpaRepository<ProformaBankBillReportModel, Long>, JpaSpecificationExecutor<ProformaBankBillReportModel> {
-
-
 }

@@ -75,8 +75,6 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 			log.debug("Delegating to PreciousMetalExtraBillService for EXTRA_BILL_OF_EXCHANGE");
 			return preciousMetalExtraBillService.create(requestDto);
 		}
-
-
 		// اعتبارسنجی دسترسی
 		if (!proformaProcessService.canStartProcess()) {
 			throw new InternalSaleCustomException.AccessDeniedException(MSG_PROCESS_ACCESS_DENIED);
@@ -113,8 +111,6 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 
 		// ذخیره Master
 		masterModel = proformaMasterRepository.save(masterModel);
-
-
 		// ذخیره جزئیات و GoodItem ها
 		ProformaModelHelper.saveDetailAndGoodItems(detailList, masterModel.getId(), proformaDetailRepository, proformaGoodItemRepository);
 
@@ -178,8 +174,6 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 			return false;
 		}
 	}
-
-
 	/**
 	 * شروع فرآیند برای پیش فاکتور
 	 */
@@ -282,6 +276,9 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 				.settlementType(SETTLEMENT_TYPE_DEFAULT)
 				.isProcessFinal(false)
 				.isReversalProcessFinal(false)
+				.depositSlipWithTax(BigDecimal.ZERO)
+				.depositSlipWithoutTax(BigDecimal.ZERO)
+				.depositSlipType(null)
 				.build();
 	}
 
@@ -402,8 +399,6 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		return tradeExtractRepository.findById(tradeId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_TRADE_NOT_FOUND_DETAIL));
 	}
-
-
 	/**
 	 * محاسبه و تنظیم مبلغ اضافی بر اساس نوع پیش فاکتور
 	 */

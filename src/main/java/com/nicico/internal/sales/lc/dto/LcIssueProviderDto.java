@@ -65,19 +65,17 @@ public class LcIssueProviderDto implements Serializable {
 	private String proformaIssueType;
 	@Schema(description = "وضعیت در فرایند", name = "workflowApproveStatus", example = "PENDING")
 	private WorkflowApproveStatus workflowApproveStatus;
-
-
 	private Long brokerId;
 	private String brokerName;
 	private String brokerNationalCode;
+
+	private Date reckoningSendDate;
 
 	@Schema(description = "متن آگهی عرضه", name = "offerDescription", example = "کیفیت عالی")
 	private String offerDescription;
 
 	@Schema(description = "نماد کالا در بورس", name = "imeCommoditySymbol", example = "OIL")
 	private String imeCommoditySymbol;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@AllArgsConstructor
 	@Data

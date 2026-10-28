@@ -50,6 +50,4 @@ public class IssuePlaceServiceImpl implements IssuePlaceService {
 		var list = repository.findAll();
 		return list.stream().map(mapper::toDTO).toList();
 	}
-
-
 }

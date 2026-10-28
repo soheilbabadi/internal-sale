@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum RemittanceSourceType {
-	PROFORMA("پیش فاکتور"), TRADE("معامله");
+	PROFORMA("پیش فاکتور"), TRADE("معامله"),SULFURIC_ACID("اسید سولفوریک");
 	private final String value;
 
 	RemittanceSourceType(String value) {

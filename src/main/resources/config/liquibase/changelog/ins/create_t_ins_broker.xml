@@ -4,8 +4,6 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
-
-
     <changeSet id="20250803-01-create-t-ins-broker" author="soheil babadi">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -46,8 +44,6 @@
             </column>
         </createTable>
     </changeSet>
-
-
     <changeSet id="20250803-02-create-t-ins-broker-aud" author="soheil babadi">
         <preConditions onFail="MARK_RAN">
             <not>

@@ -13,6 +13,9 @@ import java.util.Optional;
 @Repository
 public interface TradeExtractRepository extends JpaRepository<TradeExtractModel, Long>, JpaSpecificationExecutor<TradeExtractModel> {
 	Optional<TradeExtractModel> findFirstByPaymentCodeOrderByIdDesc(String paymentCode);
+	Optional<TradeExtractModel> findFirstByContractNoOrderByIdDesc(String contractNo);
+
+
 
 	@Transactional
 	@Modifying(clearAutomatically = true, flushAutomatically = true)

@@ -4,7 +4,15 @@ import lombok.Getter;
 
 @Getter
 public enum IssueSourceType {
-	LETTER_OF_CREDIT_OPENING("بورس-نقدی/اعتباری(گشایش اعتبار اسنادی)"), BANK_GUARANTEE("بورس-نقدی/اعتباری(ضمانتنامه بانکی)"), CASH("بورس-نقدی"), FROM_CREDIT_FACILITIES("بورس-نقدی/اعتباری(از محل مطالبات)"), GUARANTEE_CHECK("بورس-نقدی/اعتباری(چک ضمانتی)"), GAM_BONDS("بورس-نقدی/اعتباری(اوراق گام)"), EXTRA_BILL_OF_EXCHANGE("بورس-نقدی/اعتباری(برات الکترونیک)"), UNKNOWN("نامشخص");
+
+	LETTER_OF_CREDIT_OPENING("گشایش اعتبار اسنادی"),
+	BANK_GUARANTEE("ضمانتنامه بانکی"),
+	CASH("نقدی"),
+	CASH_DEPOSIT_RECEIPT("فیش واریز نقدی"),
+	FROM_CREDIT_FACILITIES("از محل مطالبات"),
+	GAM_BONDS("اوراق گام"),
+	EXTRA_BILL_OF_EXCHANGE("برات الکترونیک"), UNKNOWN("نامشخص");
+
 	private final String value;
 
 	IssueSourceType(String value) {

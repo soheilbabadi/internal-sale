@@ -103,7 +103,7 @@ public class BillingTradeExtractModel implements Serializable {
 	@Column(name = "C_DESCRIPTION", length = 4000)
 	private String description;
 
-	@Column(name = "C_REMITTANCE_NO", length = 255)
+	@Column(name = "C_REMITTANCE_NO")
 	private String remittanceNo;
 
 	@Column(name = "D_REMITTANCE_DATE")
@@ -130,7 +130,7 @@ public class BillingTradeExtractModel implements Serializable {
 	@Column(name = "N_LOADING_PORT_ID")
 	private Long loadingPortId;
 
-	@Column(name = "C_LOADING_PORT", length = 255)
+	@Column(name = "C_LOADING_PORT")
 	private String loadingPort;
 
 	@Column(name = "N_GOOD_ID")
@@ -145,7 +145,7 @@ public class BillingTradeExtractModel implements Serializable {
 	@Column(name = "N_PACKING_ID")
 	private Long packingId;
 
-	@Column(name = "C_LOT_NUMBER", length = 255)
+	@Column(name = "C_LOT_NUMBER")
 	private String lotNumber;
 
 	@Column(name = "D_CONTRACT_DATE")
@@ -199,7 +199,7 @@ public class BillingTradeExtractModel implements Serializable {
 	@Column(name = "C_ISSUER_BANK_CODE", length = 200)
 	private String issuerBankCode;
 
-	@Column(name = "C_LC_NO", length = 255)
+	@Column(name = "C_LC_NO")
 	private String lcNo;
 
 	@Column(name = "N_ISSUE_PLACE_ID")
@@ -215,7 +215,7 @@ public class BillingTradeExtractModel implements Serializable {
 	private Date proformaDate;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "C_PROFORMA_ISSUE_TYPE", length = 255)
+	@Column(name = "C_PROFORMA_ISSUE_TYPE")
 	private ProformaIssueType proformaIssueType;
 
 	@Enumerated(EnumType.STRING)
@@ -245,8 +245,6 @@ public class BillingTradeExtractModel implements Serializable {
 
 	@Column(name = "N_TAX_AMOUNT")
 	private BigDecimal taxAmount;
-
-
 	@Column(name = "C_SETTLEMENT_TYPE", length = 100)
 	private String settlementType;
 

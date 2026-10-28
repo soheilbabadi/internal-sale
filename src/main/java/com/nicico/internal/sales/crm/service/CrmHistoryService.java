@@ -31,10 +31,6 @@ public interface CrmHistoryService {
 	RemittanceMasterDto.Info getRemittanceDetailById(Long remittanceId);
 
 	List<RemittanceMasterDto.Info> getAllByProformaMasterId(Long proformaMasterId);
-
-
 	byte[] exportRemittancePdf(long remittanceId);
-
-
 	byte[] exportProformaPdf(long proformaDetailId);
 }

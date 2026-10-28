@@ -2,12 +2,13 @@ package com.nicico.internal.sales.notification.service;
 
 import com.nicico.internal.sales.common.properties.MessageServiceProperties;
 import com.nicico.internal.sales.config.INSOkHttpClient;
+import com.nicico.internal.sales.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
-import com.nicico.internal.sales.customer.model.CustomerModel;
-import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.notification.dto.SmsDTO;
+import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import lombok.AllArgsConstructor;
@@ -33,6 +34,9 @@ class SmsNotificationServiceImpl implements SmsNotificationService {
 	@Override
 	public SmsDTO.Response preFactorEmailedSMSNotification(Long proformaMasterId) throws IOException {
 
+		var master=proformaMasterRepository.findById(proformaMasterId).get();
+		if (master.getProformaIssueType()== ProformaIssueType.CASH_DEPOSIT_RECEIPT) return null;
+
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.PROFORMA)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		if (exportConfig.getSendSms() == false) return null;
@@ -50,7 +54,7 @@ class SmsNotificationServiceImpl implements SmsNotificationService {
 						SmsDTO.SMSServicePattern.Params
 								.builderr()
 								.date_(ProformaMasterModel.getContractDate())
-								.contractNumber(String.valueOf(ProformaMasterModel.getContractNo()))
+								.contractNumber(String.valueOf(master.getContractNo()))
 								.companyName(customerModel.getName())
 								.buildd())
 				.buildd();

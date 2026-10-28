@@ -17,8 +17,19 @@ public enum GaamProcessVariable {
 	}
 
 	public static GaamProcessVariable fromString(String input) {
+		if (input == null) {
+			return null;
+		}
+		String normalizedInput = input.trim();
+
 		for (GaamProcessVariable type : GaamProcessVariable.values()) {
-			if (type.name().equalsIgnoreCase(input) || type.value.equals(input)) {
+			if (type.value.equals(normalizedInput)) {
+				return type;
+			}
+		}
+
+		for (GaamProcessVariable type : GaamProcessVariable.values()) {
+			if (type.name().equalsIgnoreCase(normalizedInput)) {
 				return type;
 			}
 		}

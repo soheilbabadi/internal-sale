@@ -79,6 +79,4 @@ public class LoadingExtractServiceImpl implements LoadingExtractService {
 	public void deleteById(Long id) {
 		loadingGoodsRepository.deleteById(id);
 	}
-
-
 }

@@ -29,7 +29,7 @@ public class BrokerModel extends BaseClassModel {
 	private Long id;
 	@Column(nullable = false, name = "C_NAME", unique = true)
 	private String name;
-	@Column(name = "C_NATIONAL_CODE", unique = true, nullable = false, length = 15)
+	@Column(name = "C_NATIONAL_CODE", unique = true, length = 15)
 	private String nationalCode;
 
 	@Column(name = "C_PHONE", length = 50)

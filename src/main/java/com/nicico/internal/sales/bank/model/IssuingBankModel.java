@@ -28,10 +28,10 @@ public class IssuingBankModel extends BaseClassModel {
 	@SequenceGenerator(name = "SEQ_INS_BANK_BRANCH", sequenceName = "SEQ_INS_BANK_BRANCH", allocationSize = 1)
 	@Schema(name = "شناسه بانک")
 	private Long id;
-	@Column(name = "C_BANK_NAME", nullable = false, length = 200)
+	@Column(name = "C_BANK_NAME", length = 200)
 	@Schema(name = "نام بانک")
 	private String bankName;
-	@Column(name = "C_BRANCH_NAME", nullable = false, length = 200)
+	@Column(name = "C_BRANCH_NAME", length = 200)
 	@Schema(name = "نام شعبه")
 	private String branchName;
 	@Column(name = "C_BRANCH_CODE", length = 200)
@@ -52,7 +52,7 @@ public class IssuingBankModel extends BaseClassModel {
 	@EqualsAndHashCode.Exclude
 	private BaseBankModel baseBankModel;
 
-	@Column(name = "C_BASE_NOSA_CODE", length = 50, nullable = false)
+	@Column(name = "C_BASE_NOSA_CODE", length = 50)
 	private String baseNosaCode;
 	@NotAudited
 	@Formula("(lpad(C_BRANCH_CODE,10,'0'))")

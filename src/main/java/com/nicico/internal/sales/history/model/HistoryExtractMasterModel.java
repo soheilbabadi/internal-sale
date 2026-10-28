@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.history.model;
-
-
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -17,8 +15,6 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
-
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -38,7 +34,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    COALESCE(100 - tigb.N_CASH_PERCENTAGE, 0) AS N_CREDIT_PERCENTAGE,
 		    COALESCE(tigb.N_COMMISSION, 0) AS N_COMMISSION,
 		    tit.CONTRACT_DATE,
-		    tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO AS CONTRACT_NO,
+		    tit.CONTRACT_NO || LPAD(tit.CONTRACT_DETAIL_NO, 3, '0') AS CONTRACT_NO,
 		    tit.PAYMENT_CODE,
 		    COALESCE(ts.SETTLEMENT_TYPE, 'نامشخص')  AS SETTLEMENT_TYPE,
 		    COALESCE(ts.SETTLEMENT_TYPE, 'نامشخص') AS SETTLEMENT_TYPE_DESC,
@@ -104,7 +100,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		                   END) AS rn
 		    FROM T_INS_PERFORMA_MASTER tipm
 		) tipm ON tit.PAYMENT_CODE = tipm.C_PAYMENT_CODE
-		    AND tipm.N_CONTRACT_NO = tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO
+		    AND tipm.N_CONTRACT_NO = tit.CONTRACT_NO || LPAD(tit.CONTRACT_DETAIL_NO, 3, '0')
 		    AND tipm.rn = 1
 		         LEFT JOIN (
 		    SELECT tilc.*,
@@ -128,8 +124,6 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		ORDER BY tit.CONTRACT_DATE DESC
 		""")
 public class HistoryExtractMasterModel implements Serializable {
-
-
 	@Serial
 	private static final long serialVersionUID = 8738545686257069738L;
 	@Id
@@ -221,8 +215,6 @@ public class HistoryExtractMasterModel implements Serializable {
 
 	@Column(name = "C_PERFORMA_DATE")
 	private String performaDate;
-
-
 	@Column(name = "C_LC_NO")
 	private String lcNo;
 
@@ -242,7 +234,7 @@ public class HistoryExtractMasterModel implements Serializable {
 	private String lcPmsId;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "C_ACKNOWLEDGMENT", length = 50, nullable = false)
+	@Column(name = "C_ACKNOWLEDGMENT", length = 50)
 	@Schema(description = "تاییدیه نوع تسویه و نوع حواله")
 	private Acknowledgment acknowledgment = Acknowledgment.UNKNOWN;
 

@@ -47,8 +47,6 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 	private final ObjectMapper objectMapper;
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final ExportNotificationConfigRepository exportNotificationConfigRepository;
-
-
 	@Override
 	public void validateForCreatePreFactorFromProformaMasterId(Long proformaMasterId) {
 
@@ -56,8 +54,6 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
 		if (exportConfig.getSendPms() == false) return;
-
-
 		log.info("Validating pre-factor creation for ProformaMasterId: {}", proformaMasterId);
 		// حالا از Service جداگانه استفاده می کنیم - Cache کار می کنه!
 		List<ProformaGoodItemModel> goodItems = cacheService.getPerformaGoodItems(proformaMasterId);
@@ -96,14 +92,10 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 	@Transactional
 	@CacheEvict(value = {"performaGoodItems", "customers", "pmsCustomers"}, allEntries = true)
 	public void createPreFactorFromProformaMasterId(Long proformaMasterId, String userName, boolean resend) {
-
-
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.PROFORMA)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
 		if (exportConfig.getSendPms() == false) return;
-
-
 		log.info("Creating pre-factor for ProformaGoodItem ID: {}", proformaMasterId);
 		List<ProformaGoodItemModel> goodItems = cacheService.getPerformaGoodItems(proformaMasterId);
 		if (goodItems.isEmpty()) {
@@ -145,14 +137,10 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 
 	@RabbitListener(queues = "${rabbitmq.config.pms.queues.pre-factor.response-queue}")
 	void savePmsPrefactorId(String message) throws JsonProcessingException {
-
-
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.PROFORMA)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
 		if (exportConfig.getSendPms() == false) return;
-
-
 		log.info("Saving PMS Prefactor ID: {}", message);
 		PMSPreFactorDto.RabbitListenerResponseDTO response = objectMapper.readValue(message,
 				PMSPreFactorDto.RabbitListenerResponseDTO.class);
@@ -176,11 +164,7 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 		PMSCustomerModel pmsCustomer = pmsCustomerService.findByEconomicCodeOrRegisterNumber(customer.getEconomicCode(),
 				customer.getRegisterNumber() != null && !customer.getRegisterNumber().isEmpty() ? customer.getRegisterNumber() : customer.getNationalCode());
 		return pmsCustomer.getId();
-
-
 	}
-
-
 	private String extractPmsUserName(String userName) {
 		return Objects.nonNull(userName) ? userName :
 				pmsProperties.getPreFactor().getDefaultPmsUser();

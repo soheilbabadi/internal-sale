@@ -45,8 +45,6 @@ public class ProcessServiceImpl implements ProcessService {
 		tasks.forEach(task -> oaUserDAO.findById(Long.valueOf(task.getAssignee())).ifPresent(user -> task.setAssignee(user.getFullName())));
 		return tasks;
 	}
-
-
 	@Override
 	public void rejectTask(String taskId) {
 
@@ -100,8 +98,6 @@ public class ProcessServiceImpl implements ProcessService {
 //		});
 //		return result.getData().isEmpty() ? null : result;
 //	}
-
-
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<Map<String, Object>> searchProcess(Pageable pageable) {
@@ -202,6 +198,4 @@ public class ProcessServiceImpl implements ProcessService {
 		workflowRepository.save(workflowModel);
 		return dto.getId();
 	}
-
-
 }

@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.pricing.enums;
-
-
 import lombok.Getter;
 
 @Getter

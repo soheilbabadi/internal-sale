@@ -1,13 +1,20 @@
 package com.nicico.internal.sales.remittance.service;
 
+import com.nicico.internal.sales.deposit.model.CashDepositModel;
+import com.nicico.internal.sales.deposit.repository.CashDepositRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
+import com.nicico.internal.sales.gaam.repository.GaamRepository;
 import com.nicico.internal.sales.goods.service.GoodsService;
+import com.nicico.internal.sales.goods.special.repository.PreciousMetalRepository;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.loading.repository.LoadingPlaceRepository;
 import com.nicico.internal.sales.pms.service.PMSRemittanceService;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
+import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.remittance.dto.RemittanceCreateDto;
 import com.nicico.internal.sales.remittance.model.RemittanceTradeDataProviderModel;
 import com.nicico.internal.sales.remittance.repository.RemittanceMasterRepository;
@@ -36,10 +43,14 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 	private final LoadingPlaceRepository loadingPlaceRepository;
 	private final RemittanceMasterRepository remittanceMasterRepository;
 	private final ProformaDetailRepository proformaDetailRepository;
+	private final ProformaMasterRepository proformaMasterRepository;
 	private final RemittanceProcessService remittanceProcessService;
 	private final PMSRemittanceService pmsRemittanceService;
 	private final LcRepository lcRepository;
-
+	private final GaamRepository gaamRepository;
+	private final ExtraBillRepository extraBillRepository;
+	private final CashDepositRepository cashDepositRepository;
+	private final PreciousMetalRepository preciousMetalRepository;
 
 	@Override
 	public void validateCreateTradeRemittance(RemittanceCreateDto dto) {
@@ -54,11 +65,9 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 			throw new InternalSaleCustomException.DuplicateEntityException("این کد پرداخت قبلا ثبت شده است");
 		}
 
-		if (trade.getSettlementTypeDesc().equals("نامشخص")) {
+		if ("نامشخص".equals(trade.getSettlementTypeDesc())) {
 			throw new InternalSaleCustomException.DuplicateEntityException("نوع تسویه هنوز در وضعیت نامشخص است");
 		}
-
-
 		remittanceMasterRepository.findAllByTradeId(dto.getTradeId()).stream()
 				.filter(remittance -> isActiveStatus(remittance.getWorkflowApproveStatus()))
 				.findAny()
@@ -66,8 +75,6 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 					errors.add("برای این معامله قبلا حواله ثبت شده است");
 					throw new InternalSaleCustomException.ValidationException(INVALID_REMITTANCE_DATA_MESSAGE, errors);
 				});
-
-
 		validatePreciousMetal(dto, trade.getGoodId(), errors);
 		validateLoadingPlace(dto.getLoadingPortId(), errors);
 		if (!errors.isEmpty()) {
@@ -83,26 +90,58 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 		var detailModel = proformaDetailRepository.findById(dto.getTradeId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						INVALID_REMITTANCE_DATA_MESSAGE));
-		if (detailModel.getProformaMasterModel().getWorkflowApproveStatus() != WorkflowApproveStatus.ACCEPTED) {
+		ProformaMasterModel masterModel=proformaMasterRepository.findById(detailModel.getProformaMasterId())
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
+						INVALID_REMITTANCE_DATA_MESSAGE));
+
+		if (masterModel.getWorkflowApproveStatus() != WorkflowApproveStatus.ACCEPTED) {
 			errors.add("این پیش فاکتور هنوز تایید نشده است");
 			throw new InternalSaleCustomException.ValidationException(INVALID_REMITTANCE_DATA_MESSAGE, errors);
 		}
 
-		var lc = lcRepository.findByProformaNo(detailModel.getPerformaNo()).orElse(null);
-		if (lc == null) {
-			errors.add("برای این پیش فاکتور هنوز اعتبار اسنادی صادر نشده است");
+		var lc = lcRepository.findAllByProformaMasterId(masterModel.getId())
+				.stream().filter(x->x.getWorkflowApproveStatus()==WorkflowApproveStatus.ACCEPTED)
+				.toList()
+				.size();
+		var gaam= (long) gaamRepository.findAllByProformaMasterId(masterModel.getId())
+				.stream().filter(x->x.getWorkflowApproveStatus()==WorkflowApproveStatus.ACCEPTED)
+				.toList()
+				.size();
+		var extraBill=extraBillRepository.findAllByProformaMasterId(masterModel.getId())
+				.stream().filter(x->x.getWorkflowApproveStatus()==WorkflowApproveStatus.ACCEPTED)
+				.toList()
+				.size();
+
+		var deposit=cashDepositRepository.findAllByProformaMasterId(masterModel.getId())
+				.stream().filter(CashDepositModel::isReckoningSend)
+				.toList()
+				.size();
+
+		if ((lc+gaam+extraBill+deposit)==0) {
+			errors.add("برای این پیش فاکتور هنوز نوعی از اعتبار صادر نشده است");
+		}
+
+		if (proformaMasterRepository.existsById(masterModel.getId())) {
+			remittanceMasterRepository.findFirstByPaymentCodeOrderByIdDesc(masterModel.getPaymentCode())
+					.filter(remittance -> isActiveStatus(remittance.getWorkflowApproveStatus()))
+					.ifPresent(remittance -> {
+						errors.add("برای این پیش فاکتور قبلا حواله ثبت شده است");
+						throw new InternalSaleCustomException.ValidationException(INVALID_REMITTANCE_DATA_MESSAGE, errors);
+					});
 		}
 
 
-		remittanceMasterRepository.findAllByProformaNo(proformaDetail.getPerformaNo()).stream()
-				.filter(remittance -> isActiveStatus(remittance.getWorkflowApproveStatus()))
-				.findAny()
-				.ifPresent(remittance -> {
-					errors.add("برای این پیش فاکتور قبلا حواله ثبت شده است");
-					throw new InternalSaleCustomException.ValidationException(INVALID_REMITTANCE_DATA_MESSAGE, errors);
-				});
+//		remittanceMasterRepository.findAllByProformaNo(proformaDetail.getPerformaNo()).stream()
+//				.filter(remittance -> isActiveStatus(remittance.getWorkflowApproveStatus()))
+//				.findAny()
+//				.ifPresent(remittance -> {
+//					errors.add("برای این پیش فاکتور قبلا حواله ثبت شده است");
+//					throw new InternalSaleCustomException.ValidationException(INVALID_REMITTANCE_DATA_MESSAGE, errors);
+//				});
 
-		validatePreciousMetal(dto, proformaDetail.getProformaMasterModel().getGoodId(), errors);
+		if (isPreciousMetal(masterModel.getGoodId())) {
+			validatePreciousMetal(dto, proformaDetail.getProformaMasterModel().getGoodId(), errors);
+		}
 		validateLoadingPlace(dto.getLoadingPortId(), errors);
 
 		if (!errors.isEmpty()) {
@@ -110,6 +149,10 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 		}
 	}
 
+	private boolean isPreciousMetal(long goodId) {
+			return preciousMetalRepository.existsById(goodId);
+
+	}
 	private RemittanceTradeDataProviderModel fetchTrade(Long tradeId, List<String> errors) {
 		return remittanceTradeDataProviderRepository.findFirstByIdOrderByContractDateDesc(tradeId)
 				.orElseThrow(() -> {
@@ -117,8 +160,6 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 					return new InternalSaleCustomException.ValidationException(INVALID_REMITTANCE_DATA_MESSAGE, errors);
 				});
 	}
-
-
 	private ProformaDetailModel fetchProformaDetail(Long tradeId, List<String> errors) {
 		return proformaDetailRepository.findById(tradeId)
 				.orElseThrow(() -> {
@@ -146,6 +187,4 @@ public class RemittanceValidationImpl implements RemittanceValidation {
 	private boolean isActiveStatus(WorkflowApproveStatus status) {
 		return ACTIVE_STATUSES.contains(status);
 	}
-
-
 }

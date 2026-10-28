@@ -17,6 +17,6 @@
     <include relativeToChangelogFile="true" file="changelog/ins/create_remittance_table.xml"/>
     <include relativeToChangelogFile="true" file="changelog/ins/pricing_currency_table.xml"/>
     <include relativeToChangelogFile="true" file="changelog/ins/T_INS_PRICE_COMMODITY_create_table.xml"/>
-
-
+    <include relativeToChangelogFile="true" file="changelog/ins/create_t_ins_cash_deposit.xml"/>
+    <include relativeToChangelogFile="true" file="changelog/ins/add_deposit_slip_columns_to_performa_master.xml"/>
 </databaseChangeLog>

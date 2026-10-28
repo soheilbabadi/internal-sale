@@ -10,6 +10,4 @@ public interface NotificationService {
 	void sendEmailWithEditedRemittanceAttachment(Long remittanceId);
 
 	void sendEmailForLcBroker(BrokerEmailRequest brokerEmailRequest, String emailContent);
-
-
 }

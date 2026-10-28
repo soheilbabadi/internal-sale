@@ -89,8 +89,20 @@ import java.util.Date;
 		    FROM T_INS_LC lc 
 		    INNER JOIN T_INS_PERFORMA_MASTER pm ON lc.N_PROFORMA_MASTER_ID = pm.ID 
 		    INNER JOIN T_INS_PERFORMA_DETAIL pd ON pd.F_PERFORMA_MASTER_ID = pm.ID
+		    WHERE EXISTS (
+		        SELECT 1
+		        FROM TBL_IME_TRADE tit
+		        INNER JOIN TBL_IME_SETTLEMENT tis
+		            ON tis.PAYMENT_CODE       = tit.PAYMENT_CODE
+		           AND tis.CONTRACT_NO        = tit.CONTRACT_NO
+		           AND tis.CONTRACT_DETAIL_NO = tit.CONTRACT_DETAIL_NO
+		        WHERE tit.ID = pm.F_TRADE_ID
+		          AND tit.CONTRACT_DATE   > '1405/04/01'
+		          AND tit.CURRENCY_CODE   = 1
+		          AND tis.SETTLEMENT_TYPE NOT IN ('نقدی/اعتباری', 'انفساخ')
+		    )
 		""")
-@Synchronize({"T_INS_LC", "T_INS_PERFORMA_MASTER", "T_INS_PERFORMA_DETAIL"})
+@Synchronize({"T_INS_LC", "T_INS_PERFORMA_MASTER", "T_INS_PERFORMA_DETAIL", "TBL_IME_TRADE", "TBL_IME_SETTLEMENT"})
 public class LcWithProformaView {
 
 	@Id
@@ -134,8 +146,6 @@ public class LcWithProformaView {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "C_WORKFLOW_APPROVE_STATUS")
 	private WorkflowApproveStatus workflowApproveStatus;
-
-
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "D_LC_EXPIRY_DATE")
 	private Date lcExpiryDate;

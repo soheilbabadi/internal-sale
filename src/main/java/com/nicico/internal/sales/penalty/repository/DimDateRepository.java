@@ -16,8 +16,6 @@ import java.util.Optional;
 public interface DimDateRepository extends JpaRepository<DimDateModel, Long>, JpaSpecificationExecutor<DimDateModel> {
 	@Query(value = "SELECT ABS(COUNT(*)) FROM T_INS_DATES d WHERE d.IS_HOLIDAY = 0 AND d.SHORT_DATE BETWEEN :startDate AND :endDate", nativeQuery = true)
 	long countWorkingDaysBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-
-
 	Optional<DimDateModel> findByPersianShortDate(String persianDate);
 
 	List<DimDateModel> findAllByShortDateBetween(Date shortDate, Date shortDate2);
@@ -32,6 +30,4 @@ public interface DimDateRepository extends JpaRepository<DimDateModel, Long>, Jp
 	);
 
 	List<DimDateModel> findByPersianYearAndPersianMonthOrderByPersianDayAsc(Long persianYear, Long persianMonth);
-
-
 }

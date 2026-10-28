@@ -12,6 +12,7 @@ import com.nicico.internal.sales.lc.dto.request.UpdateAcceptedLcRequest;
 import com.nicico.internal.sales.lc.dto.request.UpdateStartedLcRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -57,10 +58,6 @@ public interface LcService {
 	ProcessInstanceHistory getLcHistoryDetail(Long lcId);
 
 
-	void updateLcAcknowledgment(Long lcId);
-
-
-	void updateAllAcknowledgments();
-
+	@Transactional
 	String createDetail(Long id);
 }

@@ -39,14 +39,10 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 		if (exportConfig.getSendPms() == false) return;
 
 		var customerModel = customerRepository.findByNationalCode(customer.getRequest().getNationalCode());
-
-
 //
 //        return pmsCustomerRepository.findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(customer.getRequest().get,nationalCode)
 //                .orElseThrow(() -> new InternalSaleCustomException.ValidationException("مشتری با شناسه " + goodItem.getPerformaDetailModel()
 //                        .getProformaMasterModel().getNationalCode() + " وجود ندارد")).getId();
-
-
 		Optional<PMSCustomerModel> exists = pmsCustomerRepository.findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(
 				customerModel.get().getEconomicCode(), customerModel.get().getRegisterNumber()
 		);

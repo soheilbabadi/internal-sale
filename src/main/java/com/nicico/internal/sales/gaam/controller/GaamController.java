@@ -18,8 +18,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-
 @PreAuthorize("@secUtil.hasAuthority('R_INS_LC')")
 @Slf4j
 @RequiredArgsConstructor
@@ -143,7 +141,7 @@ public class GaamController {
 			summary = "جستجوی اوراق گام های آماده تسویه",
 			description = "لیست اوراق گام هایی که آماده فرآیند تسویه هستند را بر اساس فیلترهای دریافتی برمی گرداند."
 	)
-	@PostMapping("/search/ready-reckoning")
+	@PostMapping("/search-ready-reckoning")
 	public ResponseEntity<?> findReadyReckoning(
 			@RequestBody(required = false) SearchDTO.SearchRq request) {
 		return ResponseEntity.ok(service.findReadyReckoning(request));
@@ -157,8 +155,6 @@ public class GaamController {
 	public ResponseEntity<ProcessInstanceHistory> getHistoryDetail(@PathVariable Long gaamId) {
 		return ResponseEntity.ok(service.getHistoryDetail(gaamId));
 	}
-
-
 	@Operation(
 			summary = "دریافت گزارش وظایف کاربران",
 			description = "گزارش وظایف کاربران مرتبط با گردش کار اوراق گام را برمی گرداند."

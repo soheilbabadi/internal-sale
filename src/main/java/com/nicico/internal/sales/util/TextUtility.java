@@ -75,13 +75,9 @@ public class TextUtility {
 		String maskedPart = "*".repeat(maskedLength);
 		return maskedPart + originalString.substring(maskedLength);
 	}
-
-
 	public static String generateRandomString(int length) {
 		return generateRandomString(length, ALPHANUMERIC);
 	}
-
-
 	public static String generateRandomString(int length, String characterSet) {
 		if (length <= 0) {
 			throw new InternalSaleCustomException.ValidationException("Length must be positive");

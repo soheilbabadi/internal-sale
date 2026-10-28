@@ -39,8 +39,6 @@ public class VatDTO {
 	@DecimalMax(value = "100", message = "ضریب مالیات بر ارزش افزوده باید بزرگتر از ۰ و حداکثر ۱۰۰ باشد")
 	@Schema(description = "درصد ضریب مالیات بر ارزش افزوده (بزرگتر از ۰ تا ۱۰۰)", example = "9.00")
 	private BigDecimal vatCoefficient;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@NoArgsConstructor

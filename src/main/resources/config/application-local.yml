@@ -40,6 +40,8 @@ nicico:
   lc-bcc-address: hassani_hos@nicico.com
   terminate-remittance: tehransaleoffice@nicico.com
   crm-link: http://devapp01.icico.net.ir/sso/api/user-request-application/my-approved-company-requests
+  security:
+    sysPassword: password
 
 pms:
   pre-factor:
@@ -79,3 +81,34 @@ rabbitmq:
           response-routing-key: local-response-customer
           retry-routing-key: retry-customer
           routing-key: customer
+
+schedule:
+  nosa:
+    lc:
+      cron: "${NOSA_SCHEDULER_CRON:0 */10 * * * ?}"
+    gaam:
+      cron: "${NOSA_SCHEDULER_CRON:0 */10 * * * ?}"
+    extrabill:
+      cron: "${NOSA_SCHEDULER_CRON:0 */10 * * * ?}"
+    customer:
+      cron: "${NOSA_SCHEDULER_CRON:0 */10 * * * ?}"
+    batch-size: 2
+    enabled: false
+
+accounting:
+  api:
+    base-url: http://devapp01.icico.net.ir/accounting/
+  detail:
+    person:
+      prefix: "02"
+      parent-digits: 1
+    company:
+      prefix: "01"
+      parent-digits: 2
+    financial-instrument:
+      letter-of-credit-main-code: "107/18"
+      letter-of-credit-parent-code: "107"
+      gam-main-code: "114/18"
+      gam-parent-code: "114"
+      electronic-promissory-note-main-code: "115/18"
+      electronic-promissory-note-parent-code: "115"

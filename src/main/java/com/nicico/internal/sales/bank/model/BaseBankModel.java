@@ -22,17 +22,15 @@ public class BaseBankModel extends BaseClassModel {
 	@Id
 	private long id;
 
-	@Column(name = "C_BANK_CODE", length = 50, nullable = false)
+	@Column(name = "C_BANK_CODE", length = 50)
 	private String bankCode;
 
-	@Column(name = "C_BANK_TITLE", length = 100, nullable = false, unique = true)
+	@Column(name = "C_BANK_TITLE", length = 100, unique = true)
 	private String bankTitle;
 
-	@Column(name = "C_BASE_NOSA_CODE", length = 50, nullable = false)
+	@Column(name = "C_BASE_NOSA_CODE", length = 50)
 	private String baseNosaCode;
-
-
-	@Column(name = "C_NATIONAL_CODE", length = 15, nullable = false)
+	@Column(name = "C_NATIONAL_CODE", length = 15)
 	private String nationalCode;
 
 }

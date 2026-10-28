@@ -31,7 +31,7 @@ public class GoodsModel extends BaseClassModel {
 	private String nameEn;
 	@Column(name = "N_PMS_GOODS_ID")
 	private Long pmsGoodsId;
-	@Column(name = "N_IME_COMMODITY_ID", nullable = false, unique = true)
+	@Column(name = "N_IME_COMMODITY_ID", unique = true)
 	private Long imeCommodityId;
 	@Column(name = "N_IME_COMMODITY_PARENT_ID")
 	private Long imeCommodityParentId;

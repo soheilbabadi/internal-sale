@@ -27,23 +27,23 @@ public class SaleConditionModel extends BaseClassModel {
 	private long id;
 
 	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "D_START_DATE", nullable = false)
+	@Column(name = "D_START_DATE")
 	private Date startDate;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "D_EXPIRE_DATE")
 	private Date expireDate;
-	@Column(name = "N_STORAGE_DEADLINE", nullable = false)
+	@Column(name = "N_STORAGE_DEADLINE")
 	private Integer storageDeadline;
-	@Column(name = "N_STORAGE_COST", nullable = false, precision = 10, scale = 2)
+	@Column(name = "N_STORAGE_COST", precision = 10, scale = 2)
 	private BigDecimal storageCost;
-	@Column(name = "N_CREDIT_EXPIRE_PERIOD", nullable = false)
+	@Column(name = "N_CREDIT_EXPIRE_PERIOD")
 	private Integer creditExpirePeriod;
-	@Column(name = "N_SHIPPING_DEADLINE", nullable = false)
+	@Column(name = "N_SHIPPING_DEADLINE")
 	private Integer shippingDeadline;
-	@Column(name = "N_PAYMENT_DEFERRAL", nullable = false)
+	@Column(name = "N_PAYMENT_DEFERRAL")
 	private Integer paymentDeferral;
-	@Column(name = "N_GOOD_ID", nullable = false)
+	@Column(name = "N_GOOD_ID")
 	private Long goodId;
 	@Column(nullable = false, name = "C_GOOD_NAME")
 	private String goodName;
@@ -52,12 +52,10 @@ public class SaleConditionModel extends BaseClassModel {
 	@Column(name = "C_IME_COMMODITY_SYMBOL", length = 100)
 	private String imeCommoditySymbol;
 
-	@Column(name = "N_EXTRA_BILL_OF_EXCHANGE_PERCENT", nullable = false, precision = 10, scale = 2, columnDefinition = "NUMBER(10,2) DEFAULT 0")
+	@Column(name = "N_EXTRA_BILL_OF_EXCHANGE_PERCENT", precision = 10, scale = 2, columnDefinition = "NUMBER(10,2) DEFAULT 0")
 	@Builder.Default
 	private BigDecimal extraBillOfExchangePercent = BigDecimal.ZERO;
-
-
-	@Column(name = "N_EXTRA_GAM_CERTIFICATE_PERCENT", nullable = false, precision = 10, scale = 2, columnDefinition = "NUMBER(10,2) DEFAULT 0")
+	@Column(name = "N_EXTRA_GAM_CERTIFICATE_PERCENT", precision = 10, scale = 2, columnDefinition = "NUMBER(10,2) DEFAULT 0")
 	@Builder.Default
 	private BigDecimal extraGamCertificatePercent = BigDecimal.ZERO;
 }

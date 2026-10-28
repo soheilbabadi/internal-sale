@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.export.controller;
-
-
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.export.dto.ExportNotificationConfigDto;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/ins/notification-config")
-@PreAuthorize("@secUtil.hasAuthority('C_INS_NOTIFICATION')")
+@PreAuthorize("@secUtil.hasAuthority('R_INS_NOTIFICATION')")
 
 public class ExportNotificationController {
 
@@ -34,7 +32,7 @@ public class ExportNotificationController {
 		ExportNotificationConfigDto.Info configServiceByEntityType = exportNotificationConfigService.getByEntityType(enumType);
 		return ResponseEntity.ok(configServiceByEntityType);
 	}
-
+	@PreAuthorize("@secUtil.hasAuthority('C_INS_NOTIFICATION')")
 	@Operation(summary = "ذخیره تنظیمات اعلان")
 	@PostMapping("/save")
 	public ResponseEntity<ExportNotificationConfigDto.Info> save(@RequestBody ExportNotificationConfigDto.Create request) {

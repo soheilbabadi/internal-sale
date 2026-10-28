@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.gaam.dto;
-
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,8 +21,6 @@ public class GaamRequest implements Serializable {
 	@NotNull(message = "شناسه  نمی تواند خالی باشد")
 	@Schema(description = "شناسه برات ثبت شده")
 	private Long id;
-
-
 	@NotNull(message = "شناسه بانک صادرکننده نمی تواند خالی باشد")
 	@Schema(description = "نام بانک")
 	private Long issuerBankId;
@@ -59,6 +55,4 @@ public class GaamRequest implements Serializable {
 
 	@Schema(description = "شناسه فایل پیوست اوراق گام")
 	private String extraBillFileId;
-
-
 }

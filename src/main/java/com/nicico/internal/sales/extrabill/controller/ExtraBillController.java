@@ -7,7 +7,7 @@ import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.internal.sales.extrabill.dto.*;
 import com.nicico.internal.sales.extrabill.service.ExtraBillIssueService;
 import com.nicico.internal.sales.extrabill.service.ExtraBillService;
-import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
+import com.nicico.internal.sales.wf.detection.ExtraBillStepDetector;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +19,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-
 @PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 @Slf4j
 @RequiredArgsConstructor
@@ -30,8 +28,7 @@ public class ExtraBillController {
 
 	private final ExtraBillService service;
 	private final ExtraBillIssueService extraBillIssueService;
-	private final ProcessStatusDeterminerService processStatusDeterminerService;
-
+	private final ExtraBillStepDetector extraBillStepDetector;
 	@Operation(summary = "جستجوی براتهای قابل صدور", description = "لیست براتها که آماده صدور هستند را بر اساس فیلترهای دریافتی برمی گرداند.")
 	@PostMapping("/search-issuable")
 	public ResponseEntity<SearchDTO.SearchRs<ExtraBillIssueProviderDto.Info>> searchIssuable(
@@ -99,9 +96,7 @@ public class ExtraBillController {
 	}
 
 	@Operation(
-			summary = "بروزرسانی فایل های پیوست برات",
-			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."
-	)
+			summary = "بروزرسانی فایل های پیوست برات",			description = "فیلدهای extraBillFileId و dispatchAttachmentId را بروزرسانی می کند. نیاز به مجوز C_UPD_EXTRA_BILL دارد."	)
 	@PreAuthorize("@secUtil.hasAuthority('C_INS_LC')")
 	@PutMapping("/update-files")
 	public ResponseEntity<ProformaBankBillDto.Info> updateBillFiles(
@@ -146,7 +141,7 @@ public class ExtraBillController {
 			summary = "جستجوی برات های آماده تسویه",
 			description = "لیست برات هایی که آماده فرآیند تسویه هستند را بر اساس فیلترهای دریافتی برمی گرداند."
 	)
-	@PostMapping("/search/ready-reckoning")
+	@PostMapping("/search-ready-reckoning")
 	public ResponseEntity<?> findReadyReckoning(
 			@RequestBody(required = false) SearchDTO.SearchRq request) {
 		return ResponseEntity.ok(service.findReadyReckoning(request));
@@ -188,7 +183,7 @@ public class ExtraBillController {
 
 	@PutMapping("/update-all-acknowledgment")
 	public ResponseEntity<Void> updateAllLcAcknowledgment() {
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+		extraBillStepDetector.updateAllAcknowledgments();
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }

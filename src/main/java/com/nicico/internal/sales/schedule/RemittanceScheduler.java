@@ -6,7 +6,7 @@ import com.nicico.internal.sales.pms.service.PMSLcService;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
-import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
+import com.nicico.internal.sales.wf.detection.ProcessHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,9 +23,7 @@ public class RemittanceScheduler {
 	private final CustomerService customerService;
 	private final PMSLcService pmsLcService;
 	private final LcRepository lcRepository;
-	private final ProcessStatusDeterminerService processStatusDeterminerService;
-
-
+	private final ProcessHistoryService processHistoryService;
 	@Scheduled(cron = "0 */10 * * * ?")
 	public void processRemittanceData() {
 		try {

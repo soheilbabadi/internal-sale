@@ -19,8 +19,6 @@ public interface LcRepository extends JpaRepository<LcModel, Long>, JpaSpecifica
 	Page<LcModel> findAllByWorkflowApproveStatusIn(List<WorkflowApproveStatus> statuses, Pageable pageable);
 
 	List<LcModel> findAllByWorkflowApproveStatusIn(List<WorkflowApproveStatus> statuses);
-
-
 	@Query(value = "SELECT C_NOSA_CODE FROM T_INS_LC WHERE N_ISSUER_BANK_ID = :bankId AND C_NOSA_CODE LIKE :prefix% ORDER BY C_NOSA_CODE DESC FETCH FIRST 1 ROWS ONLY", nativeQuery = true)
 	String findLastNosaCodeByBankIdAndPrefix(Long bankId, String prefix);
 
@@ -57,7 +55,23 @@ public interface LcRepository extends JpaRepository<LcModel, Long>, JpaSpecifica
 	@Query(value = "SELECT * FROM t_ins_lc tl WHERE tl.C_ACKNOWLEDGMENT != 'REMITTANCE'  AND tl.C_WORKFLOW_APPROVE_STATUS='IN_PROGRESS' AND tl.C_LC_NO IS NOT NULL", nativeQuery = true)
 	List<LcModel> findReadyReckoning();
 
-	@Query(value = "SELECT tl.* FROM t_ins_lc tl  INNER JOIN T_INS_PERFORMA_DETAIL tipd ON tl.N_PROFORMA_DETAIL_ID=tipd.ID INNER JOIN T_INS_PERFORMA_MASTER tipm ON tipd.F_PERFORMA_MASTER_ID=tipm.ID  WHERE tipm.C_WORKFLOW_APPROVE_STATUS='ACCEPTED' AND  tipd.C_PERFORMA_NO=:proformaNo", nativeQuery = true)
+	@Query(value = "SELECT tl.* FROM t_ins_lc tl INNER JOIN T_INS_PERFORMA_DETAIL tipd ON tl.N_PROFORMA_DETAIL_ID = tipd.ID INNER JOIN T_INS_PERFORMA_MASTER tipm ON tipd.F_PERFORMA_MASTER_ID = tipm.ID WHERE tipm.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'   AND tl.C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED'   AND tipd.C_PERFORMA_NO = :proformaNo ORDER BY tl.ID DESC FETCH FIRST 1 ROW ONLY", nativeQuery = true)
 	Optional<LcModel> findByProformaNo(String proformaNo);
 
+	@Query("""
+  			SELECT lc FROM LcModel lc WHERE lc.nosaCode IS NULL 
+			AND lc.workflowApproveStatus in ( com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus.ACCEPTED) 
+			AND lc.lcNo IS NOT NULL 
+			ORDER BY lc.id ASC
+						""")
+	List<LcModel> findLcsReadyForNosaAssignment(Pageable pageable);
+
+	@Query("""
+			SELECT count(lc) FROM LcModel lc WHERE lc.nosaCode IS NULL 
+			AND lc.workflowApproveStatus in ( com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus.ACCEPTED) 
+			AND lc.lcNo IS NOT NULL
+			""")
+	long countLcsReadyForNosaAssignment();
+
 }
+

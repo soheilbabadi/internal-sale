@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.bill.repository;
-
-
 import com.nicico.internal.sales.bill.model.BillingWeightingDetailModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

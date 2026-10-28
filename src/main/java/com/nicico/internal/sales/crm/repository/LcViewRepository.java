@@ -12,7 +12,5 @@ import java.util.List;
 @Repository
 public interface LcViewRepository extends JpaRepository<LcWithProformaView, Long>, JpaSpecificationExecutor<LcWithProformaView> {
 
-	Page<LcWithProformaView> findAllByNationalCodeIn(List<String> nationalCodes, Pageable pageable);
-
 	List<LcWithProformaView> findAllByNationalCodeInOrderByContractDateDesc(List<String> filteredNationalCodes);
 }

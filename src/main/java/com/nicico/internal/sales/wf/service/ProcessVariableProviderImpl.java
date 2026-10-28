@@ -7,8 +7,9 @@ import com.nicico.bpmsclient.model.request.ReviewTaskRequest;
 import com.nicico.bpmsclient.service.BpmsClientService;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
+import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
+import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.remittance.model.RemittanceMasterModel;
-import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.dto.RemittanceVariablesInput;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
@@ -17,24 +18,16 @@ import com.nicico.internal.sales.wf.model.ProcessUserAccessModel;
 import com.nicico.internal.sales.wf.model.WorkflowModel;
 import com.nicico.internal.sales.wf.repository.ProcessUserAccessRepository;
 import com.nicico.internal.sales.wf.repository.WorkflowRepository;
-import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
-import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ProcessVariableProviderImpl implements ProcessVariableProvider {
-	public static final String PROCESS_TITLE_PREINVOCE = "PREINVOICE";
-	public static final String PROCESS_TITLE_REVERSAL = "REVERSAL";
-	public static final String PROCESS_TITLE_LC = "LC";
-	public static final String PROCESS_TITLE_EXTRA_BILL = "EXTRA_BILL";
-	public static final String PROCESS_TITLE_REMITTANCE = "REMITTANCE";
-	public static final String PROCESS_TITLE_GAAM = "GAAM_BOUND";
-
 	private final WorkflowRepository workflowRepository;
 	private final ProcessUserAccessRepository processUserAccessRepository;
 	private final BpmsClientService bpmsClientService;
@@ -58,42 +51,38 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 							.getUserId().toString();
 				}));
 	}
-
-
 	@Override
 	public WorkflowModel getProformaWorkflowByTitle() {
-		return workflowRepository.findByProcessTitleIgnoreCase(PROCESS_TITLE_PREINVOCE)
+		return workflowRepository.findByProcessTitleIgnoreCase(ProcessTitleEnum.PREINVOICE.getValue())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("فرایند پیش فاکتور وجود ندارد"));
 	}
 
 	@Override
 	public WorkflowModel getReversalWorkflowByTitle() {
-		return workflowRepository.findByProcessTitleIgnoreCase(PROCESS_TITLE_REVERSAL)
+		return workflowRepository.findByProcessTitleIgnoreCase(ProcessTitleEnum.REVERSAL.getValue())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("فرایند برگشت پیش فاکتور وجود ندارد"));
 	}
 
 	@Override
 	public WorkflowModel getGaamWorkflowByTitle() {
-		return workflowRepository.findByProcessTitleIgnoreCase(PROCESS_TITLE_GAAM)
+		return workflowRepository.findByProcessTitleIgnoreCase(ProcessTitleEnum.GAAM_BOUND.getValue())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("فرایند بثبت اوراق گام وجود ندارد"));
 	}
-
-
 	@Override
 	public WorkflowModel getLcWorkflowByTitle() {
-		return workflowRepository.findByProcessTitleIgnoreCase(PROCESS_TITLE_LC)
+		return workflowRepository.findByProcessTitleIgnoreCase(ProcessTitleEnum.LC.getValue())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("فرایند اعتبار اسنادی وجود ندارد"));
 	}
 
 	@Override
 	public WorkflowModel getExtraBillWorkflowByTitle() {
-		return workflowRepository.findByProcessTitleIgnoreCase(PROCESS_TITLE_EXTRA_BILL)
+		return workflowRepository.findByProcessTitleIgnoreCase(ProcessTitleEnum.EXTRA_BILL.getValue())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("فرایند ثبت برات وجود ندارد"));
 	}
 
 	@Override
 	public WorkflowModel getRemittanceWorkflowByTitle() {
-		return workflowRepository.findByProcessTitleIgnoreCase(PROCESS_TITLE_REMITTANCE)
+		return workflowRepository.findByProcessTitleIgnoreCase(ProcessTitleEnum.REMITTANCE.getValue())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("فرایند حواله وجود ندارد"));
 	}
 
@@ -121,14 +110,10 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	public Map<String, Object> createRemittanceRequestVariable(RemittanceVariablesInput input) {
 		return createRequestVariables(input, getRemittanceUserAccess());
 	}
-
-
 	@Override
 	public Map<String, Object> createGaamRequestVariables(ProformaVariablesInput input) {
 		return createRequestVariables(input, getGaamUserAccess());
 	}
-
-
 	private Map<String, Object> createRequestVariables(RemittanceVariablesInput input, Map<String, String> userAccess) {
 		Map<String, Object> variables = new HashMap<>();
 		variables.put("remittanceMasterId", input.getRemittanceMasterId());
@@ -167,14 +152,13 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		variables.put("commission", input.getCommission());
 		variables.put("issuerName", SecurityUtil.getFirstName() + " " + SecurityUtil.getLastName());
 		variables.put("issuerId", SecurityUtil.getUserId());
+		variables.put("issueSource",input.getIssueSource());
 
 		variables.putAll(userAccess);
 		Map<String, Object> wrapped = new HashMap<>(variables);
 		wrapped.put("INSTANCE_DETAILS", variables);
 		return wrapped;
 	}
-
-
 	private <E extends Enum<E>> Map<String, String> buildUserAccess(WorkflowModel workflow, E[] variables) {
 		List<ProcessUserAccessModel> accessList = processUserAccessRepository.findAllByProcessTitle(workflow.getProcessTitle());
 		Map<String, String> userAccess = new HashMap<>(resolveUserAccess(
@@ -217,6 +201,23 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 	}
 
 	@Override
+	public Map<String, String> getProcessVariablesByTitle(ProcessTitleEnum title) {
+		return switch (title) {
+			case PREINVOICE -> buildProcessVariableMap(ProformaProcessVariable.values(), ProformaProcessVariable::getValue);
+			case LC -> buildProcessVariableMap(LcProcessVariable.values(), LcProcessVariable::getValue);
+			case REVERSAL -> buildProcessVariableMap(ReversalProcessVariable.values(), ReversalProcessVariable::getValue);
+			case REMITTANCE -> buildProcessVariableMap(RemittanceProcessVariable.values(), RemittanceProcessVariable::getValue);
+			case EXTRA_BILL -> buildProcessVariableMap(ExtraBillProcessVariable.values(), ExtraBillProcessVariable::getValue);
+			case GAAM_BOUND -> buildProcessVariableMap(GaamProcessVariable.values(), GaamProcessVariable::getValue);
+		};
+	}
+
+	private <E extends Enum<E>> Map<String, String> buildProcessVariableMap(E[] values, Function<E, String> valueExtractor) {
+		return Arrays.stream(values)
+				.collect(Collectors.toMap(Enum::name, valueExtractor));
+	}
+
+	@Override
 	public ProformaVariablesInput buildProformaVariablesInput(ProformaMasterModel masterModel) {
 		ProformaDetailModel detail = masterModel.getProformaDetailModelLists().get(0);
 		ProformaVariablesInput input = new ProformaVariablesInput();
@@ -227,15 +228,15 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		input.setCustomerName(masterModel.getCustomerName());
 		input.setContractNo(String.valueOf(masterModel.getContractNo()));
 		input.setCommission(masterModel.getCommissionPercentage());
+		input.setIssueSource(masterModel.getProformaIssueType());
 		return input;
 	}
-
-
 	@Override
 	public RemittanceVariablesInput buildRemittanceVariablesInput(RemittanceMasterModel masterModel) {
+
 		RemittanceVariablesInput input = new RemittanceVariablesInput();
 		input.setRemittanceMasterId(masterModel.getId());
-		input.setContractDate(DateUtility.getJalaliDate(masterModel.getContractDate()));
+		input.setContractDate(masterModel.getContractDateJalali());
 		input.setRemittanceDate(masterModel.getRemittanceDate());
 		input.setGoodId(masterModel.getGoodId());
 		input.setGoodName(masterModel.getGoodName());
@@ -247,12 +248,6 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 
 		return input;
 	}
-
-
-
-
-
-
 	@Override
 	public ProformaVariablesInput buildExtraBillVariablesInput(ProformaMasterModel proformaMaster) {
 		ProformaVariablesInput input = new ProformaVariablesInput();
@@ -263,6 +258,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		input.setCustomerName(proformaMaster.getCustomerName());
 		input.setContractNo(String.valueOf(proformaMaster.getContractNo()));
 		input.setCommission(proformaMaster.getCommissionPercentage());
+		input.setIssueSource(proformaMaster.getProformaIssueType());
 		return input;
 	}
 
@@ -276,6 +272,7 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		input.setCustomerName(proformaMaster.getCustomerName());
 		input.setContractNo(String.valueOf(proformaMaster.getContractNo()));
 		input.setCommission(proformaMaster.getCommissionPercentage());
+		input.setIssueSource(proformaMaster.getProformaIssueType());
 		return input;
 	}
 
@@ -292,8 +289,6 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		reviewTaskRequest.setApprove(taskActionDto.getApprove());
 		reviewTaskRequest.setDescription(action + " پروسه ");
 		return reviewTaskRequest;
-
-
 	}
 
 	@Override
@@ -331,7 +326,5 @@ public class ProcessVariableProviderImpl implements ProcessVariableProvider {
 		} catch (Exception e) {
 			return false;
 		}
-
-
 	}
 }

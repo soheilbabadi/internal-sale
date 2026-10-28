@@ -14,13 +14,14 @@ public class DateUtility {
 
 	private DateUtility() {
 	}
-
-
 	public static String currentYearLast2() {
 		int yearLast2 = DateUtility.getCurrentJalaliYear() - 1400;
 		return String.format("%02d", yearLast2);
 	}
 
+	public static String currentYearLast2(String jalaliDate) {
+		return jalaliDate.substring(2, 4);
+	}
 	public static Date subtractDay(Date date, int days) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
@@ -87,8 +88,6 @@ public class DateUtility {
 		Jalali.YearMonthDay ymd = Jalali.parseJalali(jalaliDate);
 		return toDate(Jalali.toGregorianDate(ymd));
 	}
-
-
 	public static Date addJalaliMonthsToGregorianDate(Date date, int monthsToAdd) {
 		Objects.requireNonNull(date, "date must not be null");
 
@@ -110,8 +109,6 @@ public class DateUtility {
 		Objects.requireNonNull(epoch, "epoch must not be null");
 		return LocalDateTime.ofInstant(epoch.toInstant(), UTC);
 	}
-
-
 	public static LocalDate toLocalDate(Date epoch) {
 		Objects.requireNonNull(epoch, "epoch must not be null");
 		return LocalDate.ofInstant(epoch.toInstant(), UTC);
@@ -133,4 +130,5 @@ public class DateUtility {
 				Integer.parseInt(parts[2])   // day
 		};
 	}
+
 }

@@ -1,14 +1,15 @@
 package com.nicico.internal.sales.notification.service;
 
+import com.nicico.internal.sales.customer.model.CustomerModel;
+import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
 import com.nicico.internal.sales.export.service.ExportDocService;
 import com.nicico.internal.sales.export.service.FmsDocumentService;
-import com.nicico.internal.sales.customer.model.CustomerModel;
-import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.notification.dto.EmailRequest;
+import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.model.ProformaDetailModel;
 import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -92,6 +92,8 @@ public class NotificationServiceImpl implements NotificationService {
 	@Transactional
 	public void sendEmailWithProformaAttachment(Long proformaMasterId) {
 
+		var master=proformaMasterRepository.findById(proformaMasterId).get();
+		if (master.getProformaIssueType()== ProformaIssueType.CASH_DEPOSIT_RECEIPT) return;
 
 		try {
 			if (isSmsSendingEnabled(EntityTypeEnum.PROFORMA))
@@ -99,6 +101,7 @@ public class NotificationServiceImpl implements NotificationService {
 		} catch (IOException e) {
 			log.error(e.getMessage(), e);
 		}
+
 		executeEmailSend(
 				proformaMasterId,
 				EntityTypeEnum.PROFORMA,
@@ -113,6 +116,8 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@Transactional
 	public void retrySendEmailWithProformaAttachment(Long proformaMasterId) {
+		var master=proformaMasterRepository.findById(proformaMasterId).get();
+		if (master.getProformaIssueType()== ProformaIssueType.CASH_DEPOSIT_RECEIPT) return;
 		try {
 			if (isSmsSendingEnabled(EntityTypeEnum.PROFORMA))
 				smsNotificationService.preFactorEmailedSMSNotification(proformaMasterId);
@@ -184,12 +189,10 @@ public class NotificationServiceImpl implements NotificationService {
 
 			byte[] pdfContent = convertDocumentsToPdf(detailIds, entityType);
 			Path filePath = createTempFile(fileNamePrefix, getContractNo(model), pdfContent);
-
-
 			EmailRequest emailRequest = emailBuilder.apply(model);
-			HttpResponse<String> response = mailService.sendMail(emailRequest, filePath.toString());
+			 mailService.sendMail(emailRequest, filePath.toString());
 
-			log.info(formatMessage(LOG_EMAIL_SUCCESS, entityName, id, response.body()));
+			log.info(formatMessage(LOG_EMAIL_SUCCESS, entityName, id));
 
 			cleanupTempFile(filePath);
 
@@ -214,8 +217,6 @@ public class NotificationServiceImpl implements NotificationService {
 				})
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
 	}
-
-
 	private boolean isSmsSendingEnabled(EntityTypeEnum entityType) {
 		return exportNotificationConfigRepository.findByEntityType(entityType)
 				.map(config -> {
@@ -224,8 +225,6 @@ public class NotificationServiceImpl implements NotificationService {
 				})
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
 	}
-
-
 	private <T> void validateModel(T model) {
 		if (model == null) {
 			throw new InternalSaleCustomException.ResourceNotFoundException("مدل مورد نظر یافت نشد");

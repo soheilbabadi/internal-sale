@@ -57,24 +57,26 @@ public class ProformaDetailDto implements Serializable {
 	private Date orderDate;
 	@Schema(description = "تاریخ قرارداد")
 	private String contractDate;
-
-
 	@Schema(name = "pmsId", description = "شناسه لجستیک", example = "126-11")
 	private String pmsId;
-
-
 	@Schema(description = "تعداد اوراق گام")
 	private Long gamCertificateCount;
-
-
 	@Schema(description = "مبلغ اضافه شده به مبلغ کل")
 	private BigDecimal extraBillOfExchangeAmount;
-
-
 	@Schema(description = "درصد اضافه شده به مبلغ کل")
 	private BigDecimal extraBillOfPercent;
 
+	@Schema(description = "فایل نهایی پیش فاکتور")
 	private String proformaFileId;
+
+//	@Schema(description = "مقدار فیش واریزی با مالیات")
+//	private BigDecimal depositSlipWithTax = BigDecimal.ZERO;
+//
+//	@Schema(description = "مقدار فیش واریزی بدون مالیات")
+//	private BigDecimal depositSlipWithoutTax = BigDecimal.ZERO;
+//
+//	@Schema(description = "فیش نهایی واریزی از کدام نوع بوده است")
+//	private DepositSlipType depositSlipType;
 
 	private List<ProformaGoodItemDto> proformaGoodItemDtos;
 

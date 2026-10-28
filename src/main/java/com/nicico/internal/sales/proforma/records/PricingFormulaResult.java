@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.proforma.records;
-
-
 public record PricingFormulaResult(long unitPrice,
                                    long unitPriceCredit,
                                    double creditPercent,

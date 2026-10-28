@@ -11,6 +11,7 @@ import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.proforma.dto.*;
+import com.nicico.internal.sales.proforma.dto.ProformaMasterMapper;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.SaleType;
 import com.nicico.internal.sales.proforma.enums.SettlementType;
@@ -25,6 +26,7 @@ import com.nicico.internal.sales.trade.model.TradeExtractModel;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.vat.repository.VatRepository;
+import com.nicico.internal.sales.wf.service.ProformaProcessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,8 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final GoodBucketService goodBucketService;
 	private final TradeExtractRepository tradeExtractRepository;
+	private final ProformaMasterMapper proformaMasterMapper;
+	private final ProformaProcessService proformaProcessService;
 
 	// ==================== PUBLIC SERVICE METHODS ====================
 
@@ -296,6 +300,9 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 				.settlementType(SETTLEMENT_TYPE_DEFAULT)
 				.isProcessFinal(true)
 				.isReversalProcessFinal(false)
+				.depositSlipWithTax(BigDecimal.ZERO)
+				.depositSlipWithoutTax(BigDecimal.ZERO)
+				.depositSlipType(null)
 				.build();
 	}
 
@@ -666,5 +673,13 @@ public class ProformaContractServiceImpl implements ProformaContractService {
 				.replace(goodsModel.getImeCommoditySymbol() != null ? goodsModel.getImeCommoditySymbol() : "", "")
 				.replace("_", "")
 				.trim();
+	}
+
+	@Override
+	public ProformaResponseDto getDetailById(long id) {
+		log.debug("Getting proforma detail by id: {}", id);
+		proformaProcessService.refreshStatus();
+		ProformaMasterModel master = findMasterModel(id);
+		return buildProformaResponseFromMaster(master, proformaMasterMapper);
 	}
 }

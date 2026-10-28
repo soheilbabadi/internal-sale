@@ -1,14 +1,12 @@
 package com.nicico.internal.sales.gaam.mapper;
-
-
 import com.nicico.internal.sales.gaam.dto.GaamReportDto;
-import com.nicico.internal.sales.gaam.model.GaamlReadyRevokingModel;
+import com.nicico.internal.sales.gaam.model.GaamlReadyReckoningModel;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface GaamRevokingMapper {
-	GaamReportDto.Info toDTO(GaamlReadyRevokingModel model);
+	GaamReportDto.Info toDTO(GaamlReadyReckoningModel model);
 
-	GaamlReadyRevokingModel fromDTO(GaamReportDto.Create request);
+	GaamlReadyReckoningModel fromDTO(GaamReportDto.Create request);
 
 }

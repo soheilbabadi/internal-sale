@@ -145,8 +145,6 @@ public class CrmHistoryServiceImpl implements CrmHistoryService {
 			dto.setProformaGoodItemDtos(model.getProformaGoodItemModels().stream().map(item -> {
 				var goodItemDto = new ProformaGoodItemDto();
 				BeanUtils.copyProperties(item, goodItemDto);
-				goodItemDto.setGoodsName(item.getGoodName());
-				goodItemDto.setGoodsId(item.getGoodId());
 				goodItemDto.setUnitName("کیلوگرم");
 				return goodItemDto;
 			}).toList());
@@ -155,8 +153,7 @@ public class CrmHistoryServiceImpl implements CrmHistoryService {
 
 		var masterDto = proformaMasterMapper.toDTO(master);
 		if (!detailDtoList.isEmpty() && !detailDtoList.get(0).getProformaGoodItemDtos().isEmpty()) {
-			masterDto.setGoodId(detailDtoList.get(0).getProformaGoodItemDtos().get(0).getGoodsId());
-			masterDto.setGoodName(detailDtoList.get(0).getProformaGoodItemDtos().get(0).getGoodsName());
+
 		}
 
 		var responseDto = new ProformaResponseDto();

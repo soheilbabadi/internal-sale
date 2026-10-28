@@ -55,22 +55,22 @@ public class ProformaDetailModel extends BaseClassModel {
 	@Column(name = "N_TOTAL_AMOUNT")
 	private BigDecimal totalAmount;
 	@Schema(description = "مهلت بارگیری پس از مهلت مجاز بورس کالا-روز")
-	@Column(name = "N_STORAGE_DEADLINE", nullable = false)
+	@Column(name = "N_STORAGE_DEADLINE")
 	private Integer storageDeadline;
 	@Schema(description = "هزینه انبارداری روزشمار-درصد")
-	@Column(name = "N_STORAGE_COST", nullable = false, precision = 10, scale = 2)
+	@Column(name = "N_STORAGE_COST", precision = 10, scale = 2)
 	private BigDecimal storageCost;
 	@Schema(description = "سررسید انقضای اعتبار-ماه")
-	@Column(name = "N_CREDIT_EXPIRE_PERIOD", nullable = false)
+	@Column(name = "N_CREDIT_EXPIRE_PERIOD")
 	private Integer creditExpirePeriod;
 	@Schema(description = "مهلت بارگیری-روز")
-	@Column(name = "N_SHIPPING_DEADLINE", nullable = false)
+	@Column(name = "N_SHIPPING_DEADLINE")
 	private Integer shippingDeadline;
 	@Schema(description = "مهلت پرداخت وجه اعتبار اسنادی-روز")
-	@Column(name = "N_PAYMENT_DEFERRAL", nullable = false)
+	@Column(name = "N_PAYMENT_DEFERRAL")
 	private Integer paymentDeferral;
 	@Schema(description = "مدت اعتبار پیش فاکتور-روز")
-	@Column(name = "N_DEADLINE_DAYS", nullable = false)
+	@Column(name = "N_DEADLINE_DAYS")
 	private Integer deadlineDays;
 	@Schema(description = "وضعیت در فرایند", name = "proformaIssueType", example = "PENDING")
 	@Enumerated(EnumType.STRING)
@@ -88,18 +88,16 @@ public class ProformaDetailModel extends BaseClassModel {
 	private String contractDate;
 
 	@Schema(description = "تعداد اوراق گام")
-	@Column(name = "N_GAM_CERTIFICATE_COUNT", nullable = false)
+	@Column(name = "N_GAM_CERTIFICATE_COUNT")
 	@Builder.Default
 	private Long gamCertificateCount = 0L;
-
-
 	@Schema(description = "مبلغ اضافه شده به مبلغ کل")
-	@Column(name = "N_EXTRA_BILL_OF_AMOUNT", nullable = false, precision = 10, scale = 2)
+	@Column(name = "N_EXTRA_BILL_OF_AMOUNT", precision = 10, scale = 2)
 	@Builder.Default
 	private BigDecimal extraBillOfExchangeAmount = BigDecimal.ZERO;
 
 	@Schema(description = "درصد اضافه شده به مبلغ کل")
-	@Column(name = "N_EXTRA_BILL_OF_PERCENT", nullable = false, precision = 10, scale = 2)
+	@Column(name = "N_EXTRA_BILL_OF_PERCENT", precision = 10, scale = 2)
 	@Builder.Default
 	private BigDecimal extraBillOfPercent = BigDecimal.ZERO;
 
@@ -118,5 +116,14 @@ public class ProformaDetailModel extends BaseClassModel {
 	@Column(name = "C_PROFORMA_FILE_ID", length = 100)
 	private String proformaFileId;
 
+//	@Column(name = "N_DEPOSIT_SLIP_WITH_TAX")
+//	private BigDecimal depositSlipWithTax = BigDecimal.ZERO;
+//
+//	@Column(name = "N_DEPOSIT_SLIP_WITHOUT_TAX")
+//	private BigDecimal depositSlipWithoutTax = BigDecimal.ZERO;
+//
+//	@Enumerated(EnumType.STRING)
+//	@Column(name = "C_DEPOSIT_SLIP_TYPE", length = 20)
+//	private DepositSlipType depositSlipType = DepositSlipType.WITH_TAX;
 
 }

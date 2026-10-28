@@ -17,7 +17,7 @@ import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
-import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
+import com.nicico.internal.sales.trade.repository.TradeExtractStartProformaRepository;
 import com.nicico.internal.sales.wf.dto.ProformaVariablesInput;
 import com.nicico.internal.sales.wf.service.ProcessVariableProvider;
 import com.nicico.internal.sales.wf.service.ProformaProcessService;
@@ -52,7 +52,7 @@ public class ProformaServiceImpl implements ProformaService {
 	private final ProformaContractService proformaContractService;
 	private final PreciousMetalRepository preciousMetalRepository;
 	private final ProformaProcessService proformaProcessService;
-	private final TradeExtractRepository tradeExtractRepository;
+	private final TradeExtractStartProformaRepository tradeExtractStartProformaRepository;
 	private final ProformaValidationService proformaValidationService;
 	private final OfferTextProcess offerTextProcess;
 	private final ExtraBillProformaIssueService extraBillProformaIssueService;
@@ -85,8 +85,6 @@ public class ProformaServiceImpl implements ProformaService {
 		if (requestDto.getProformaIssueType() == ProformaIssueType.GAM_BONDS) {
 			return gaamBoundProformaIssueService.create(requestDto);
 		}
-
-
 		// ایجاد پیش فاکتور
 		ProformaMasterModel model = createProformaMaster(requestDto);
 
@@ -199,9 +197,11 @@ public class ProformaServiceImpl implements ProformaService {
 
 	@Override
 	public String getLotNumberByTradeId(Long tradeId) {
-		return tradeExtractRepository.findById(tradeId)
-				.map(tradeExtract -> offerTextProcess.extractLotNumber(tradeExtract.getOfferDescription()))
-				.orElse("");
+
+		var trade=tradeExtractStartProformaRepository.findById(tradeId).get();
+		return offerTextProcess.extractLotNumber(trade.getOfferDescription());
+
+
 	}
 
 	@Override
@@ -246,21 +246,13 @@ public class ProformaServiceImpl implements ProformaService {
 
 	@Override
 	public ProformaResponseDto getDetailById(long id) {
-		log.debug("Getting proforma detail by id: {}", id);
-
-		proformaProcessService.refreshStatus();
-		ProformaMasterModel master = findProformaMaster(id);
-
-		return buildProformaResponseFromMaster(master, proformaMasterMapper);
+		return proformaContractService.getDetailById(id);
 	}
 
 	@Override
 	public ProformaResponseDto getActiveProformaById(long id) {
 		ProformaResponseDto response = getDetailById(id);
-
-		// فیلتر کردن Detail های فعال با Helper
 		response.setDetailDtoList(getActiveDetailDTOs(response.getDetailDtoList()));
-
 		return response;
 	}
 
@@ -268,11 +260,11 @@ public class ProformaServiceImpl implements ProformaService {
 	public ProformaResponseDto getDetailByInstanceId(String instanceId) {
 		log.debug("Getting proforma detail by instanceId: {}", instanceId);
 
-		ProformaMasterModel performaMaster = proformaMasterRepository
+		ProformaMasterModel masterModel = proformaMasterRepository
 				.findByProcessId(instanceId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(ERR_PROFORMA_NOT_FOUND));
 
-		return buildProformaResponseFromMaster(performaMaster, proformaMasterMapper);
+		return buildProformaResponseFromMaster(masterModel, proformaMasterMapper);
 	}
 
 	// ==================== REVERSAL ====================
@@ -342,21 +334,19 @@ public class ProformaServiceImpl implements ProformaService {
 	@Override
 	@Transactional
 	public void resetReversalByContractNo(Long contractNo) {
-		ProformaMasterModel master = proformaMasterRepository
+		ProformaMasterModel masterModel = proformaMasterRepository
 				.findByContractNoAndWorkflowApproveStatus(contractNo, WorkflowApproveStatus.REVERSAL)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						"پیش فاکتور در وضعیت ابطال برای شماره قرارداد " + contractNo + " یافت نشد"
 				));
 
-		String instanceId = master.getReversalProcessId();
+		String instanceId = masterModel.getReversalProcessId();
 
-		master.setReversalProcessId("-");
-		master.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-		master.setIsReversalProcessFinal(false);
-		proformaMasterRepository.save(master);
-
-
-		List<ProformaDetailModel> details = proformaDetailRepository.findAllByProformaMasterId(master.getId());
+		masterModel.setReversalProcessId("-");
+		masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+		masterModel.setIsReversalProcessFinal(false);
+		proformaMasterRepository.save(masterModel);
+		List<ProformaDetailModel> details = proformaDetailRepository.findAllByProformaMasterId(masterModel.getId());
 		for (ProformaDetailModel detail : details) {
 			detail.setProformaReversalStatus(ProformaReversalStatus.NORMAL);
 		}
@@ -364,7 +354,7 @@ public class ProformaServiceImpl implements ProformaService {
 
 		workflowTaskActionService.rejectAllTasksByInstanceId(instanceId);
 
-		log.info("Reset reversal status to ACCEPTED/NORMAL for masterId: {}, contractNo: {}", master.getId(), contractNo);
+		log.info("Reset reversal status to ACCEPTED/NORMAL for masterId: {}, contractNo: {}", masterModel.getId(), contractNo);
 	}
 
 	// ==================== PRIVATE HELPER METHODS ====================
@@ -390,15 +380,6 @@ public class ProformaServiceImpl implements ProformaService {
 		masterModel.setProcessId(process.getId());
 		masterModel.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
 	}
-
-	/**
-	 * ساخت ورودی فرآیند
-	 */
-
-
-	/**
-	 * ذخیره Detail و GoodItem ها
-	 */
 	private void saveDetailAndGoodItems(List<ProformaDetailModel> detailModels, Long masterId) {
 		detailModels.forEach(detailModel -> {
 			detailModel.setProformaMasterId(masterId);
@@ -471,5 +452,12 @@ public class ProformaServiceImpl implements ProformaService {
 		return response;
 	}
 
+	// ==================== TRADE ID FIX ====================
+
+	/**
+	 * اصلاح شناسه معامله پیش فاکتورها بر اساس شماره قرارداد
+	 * result1: شناسه معامله فعلی از T_INS_PERFORMA_MASTER
+	 * result2: شناسه معامله صحیح از TBL_IME_TRADE (بر اساس قرارداد اصلی و جزئیات)
+	 */
 
 }

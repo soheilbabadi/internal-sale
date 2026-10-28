@@ -17,6 +17,7 @@ import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
+import com.nicico.internal.sales.wf.detection.LcStepDetector;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +44,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 	private final LcValidationService lcValidationService;
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final ProformaGoodItemRepository proformaGoodItemRepository;
-	private final AcknowledgmentDeterminer acknowledgmentDeterminer;
-
+	private final LcStepDetector lcStepDetector;
 
 	@Override
 	public ProcessInstance startLcProcess(Long masterId) {
@@ -54,7 +54,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 		refreshStatus();
 		lcValidationService.validateStart(masterId);
-
 		ProformaMasterModel masterModel = proformaMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_PROFORMA_NOT_FOUND));
 
@@ -87,8 +86,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 			throw bpmsException(ex);
 		}
 	}
-
-
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
 		reviewTask(taskActionDto, true);
@@ -151,7 +148,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 					lc.setAcknowledgment(Acknowledgment.FINISHED);
 				} else {
 					lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-					lc.setAcknowledgment(acknowledgmentDeterminer.determine(lc));
+					lc.setAcknowledgment(lcStepDetector.detectStep(lc));
 				}
 			}
 			lcRepository.saveAllAndFlush(lcList);
@@ -170,8 +167,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 			throw bpmsException(ex);
 		}
 	}
-
-
 	// -------------------------------------------------------------------------
 	// Status refresh
 	// -------------------------------------------------------------------------
@@ -179,11 +174,9 @@ public class LcProcessServiceImpl implements LcProcessService {
 	@Override
 	public void refreshStatus() {
 		try {
-			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.DRAFT, WorkflowApproveStatus.IN_PROGRESS));
+			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
 			for (LcModel lc : lcList) {
-				lc.setAcknowledgment(acknowledgmentDeterminer.determine(lc));
-
-
+				lc.setAcknowledgment(lcStepDetector.detectStep(lc));
 				if (lc.getPmsLcId() != null) {
 					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
 					lc.setAcknowledgment(Acknowledgment.FINISHED);
@@ -210,8 +203,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 						}
 						break;
 				}
-
-
 			}
 			lcRepository.saveAll(lcList);
 
@@ -225,15 +216,11 @@ public class LcProcessServiceImpl implements LcProcessService {
 //		lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
 //		return resolveAcknowledgmentFromStep(detectLcStep(processId));
 //	}
-
-
 	@Override
 	public boolean canStartProcess() {
 		//return hasAccessForVariable(LcProcessVariable.CreditBridge);
 		return true;
 	}
-
-
 //
 //	@Override
 //	public LcProcessVariable detectLcStep(String processInstanceId) {
@@ -270,8 +257,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 //			case CreditBridge, SettleSure -> Acknowledgment.RECKONING;
 //		};
 //	}
-
-
 	private LcModel buildLcModel(ProcessInstance instance, ProformaMasterModel masterModel, ProformaDetailModel detail) {
 		var goodItem = proformaGoodItemRepository.findAllByProformaDetailModel(detail).get(0);
 		var totalFinalAmount = goodItem.getCreditAmount().add(goodItem.getVatCreditAmount());

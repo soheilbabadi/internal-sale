@@ -151,8 +151,6 @@ public class LcWithProformaDto implements Serializable {
 	private Date orderDate;
 	@Schema(description = "هزینه انبارداری روزشمار-درصد", name = "storageCost", example = "500000")
 	private BigDecimal storageCost;
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@ApiModel("LcWithProformaDto.Create")

@@ -15,8 +15,6 @@ public interface ProformaGoodItemRepository extends JpaRepository<ProformaGoodIt
 	List<ProformaGoodItemModel> findActiveItemsWithProformaMasterId(Long proformaMasterId);
 
 	List<ProformaGoodItemModel> findAllByProformaDetailModel(ProformaDetailModel proformaDetailModel);
-
-
 	@Query(value = """
 			SELECT g.*
 			FROM T_INS_PERFORMA_GOOD_ITEM g

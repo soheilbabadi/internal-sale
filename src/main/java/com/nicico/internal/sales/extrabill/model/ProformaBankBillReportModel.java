@@ -101,8 +101,6 @@ public class ProformaBankBillReportModel implements Serializable {
 
 	@Column(name = "C_AGENT_BANK_NAME")
 	private String agentBankName;
-
-
 	@Column(name = "C_NOSA_CODE")
 	private String nosaCode;
 

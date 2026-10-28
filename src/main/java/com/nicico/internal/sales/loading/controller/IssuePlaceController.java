@@ -44,8 +44,6 @@ public class IssuePlaceController {
 	public ResponseEntity<?> save(@RequestBody IssuePlaceDto.Create request) {
 		return ResponseEntity.ok(service.save(request));
 	}
-
-
 	@PreAuthorize("@secUtil.hasAuthority('D_INS_ISSUE_PLACE')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<HttpStatus> deleteById(@PathVariable Long id) {

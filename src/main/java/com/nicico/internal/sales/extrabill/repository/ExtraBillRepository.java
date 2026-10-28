@@ -2,6 +2,7 @@ package com.nicico.internal.sales.extrabill.repository;
 
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -38,5 +39,29 @@ public interface ExtraBillRepository extends JpaRepository<ExtraBankBillModel, L
 
 	List<ExtraBankBillModel> findAllByProcessId(String processInstanceId);
 
+	Optional<ExtraBankBillModel> findFirstByPmsBillId(String pmsBillId);
+
+	@Query(value = "SELECT b.* FROM T_INS_EXTRA_BANK_BILL b " +
+			"INNER JOIN T_INS_PERFORMA_DETAIL pd ON b.F_PROFORMA_DETAIL_ID = pd.ID " +
+			"WHERE pd.C_PROFORMA_REVERSAL_STATUS != 'CANCELED' and b.C_ACKNOWLEDGMENT != 'CANCELED' " +
+			"AND b.F_PERFORMA_MASTER_ID = :proformaMasterId",
+			nativeQuery = true)
+	List<ExtraBankBillModel> findByMasterId(@Param("proformaMasterId") Long proformaMasterId);
+
+	@Query("""
+			SELECT b FROM ExtraBankBillModel b WHERE b.nosaCode IS NULL 
+			AND b.workflowApproveStatus in ( com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus.ACCEPTED) 
+			AND (b.sepamCode IS NOT NULL OR b.treasuryId IS NOT NULL)
+			ORDER BY b.id ASC
+			""")
+	List<ExtraBankBillModel> findExtraBillsReadyForNosaAssignment(Pageable pageable);
+
+	@Query("""
+			SELECT count(b) FROM ExtraBankBillModel b WHERE b.nosaCode IS NULL 
+			AND b.workflowApproveStatus in ( com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus.ACCEPTED) 
+			AND (b.sepamCode IS NOT NULL OR b.treasuryId IS NOT NULL)
+			""")
+	long countExtraBillsReadyForNosaAssignment();
 
 }
+

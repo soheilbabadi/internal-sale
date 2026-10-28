@@ -8,8 +8,6 @@ public interface LcProcessService {
 	ProcessInstance startLcProcess(Long masterId);
 
 	ProcessInstance startProcessWithData(StartProcessWithDataDTO startProcessDto);
-
-
 	void approveTask(TaskActionDto taskActionDto);
 
 	void rejectTask(TaskActionDto taskActionDto);
@@ -17,6 +15,4 @@ public interface LcProcessService {
 	void refreshStatus();
 
 	boolean canStartProcess();
-
-
 }

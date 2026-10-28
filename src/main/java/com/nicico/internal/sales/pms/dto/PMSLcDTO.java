@@ -69,8 +69,6 @@ public class PMSLcDTO {
 		@NotBlank
 		private String id;
 	}
-
-
 	@EqualsAndHashCode(callSuper = true)
 	@Data
 	@AllArgsConstructor
@@ -99,8 +97,6 @@ public class PMSLcDTO {
 		private Long masterId;
 		private List<PerGoodItemResponse> pmsLcResponseLis;
 	}
-
-
 	@Data
 	@AllArgsConstructor
 	@NoArgsConstructor

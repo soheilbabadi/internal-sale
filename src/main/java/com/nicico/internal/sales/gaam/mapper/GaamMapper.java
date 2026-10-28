@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.gaam.mapper;
-
-
 import com.nicico.internal.sales.gaam.dto.GaamDto;
 import com.nicico.internal.sales.gaam.model.GaamModel;
 import org.mapstruct.Mapper;

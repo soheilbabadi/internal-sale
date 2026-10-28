@@ -4,7 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum SettlementType {
-	CASH("نقدی", 0), CREDIT("اعتباری", 1), CASH_CREDIT("نقدی/اعتباری", 2), EXHALATION("انفساخ", 4), UNKNOWN("نامشخص", 255);
+	CASH("نقدی", 0), CREDIT("اعتباری", 1), CASH_CREDIT("نقدی/اعتباری", 2)
+	, EXHALATION("انفساخ", 4)
+	, UNKNOWN("نامشخص", 255);
 	private final String value;
 	private final int code;
 

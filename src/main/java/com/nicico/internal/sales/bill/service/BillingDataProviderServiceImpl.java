@@ -13,12 +13,8 @@ import org.springframework.stereotype.Service;
 public class BillingDataProviderServiceImpl implements BillingDataProviderService {
 	private final BillingTradeExtractMapper billingTradeExtractMapper;
 	private final BillingTradeExtractRepository billingTradeExtractRepository;
-
-
 	@Override
 	public SearchDTO.SearchRs<BillingTradeExtractDto.Info> searchBillingStartDataProvider(SearchDTO.SearchRq request) {
 		return SearchUtil.search(billingTradeExtractRepository, request, billingTradeExtractMapper::toDTO);
 	}
-
-
 }

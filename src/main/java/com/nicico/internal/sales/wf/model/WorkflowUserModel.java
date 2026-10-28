@@ -17,12 +17,12 @@ public class WorkflowUserModel extends BaseClassModel {
 	@Serial
 	private static final long serialVersionUID = -546732783107470908L;
 	@Id
-	@Column(name = "ID", nullable = false)
+	@Column(name = "ID")
 	private Long id;
-	@Column(name = "C_USER_NAME", nullable = false, length = 100, unique = true)
+	@Column(name = "C_USER_NAME", length = 100, unique = true)
 	private String username;
-	@Column(name = "C_NATIONAL_CODE", nullable = false, length = 10, unique = true)
+	@Column(name = "C_NATIONAL_CODE", length = 10, unique = true)
 	private String nationalCode;
-	@Column(name = "C_FULL_NAME", nullable = false, length = 100, unique = true)
+	@Column(name = "C_FULL_NAME", length = 100, unique = true)
 	private String fullName;
 }

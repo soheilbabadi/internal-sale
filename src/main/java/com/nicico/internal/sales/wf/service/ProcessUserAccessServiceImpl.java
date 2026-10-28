@@ -43,10 +43,8 @@ public class ProcessUserAccessServiceImpl implements ProcessUserAccessService {
 
 	@Override
 	public ProcessUserAccessDto.Info save(ProcessUserAccessRequest request) {
-		var workflow = workflowRepository.findByProcessTitleIgnoreCase(request.getProcessTitle()).orElseThrow();
+		var workflow = workflowRepository.findByProcessTitleIgnoreCase(request.getProcessTitle().name()).orElseThrow();
 		var userInfo = oaUserDAO.findById(request.getUserId()).orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("کاربر در سیستم ثب نشده است"));
-
-
 		var model = new ProcessUserAccessModel();
 		model.setProcessId(workflow.getId());
 		model.setProcessTitle(workflow.getProcessTitle());
@@ -55,47 +53,41 @@ public class ProcessUserAccessServiceImpl implements ProcessUserAccessService {
 		model.setUsername(userInfo.getUsername());
 		model.setFullName(userInfo.getFullName());
 		model.setNationalCode(StringUtils.left(userInfo.getNationalCode(), 10));
-		String title = request.getProcessTitle();
-		String variable = request.getProcessVariable();
-
-		switch (title) {
-			case "LC" -> {
-				var processVar = LcProcessVariable.fromString(variable);
-				assert processVar != null;
+		switch (request.getProcessTitle()) {
+			case LC -> {
+				var processVar = LcProcessVariable.fromString(request.getProcessVariable());
 				model.setProcessVariable(processVar.name());
 				model.setProcessVariableTitle(processVar.getValue());
 			}
-			case "REMITTANCE" -> {
-				var processVar = RemittanceProcessVariable.fromString(variable);
+			case REMITTANCE -> {
+				var processVar = RemittanceProcessVariable.fromString(request.getProcessVariable());
 				model.setProcessVariable(processVar.name());
 				model.setProcessVariableTitle(processVar.getValue());
 			}
-			case "PREINVOICE" -> {
-				var processVar = ProformaProcessVariable.fromString(variable);
+			case PREINVOICE -> {
+				var processVar = ProformaProcessVariable.fromString(request.getProcessVariable());
 				model.setProcessVariable(processVar.name());
 				model.setProcessVariableTitle(processVar.getValue());
 			}
-			case "REVERSAL" -> {
-				var processVar = ReversalProcessVariable.fromString(variable);
+			case REVERSAL -> {
+				var processVar = ReversalProcessVariable.fromString(request.getProcessVariable());
 				model.setProcessVariable(processVar.name());
 				model.setProcessVariableTitle(processVar.getValue());
 			}
 
-			case "EXTRA_BILL" -> {
-				var processVar = ExtraBillProcessVariable.fromString(variable);
+			case EXTRA_BILL -> {
+				var processVar = ExtraBillProcessVariable.fromString(request.getProcessVariable());
 				model.setProcessVariable(processVar.name());
 				model.setProcessVariableTitle(processVar.getValue());
 			}
-			case "GAAM_BOUND" -> {
-				var processVar = GaamProcessVariable.fromString(variable);
+			case GAAM_BOUND -> {
+				var processVar = GaamProcessVariable.fromString(request.getProcessVariable());
 				model.setProcessVariable(processVar.name());
 				model.setProcessVariableTitle(processVar.getValue());
 			}
-
-
-			default -> throw new InternalSaleCustomException.ValidationException("این فرایند تعریف نشده است: " + title);
+			default ->
+					throw new InternalSaleCustomException.ValidationException("این فرایند تعریف نشده است: " + request.getProcessTitle());
 		}
-
 		var existingAccess = processUserAccessRepository.findByProcessIdAndUserIdAndProcessVariable(
 				model.getProcessId(),
 				model.getUserId(),

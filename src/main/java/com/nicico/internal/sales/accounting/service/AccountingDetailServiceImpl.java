@@ -1,7 +1,6 @@
 package com.nicico.internal.sales.accounting.service;
 
-import com.fgostar.accounting.sdk.client.DetailClient;
-import com.fgostar.accounting.sdk.dto.*;
+import com.nicico.internal.sales.accounting.client.AccountingDetailFeignClient;
 import com.nicico.internal.sales.accounting.client.AccountingDetailProperties;
 import com.nicico.internal.sales.accounting.dto.*;
 import com.nicico.internal.sales.accounting.util.NationalCodeValidator;
@@ -9,13 +8,9 @@ import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.util.date.DateUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import retrofit2.Call;
-import retrofit2.Response;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -28,14 +23,32 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class AccountingDetailServiceImpl implements AccountingDetailService {
 
-	private final DetailClient detailClient;
+	private static final String MSG_NATIONAL_CODE_OR_ID_REQUIRED = "شناسه یا کد ملی نمی تواند خالی باشد";
+	private static final String MSG_PERSON_NATIONAL_CODE_REQUIRED = "کد ملی شخص نمی تواند خالی باشد";
+	private static final String MSG_COMPANY_NATIONAL_ID_REQUIRED = "شناسه ملی شرکت نمی تواند خالی باشد";
+	private static final String MSG_PARENT_ID_REQUIRED_FOR_CHILDREN = "شناسه والد برای دریافت زیرمجموعه‌ها الزامی است";
+	private static final String MSG_PARENT_CODE_REQUIRED_FOR_SEQUENCE = "کد والد برای تولید دنباله نمی‌تواند خالی باشد";
+	private static final String MSG_PERSON_INFO_REQUIRED = "کد ملی و نام و نام خانوادگی برای ایجاد تفصیلی شخص الزامی است";
+	private static final String MSG_PERSON_NATIONAL_CODE_INVALID = "کد ملی شخص نامعتبر است";
+	private static final String MSG_PERSON_NATIONAL_CODE_LENGTH_INVALID = "طول کد ملی شخص نامعتبر است";
+	private static final String MSG_PERSON_NATIONAL_CODE_NUMERIC = "کد ملی شخص باید عددی باشد";
+	private static final String MSG_COMPANY_INFO_INVALID = "اطلاعات یا شناسه ملی شرکت برای ایجاد تفصیلی نامعتبر است";
+	private static final String MSG_COMPANY_NATIONAL_ID_INVALID = "شناسه ملی شرکت نامعتبر است";
+	private static final String MSG_COMPANY_NATIONAL_ID_LENGTH_INVALID = "طول شناسه ملی شرکت نامعتبر است";
+	private static final String MSG_COMPANY_NATIONAL_ID_NUMERIC = "شناسه ملی شرکت باید عددی باشد";
+	private static final String MSG_FINANCIAL_INSTRUMENT_INFO_INVALID = "اطلاعات ابزار مالی برای ایجاد تفصیلی نامعتبر است";
+	private static final String MSG_FINANCIAL_INSTRUMENT_TYPE_REQUIRED = "نوع ابزار مالی نمی‌تواند خالی باشد";
+	private static final String MSG_FINANCIAL_INSTRUMENT_TWO_DIGIT_CODE_INVALID = "کد دو رقمی ابزار مالی باید دقیقاً دو رقم باشد";
+	private static final String MSG_FINANCIAL_INSTRUMENT_DETAIL_NAME_REQUIRED = "نام تفصیلی ابزار مالی نمی‌تواند خالی باشد";
+
+	private final AccountingDetailFeignClient detailClient;
 	private final AccountingDetailProperties properties;
 
 	@Override
 	public Optional<DetailDto> findDetailOfNationalCode(String nationalCodeOrId) {
 		String normalized = NationalCodeValidator.normalize(nationalCodeOrId);
 		if (StringUtils.isBlank(normalized)) {
-			throw new InternalSaleCustomException.ValidationException("شناسه یا کد ملی نمی تواند خالی باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_NATIONAL_CODE_OR_ID_REQUIRED);
 		}
 
 		log.info("Finding accounting detail for national identifier: {}", normalized);
@@ -58,7 +71,7 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 	public Optional<DetailDto> findDetailForPerson(String nationalCode) {
 		String normalized = NationalCodeValidator.normalize(nationalCode);
 		if (StringUtils.isBlank(normalized)) {
-			throw new InternalSaleCustomException.ValidationException("کد ملی شخص نمی تواند خالی باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_PERSON_NATIONAL_CODE_REQUIRED);
 		}
 
 		String prefix = properties.getPerson().getFormattedPrefix();
@@ -76,7 +89,7 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 	public Optional<DetailDto> findDetailForCompany(String nationalId) {
 		String normalized = NationalCodeValidator.normalize(nationalId);
 		if (StringUtils.isBlank(normalized)) {
-			throw new InternalSaleCustomException.ValidationException("شناسه ملی شرکت نمی تواند خالی باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_COMPANY_NATIONAL_ID_REQUIRED);
 		}
 
 		String prefix = properties.getCompany().getFormattedPrefix();
@@ -110,8 +123,7 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 				.setDataSource("isc_MyRestDataSource_66")
 				.setCriteria(List.of(cr));
 
-		Call<TotalResponse<DetailDto>> call = detailClient.getDetailGridList(request);
-		TotalResponse<DetailDto> response = executeCall(call, "searchInDetails (" + detailCode + ")");
+		TotalResponse<DetailDto> response = detailClient.getDetailGridList(request.toQueryMap());
 
 		if (response != null && response.getResponse() != null && response.getResponse().getData() != null) {
 			log.info("searchInDetails found {} records for code '{}'", response.getResponse().getData().size(), detailCode);
@@ -241,7 +253,7 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 	@Override
 	public List<DetailDto> getChildrenByParentDetailId(Long parentDetailId, Integer startRow, Integer endRow, String sortBy) {
 		if (parentDetailId == null) {
-			throw new InternalSaleCustomException.ValidationException("شناسه والد برای دریافت زیرمجموعه‌ها الزامی است");
+			throw new InternalSaleCustomException.ValidationException(MSG_PARENT_ID_REQUIRED_FOR_CHILDREN);
 		}
 
 		int sRow = (startRow != null && startRow >= 0) ? startRow : 0;
@@ -266,8 +278,7 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 
 		criteriaParam.addCriteria(new Criteria("parentDetail.id", "equals", parentDetailId));
 
-		Call<TotalResponse<DetailDto>> call = detailClient.getDetailGridList(criteriaParam);
-		TotalResponse<DetailDto> response = executeCall(call, "getDetailGridList (parentDetail.id=" + parentDetailId + ")");
+		TotalResponse<DetailDto> response = detailClient.getDetailGridList(criteriaParam.toQueryMap());
 
 		if (response != null && response.getResponse() != null && response.getResponse().getData() != null) {
 			log.info("getDetailGridList found {} children for parentDetail.id={}",
@@ -284,13 +295,13 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 		String companyPrefix = properties.getCompany().getFormattedPrefix();
 
 		if (StringUtils.isNotBlank(personPrefix) && targetCode.startsWith(personPrefix)) {
-			int digits = properties.getPerson().getParentDigits() != null ? properties.getPerson().getParentDigits() : 3;
+			int digits = properties.getPerson().getParentDigits() != null ? properties.getPerson().getParentDigits() : 1;
 			int prefixLen = personPrefix.length();
 			if (targetCode.length() >= prefixLen + digits) {
 				return targetCode.substring(0, prefixLen + digits);
 			}
 		} else if (StringUtils.isNotBlank(companyPrefix) && targetCode.startsWith(companyPrefix)) {
-			int digits = properties.getCompany().getParentDigits() != null ? properties.getCompany().getParentDigits() : 3;
+			int digits = properties.getCompany().getParentDigits() != null ? properties.getCompany().getParentDigits() : 1;
 			int prefixLen = companyPrefix.length();
 			if (targetCode.length() >= prefixLen + digits) {
 				return targetCode.substring(0, prefixLen + digits);
@@ -302,7 +313,7 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 	@Override
 	public String generateNextSequenceCode(String parentCode) {
 		if (StringUtils.isBlank(parentCode)) {
-			throw new InternalSaleCustomException.ValidationException("کد والد برای تولید دنباله نمی‌تواند خالی باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_PARENT_CODE_REQUIRED_FOR_SEQUENCE);
 		}
 
 		String cleanParent = parentCode.trim();
@@ -357,8 +368,7 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 				.setComponentId("isc_ListGrid_5")
 				.setDataSource("isc_MyRestDataSource_66");
 
-		Call<TotalResponse<DetailDto>> call = detailClient.searchInDetailsForm(request);
-		TotalResponse<DetailDto> response = executeCall(call, "findLatestChildrenByParentCode (" + parentCode + ")");
+		TotalResponse<DetailDto> response = detailClient.searchInDetails(request.toFieldMap());
 
 		if (response != null && response.getResponse() != null && response.getResponse().getData() != null) {
 			log.info("findLatestChildrenByParentCode found {} records for parent '{}'",
@@ -372,30 +382,43 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 	@Override
 	public DetailDto createDetailForPerson(CreatePersonDetailDto request) {
 		if (request == null || StringUtils.isBlank(request.getNationalCode()) || StringUtils.isBlank(request.getFullName())) {
-			throw new InternalSaleCustomException.ValidationException("کد ملی و نام و نام خانوادگی برای ایجاد تفصیلی شخص الزامی است");
+			throw new InternalSaleCustomException.ValidationException(MSG_PERSON_INFO_REQUIRED);
 		}
 
 		String normalizedCode = NationalCodeValidator.normalize(request.getNationalCode());
 		if (StringUtils.isBlank(normalizedCode)) {
-			throw new InternalSaleCustomException.ValidationException("کد ملی شخص نامعتبر است");
+			throw new InternalSaleCustomException.ValidationException(MSG_PERSON_NATIONAL_CODE_INVALID);
 		}
 
-		String personPrefix = properties.getPerson().getFormattedPrefix();
-		String code = personPrefix + normalizedCode;
-		String fullName = request.getFullName().trim();
-		String note = "sales " + fullName;
+		int parentDigits = properties.getPerson().getParentDigits() != null ? properties.getPerson().getParentDigits() : 1;
+		if (normalizedCode.length() <= parentDigits) {
+			throw new InternalSaleCustomException.ValidationException(MSG_PERSON_NATIONAL_CODE_LENGTH_INVALID);
+		}
+
+		String removedNumber = normalizedCode.substring(0, parentDigits);
+		String remainingCode = normalizedCode.substring(parentDigits);
 
 		Long detailNumber;
 		try {
-			detailNumber = Long.parseLong(normalizedCode);
+			detailNumber = Long.parseLong(remainingCode);
 		} catch (NumberFormatException e) {
-			throw new InternalSaleCustomException.ValidationException("کد ملی شخص باید عددی باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_PERSON_NATIONAL_CODE_NUMERIC);
 		}
 
-		log.info("Creating person accounting detail. Code: {}, Name: {}, DetailNumber: {}", code, fullName, detailNumber);
+		String personPrefix = properties.getPerson().getFormattedPrefix();
+		String parentCode = personPrefix + removedNumber;
+		log.info("Resolving parent Detail for person with parentCode: '{}'", parentCode);
+
+		DetailDto parent = findParentByCode(parentCode)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("کد تفصیلی والد با کد " + parentCode + " یافت نشد"));
+
+		String fullName = request.getFullName().trim();
+		String note = "sales " + fullName;
+
+		log.info("Creating person accounting detail. Name: {}, DetailNumber: {}, ParentId: {}", fullName, detailNumber, parent.getId());
 
 		DetailDto.DetailInfoDto detailInfo = new DetailDto.DetailInfoDto();
-		detailInfo.setCode(code);
+		// NOTE: Never set code when creating details
 		detailInfo.setDetailName(fullName);
 		detailInfo.setDetailNumber(detailNumber);
 		detailInfo.setNote(note);
@@ -403,54 +426,71 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 		detailInfo.setBranchFree(true);
 		detailInfo.setChildrenDigitCount(0L);
 		detailInfo.setDetailTypes(new HashSet<>());
+		detailInfo.setParentDetailId(parent.getId());
 
-		// Resolve parent detail
-		resolveParentDetail(code).ifPresent(p -> {
-			detailInfo.setParentDetailId(p.getId());
-			detailInfo.setParentDetail(p);
-		});
+		DetailDto parentRef = new DetailDto();
+		parentRef.setId(parent.getId());
+		detailInfo.setParentDetail(parentRef);
 
-		Call<ResponseBody> call = detailClient.saveDetail(detailInfo);
-		executeCall(call, "saveDetail (Person: " + code + ")");
-		log.info("Successfully requested saveDetail for person code: {}", code);
+		detailClient.saveDetail(null, detailInfo);
+		log.info("Successfully requested saveDetail for person: {}", fullName);
 
-		List<DetailDto> searchResults = searchDetailsByCode(code, EOperator.equals);
-		return searchResults.stream()
-				.filter(d -> code.equalsIgnoreCase(d.getCode()))
-				.findFirst()
-				.orElse(detailInfo);
+		return findDetailForPerson(normalizedCode).orElse(detailInfo);
 	}
 
 	@Override
 	public DetailDto createDetailForCompany(CreateCompanyDetailDto request) {
 		if (request == null || StringUtils.isBlank(request.getNationalId()) || StringUtils.isBlank(request.getCompanyName())) {
-			throw new InternalSaleCustomException.ValidationException("اطلاعات یا شناسه ملی شرکت برای ایجاد تفصیلی نامعتبر است");
+			throw new InternalSaleCustomException.ValidationException(MSG_COMPANY_INFO_INVALID);
 		}
 
 		String normalizedId = NationalCodeValidator.normalize(request.getNationalId());
-		String companyPrefix = properties.getCompany().getFormattedPrefix();
-		String code = companyPrefix + normalizedId;
+		if (StringUtils.isBlank(normalizedId)) {
+			throw new InternalSaleCustomException.ValidationException(MSG_COMPANY_NATIONAL_ID_INVALID);
+		}
 
-		log.info("Creating company accounting detail. Code: {}, Name: {}", code, request.getCompanyName());
+		int parentDigits = properties.getCompany().getParentDigits() != null ? properties.getCompany().getParentDigits() : 1;
+		if (normalizedId.length() <= parentDigits) {
+			throw new InternalSaleCustomException.ValidationException(MSG_COMPANY_NATIONAL_ID_LENGTH_INVALID);
+		}
+
+		String removedNumber = normalizedId.substring(0, parentDigits);
+		String remainingId = normalizedId.substring(parentDigits);
+
+		Long detailNumber;
+		try {
+			detailNumber = Long.parseLong(remainingId);
+		} catch (NumberFormatException e) {
+			throw new InternalSaleCustomException.ValidationException(MSG_COMPANY_NATIONAL_ID_NUMERIC);
+		}
+
+		String companyPrefix = properties.getCompany().getFormattedPrefix();
+		String parentCode = companyPrefix + removedNumber;
+		log.info("Resolving parent Detail for company with parentCode: '{}'", parentCode);
+
+		DetailDto parent = findParentByCode(parentCode)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("کد تفصیلی والد با کد " + parentCode + " یافت نشد"));
+
+		log.info("Creating company accounting detail. Name: {}, DetailNumber: {}, ParentId: {}",
+				request.getCompanyName(), detailNumber, parent.getId());
 
 		DetailDto.DetailInfoDto detailInfo = new DetailDto.DetailInfoDto();
+		// NOTE: Never set code when creating details
 		detailInfo.setChildrenDigitCount(0L);
-		detailInfo.setDetailNumber(Long.valueOf(normalizedId));
+		detailInfo.setDetailNumber(detailNumber);
 		detailInfo.setBranchFree(false);
 		detailInfo.setDetailTypes(new HashSet<>());
-		detailInfo.setDetailName(request.getCompanyName());
+		detailInfo.setDetailName(request.getCompanyName().trim());
 		detailInfo.setDetailNameLatin(request.getDetailNameLatin());
 		detailInfo.setNote(request.getNote());
+		detailInfo.setParentDetailId(parent.getId());
 
-		resolveParentDetail(code).ifPresent(p -> {
-			detailInfo.setParentDetailId(p.getId());
-			detailInfo.setParentDetail(p);
-		});
+		DetailDto parentRef = new DetailDto();
+		parentRef.setId(parent.getId());
+		detailInfo.setParentDetail(parentRef);
 
-
-		Call<ResponseBody> call = detailClient.saveDetail(detailInfo);
-		executeCall(call, "saveDetail (Company: " + code + ")");
-		log.info("Successfully requested saveDetail for company code: {}", code);
+		detailClient.saveDetail(null, detailInfo);
+		log.info("Successfully requested saveDetail for company: {}", request.getCompanyName());
 
 		return findDetailForCompany(normalizedId).orElse(detailInfo);
 	}
@@ -460,10 +500,10 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 	                                                        String twoDigitCode,
 	                                                        String yearSuffix) {
 		if (instrumentType == null) {
-			throw new InternalSaleCustomException.ValidationException("نوع ابزار مالی نمی‌تواند خالی باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_FINANCIAL_INSTRUMENT_TYPE_REQUIRED);
 		}
 		if (StringUtils.isBlank(twoDigitCode) || !twoDigitCode.trim().matches("\\d{2}")) {
-			throw new InternalSaleCustomException.ValidationException("کد دو رقمی ابزار مالی باید دقیقاً دو رقم باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_FINANCIAL_INSTRUMENT_TWO_DIGIT_CODE_INVALID);
 		}
 
 		String basePrefix = buildFinancialInstrumentBasePrefix(instrumentType, twoDigitCode, yearSuffix);
@@ -486,20 +526,21 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 
 		if (latestChild.isPresent()) {
 			DetailDto child = latestChild.get();
-			if (child.getDetailNumber() != null) {
-				return child.getDetailNumber() + 1;
+			String childCode = child.getCode();
+			if (childCode != null && childCode.length() > basePrefix.length()) {
+				String suffix = childCode.substring(basePrefix.length()).replace("/", "");
+				Pattern numberPattern = Pattern.compile("(\\d+)$");
+				Matcher matcher = numberPattern.matcher(suffix);
+				if (matcher.find()) {
+					try {
+						return Long.parseLong(matcher.group(1)) + 1;
+					} catch (NumberFormatException ignored) {
+					}
+				}
 			}
 
-			// Fallback to parsing numeric suffix from code if detailNumber is null
-			String childCode = child.getCode();
-			String suffix = childCode.substring(basePrefix.length()).replace("/", "");
-			Pattern numberPattern = Pattern.compile("(\\d+)$");
-			Matcher matcher = numberPattern.matcher(suffix);
-			if (matcher.find()) {
-				try {
-					return Long.parseLong(matcher.group(1)) + 1;
-				} catch (NumberFormatException ignored) {
-				}
+			if (child.getDetailNumber() != null) {
+				return child.getDetailNumber() + 1;
 			}
 		}
 
@@ -516,8 +557,7 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 				.setEndRow(1)
 				.setCriteria(List.of(criteria));
 
-		Call<TotalResponse<DetailDto>> call = detailClient.getDetailGridList(request);
-		TotalResponse<DetailDto> response = executeCall(call, "findLatestFinancialInstrumentChild (" + basePrefix + ")");
+		TotalResponse<DetailDto> response = detailClient.getDetailGridList(request.toQueryMap());
 
 		if (response != null && response.getResponse() != null && response.getResponse().getData() != null) {
 			log.info("findLatestFinancialInstrumentChild found {} records for basePrefix '{}'",
@@ -528,54 +568,106 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 		return Collections.emptyList();
 	}
 
-	@Override
-	public void createDetailForFinancialInstrument(CreateFinancialInstrumentDetailDto request) {
+	private String extractChildPrefix(String basePrefix, DetailDto parent) {
+		if (StringUtils.isBlank(basePrefix)) {
+			return "";
+		}
+		String childPrefix = basePrefix.trim();
+		if (parent != null && StringUtils.isNotBlank(parent.getCode())) {
+			String parentCode = parent.getCode().trim();
+			if (childPrefix.startsWith(parentCode)) {
+				childPrefix = childPrefix.substring(parentCode.length());
+			} else {
+				String cleanParent = parentCode.replace("/", "");
+				String cleanBase = childPrefix.replace("/", "");
+				if (cleanBase.startsWith(cleanParent)) {
+					childPrefix = cleanBase.substring(cleanParent.length());
+				}
+			}
+		}
+		return childPrefix.replace("/", "").trim();
+	}
+
+	private String buildChildDetailNumberString(String childPrefix, Long sequenceNumber, Long childrenDigitCount) {
+		long targetDigitCount = (childrenDigitCount != null && childrenDigitCount > 0)
+				? childrenDigitCount
+				: Math.max(8L, (long) childPrefix.length() + 4);
+
+		int remainingDigits = (int) (targetDigitCount - childPrefix.length());
+		String sequenceStr;
+		if (remainingDigits > 0) {
+			sequenceStr = String.format("%0" + remainingDigits + "d", sequenceNumber);
+		} else {
+			sequenceStr = String.valueOf(sequenceNumber);
+		}
+		return childPrefix + sequenceStr;
+	}
+
+	private String buildExpectedChildCode(DetailDto parent, String basePrefix, String fullChildNumberStr) {
+		if (parent != null && StringUtils.isNotBlank(parent.getCode())) {
+			String parentCode = parent.getCode().trim();
+			return parentCode.endsWith("/") ? parentCode + fullChildNumberStr : parentCode + "/" + fullChildNumberStr;
+		}
+		return basePrefix + fullChildNumberStr;
+	}
+
+	private FinancialInstrumentCreationContext prepareAndSaveFinancialInstrumentDetail(CreateFinancialInstrumentDetailDto request) {
 		if (request == null) {
-			throw new InternalSaleCustomException.ValidationException("اطلاعات ابزار مالی برای ایجاد تفصیلی نامعتبر است");
+			throw new InternalSaleCustomException.ValidationException(MSG_FINANCIAL_INSTRUMENT_INFO_INVALID);
 		}
 		if (request.getInstrumentType() == null) {
-			throw new InternalSaleCustomException.ValidationException("نوع ابزار مالی نمی‌تواند خالی باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_FINANCIAL_INSTRUMENT_TYPE_REQUIRED);
 		}
 		if (StringUtils.isBlank(request.getTwoDigitCode()) || !request.getTwoDigitCode().trim().matches("\\d{2}")) {
-			throw new InternalSaleCustomException.ValidationException("کد دو رقمی ابزار مالی باید دقیقاً دو رقم باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_FINANCIAL_INSTRUMENT_TWO_DIGIT_CODE_INVALID);
 		}
 		if (StringUtils.isBlank(request.getDetailName())) {
-			throw new InternalSaleCustomException.ValidationException("نام تفصیلی ابزار مالی نمی‌تواند خالی باشد");
+			throw new InternalSaleCustomException.ValidationException(MSG_FINANCIAL_INSTRUMENT_DETAIL_NAME_REQUIRED);
 		}
 
-		String basePrefix = buildFinancialInstrumentBasePrefix(request.getInstrumentType(), request.getTwoDigitCode(), request.getYearSuffix());
+		String parentCode = properties.getFinancialInstrumentParentCode(request.getInstrumentType());
+		DetailDto parent = findParentByCode(parentCode)
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("کد تفصیلی والد با کد " + parentCode + " یافت نشد"));
 
+		String basePrefix = buildFinancialInstrumentBasePrefix(request.getInstrumentType(), request.getTwoDigitCode(), request.getYearSuffix());
 		Long sequenceNumber = calculateNextFinancialInstrumentSequenceNumber(basePrefix);
 
+		String childPrefix = extractChildPrefix(basePrefix, parent);
+		String fullChildNumberStr = buildChildDetailNumberString(childPrefix, sequenceNumber, parent.getChildrenDigitCount());
+		Long detailNumber = Long.parseLong(fullChildNumberStr);
+		String expectedCode = buildExpectedChildCode(parent, basePrefix, fullChildNumberStr);
 
 		String detailName = request.getDetailName().trim();
 		String note = StringUtils.isNotBlank(request.getNote())
 				? request.getNote().trim()
 				: request.getInstrumentType().getTitle() + " " + request.getTwoDigitCode().trim();
 
-		log.info("Creating financial instrument accounting detail.  DetailNumber: {}, Name: {}, Instrument: {}"
-				, sequenceNumber, detailName, request.getInstrumentType());
+		log.info("Creating financial instrument accounting detail. Sequence: {}, DetailNumber: {}, ExpectedCode: {}, Name: {}, Instrument: {}",
+				sequenceNumber, detailNumber, expectedCode, detailName, request.getInstrumentType());
 
 		DetailDto.DetailInfoDto detailInfo = new DetailDto.DetailInfoDto();
-		detailInfo.setDetailNumber(sequenceNumber);
+		detailInfo.setDetailNumber(detailNumber);
 		detailInfo.setDetailName(detailName);
 		detailInfo.setNote(note);
 		detailInfo.setDashChildrenCode(true);
 		detailInfo.setBranchFree(true);
 		detailInfo.setChildrenDigitCount(0L);
 		detailInfo.setDetailTypes(new HashSet<>());
+		detailInfo.setParentDetailId(parent.getId());
 
-		// Resolve parent detail using configured parent code
-		String parentCode = properties.getFinancialInstrumentParentCode(request.getInstrumentType());
-
-		findParentByCode(parentCode).ifPresent(p -> {
-			log.info("Setting parentDetail (id={}, code={}) for financial instrument ", p.getId(), p.getCode());
-			detailInfo.setParentDetailId(p.getId());
-			detailInfo.setParentDetail(p);
-		});
+		DetailDto parentRef = new DetailDto();
+		parentRef.setId(parent.getId());
+		detailInfo.setParentDetail(parentRef);
 
 		executeSaveDetailWithRetry(request.getSubmissionId(), detailInfo, "FinancialInstrument: ");
-		log.info("Successfully requested saveDetail for financial instrument ");
+		log.info("Successfully requested saveDetail for financial instrument with expectedCode: {}", expectedCode);
+
+		return new FinancialInstrumentCreationContext(sequenceNumber, detailNumber, expectedCode, parent, detailInfo);
+	}
+
+	@Override
+	public void createDetailForFinancialInstrument(CreateFinancialInstrumentDetailDto request) {
+		prepareAndSaveFinancialInstrumentDetail(request);
 	}
 
 	@Override
@@ -585,44 +677,29 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 			String yearSuffix,
 			String detailName,
 			String submissionId) {
-		if (instrumentType == null) {
-			throw new InternalSaleCustomException.ValidationException("نوع ابزار مالی نمی‌تواند خالی باشد");
-		}
-		if (StringUtils.isBlank(twoDigitCode) || !twoDigitCode.trim().matches("\\d{2}")) {
-			throw new InternalSaleCustomException.ValidationException("کد دو رقمی ابزار مالی باید دقیقاً دو رقم باشد");
-		}
-
 		String resolvedDetailName = StringUtils.isNotBlank(detailName)
 				? detailName.trim()
-				: instrumentType.getTitle() + " " + twoDigitCode.trim();
+				: (instrumentType != null ? instrumentType.getTitle() + " " + (twoDigitCode != null ? twoDigitCode.trim() : "") : "");
 
 		CreateFinancialInstrumentDetailDto request = CreateFinancialInstrumentDetailDto.builder()
 				.instrumentType(instrumentType)
-				.twoDigitCode(twoDigitCode.trim())
+				.twoDigitCode(twoDigitCode)
 				.yearSuffix(yearSuffix)
 				.detailName(resolvedDetailName)
 				.submissionId(submissionId)
 				.build();
 
-		createDetailForFinancialInstrument(request);
+		FinancialInstrumentCreationContext context = prepareAndSaveFinancialInstrumentDetail(request);
 
-		String basePrefix = buildFinancialInstrumentBasePrefix(instrumentType, twoDigitCode, yearSuffix);
-		Long sequenceNumber = calculateNextFinancialInstrumentSequenceNumber(basePrefix) - 1;
-		if (sequenceNumber < 1L) {
-			sequenceNumber = 1L;
-		}
-		String formattedNext = String.format("%04d", sequenceNumber);
-		String code = basePrefix + formattedNext;
-
-		DetailDto createdDetail = searchDetailsByCode(code, EOperator.equals).stream()
-				.filter(d -> code.equalsIgnoreCase(d.getCode()))
+		DetailDto createdDetail = searchDetailsByCode(context.expectedCode(), EOperator.equals).stream()
+				.filter(d -> context.expectedCode().equalsIgnoreCase(d.getCode()))
 				.findFirst()
 				.orElse(null);
 
 		return FinancialInstrumentCreateResponseDto.builder()
 				.success(true)
-				.code(code)
-				.detailNumber(sequenceNumber)
+				.code(context.expectedCode())
+				.detailNumber(context.detailNumber())
 				.submissionId(submissionId)
 				.detail(createdDetail)
 				.build();
@@ -633,11 +710,12 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 		long backoffDelayMs = Math.max(0, properties.getFinancialInstrument().getBackoffDelayMs());
 
 		int attempt = 0;
+
 		while (attempt < maxAttempts) {
 			attempt++;
 			try {
-				Call<ResponseBody> call = detailClient.saveDetail(submissionId, detailInfo);
-				executeCall(call, "saveDetail (" + logContext + ") [attempt " + attempt + "/" + maxAttempts + "]");
+				detailClient.saveDetail(submissionId, detailInfo);
+				log.info("saveDetail ({}): successfully executed on attempt {}/{}", logContext, attempt, maxAttempts);
 				return;
 			} catch (Exception e) {
 				log.warn("saveDetail failed for {} on attempt {}/{}: {}", logContext, attempt, maxAttempts, e.getMessage());
@@ -680,63 +758,5 @@ public class AccountingDetailServiceImpl implements AccountingDetailService {
 		}
 		int currentJalaliYear = DateUtility.getCurrentJalaliYear();
 		return String.format("%02d", currentJalaliYear % 100);
-	}
-
-
-	/**
-	 * Executes a Retrofit Call synchronously with comprehensive logging, timing, and exception handling.
-	 */
-	private <T> T executeCall(Call<T> call, String operationName) {
-		long startTime = System.currentTimeMillis();
-		log.info(">>> Invoking Accounting SDK method: {}", operationName);
-
-		try {
-			Response<T> response = call.execute();
-			long duration = System.currentTimeMillis() - startTime;
-
-			if (!response.isSuccessful()) {
-				String errorBody = "";
-				if (response.errorBody() != null) {
-					try {
-						errorBody = response.errorBody().string();
-					} catch (Exception ex) {
-						errorBody = "[Failed to read errorBody: " + ex.getMessage() + "]";
-					}
-				}
-
-				log.error("<<< Accounting SDK method '{}' failed in {} ms with HTTP status {}. Error: {}",
-						operationName, duration, response.code(), errorBody);
-
-				if (response.code() == 400 || response.code() == 422) {
-					throw new InternalSaleCustomException.ValidationException(
-							"Accounting service validation failed: " + errorBody);
-				} else if (response.code() == 404) {
-					throw new InternalSaleCustomException.ResourceNotFoundException(
-							"Accounting resource not found: " + errorBody);
-				} else {
-					throw new InternalSaleCustomException.ApplicationServerException(
-							"Accounting API error [" + response.code() + "]: " + errorBody);
-				}
-			}
-
-			log.info("<<< Accounting SDK method '{}' completed successfully in {} ms (HTTP {})",
-					operationName, duration, response.code());
-			return response.body();
-
-		} catch (IOException e) {
-			long duration = System.currentTimeMillis() - startTime;
-			log.error("<<< Accounting SDK network/IO error during '{}' after {} ms: {}",
-					operationName, duration, e.getMessage(), e);
-			throw new InternalSaleCustomException.ApplicationServerException(
-					"Error communicating with Accounting service: " + e.getMessage());
-		} catch (InternalSaleCustomException e) {
-			throw e;
-		} catch (Exception e) {
-			long duration = System.currentTimeMillis() - startTime;
-			log.error("<<< Unexpected error during Accounting SDK call '{}' after {} ms: {}",
-					operationName, duration, e.getMessage(), e);
-			throw new InternalSaleCustomException.ApplicationServerException(
-					"Unexpected accounting service error: " + e.getMessage());
-		}
 	}
 }

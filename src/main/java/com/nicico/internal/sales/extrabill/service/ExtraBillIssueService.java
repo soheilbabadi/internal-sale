@@ -9,7 +9,5 @@ public interface ExtraBillIssueService {
 	ExtraBillIssueProviderDto.Info getById(Long id);
 
 	List<ExtraBillIssueProviderDto.Info> getByMasterId(Long masterId);
-
-
 	SearchDTO.SearchRs<ExtraBillIssueProviderDto.Info> search(SearchDTO.SearchRq request);
 }

@@ -23,7 +23,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Data
 @Audited(targetAuditMode = NOT_AUDITED)
 @Subselect("""
-		SELECT DISTINCT
+		SELECT DISTINCT 
 		    tit.ID,
 		    tit.BUYER_NAME,
 		    tit.BUYER_NATIONAL_CODE,
@@ -35,10 +35,10 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    COALESCE(100 - tigb.N_CASH_PERCENTAGE, 0) AS N_CREDIT_PERCENTAGE,
 		    COALESCE(tigb.N_COMMISSION, 0) AS N_COMMISSION,
 		    tit.CONTRACT_DATE,
-		    tit.CONTRACT_NO || '00' || tit.CONTRACT_DETAIL_NO AS C_CONTRACT_NO,
+		    tit.CONTRACT_NO || LPAD(tit.CONTRACT_DETAIL_NO, 3, '0') AS C_CONTRACT_NO,
 		    tit.PAYMENT_CODE,
 		    255 AS SETTLEMENT_TYPE,
-		    COALESCE(s.SETTLEMENT_TYPE, 'نامشخص') AS SETTLEMENT_TYPE_DESC,
+		    'نامشخص' AS SETTLEMENT_TYPE_DESC,
 		    tit.UNIT_COUNT * 1000 AS UNIT_COUNT,
 		    tit.UNIT_PRICE,
 		    tit.UNIT_PRICE * (1 + COALESCE(tigb.N_COMMISSION, 0)) AS CREDIT_UNIT_PRICE,
@@ -78,27 +78,26 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		         LEFT JOIN (
 		    SELECT x.*
 		    FROM (
-		        SELECT tipm.*,
-		               ROW_NUMBER() OVER (PARTITION BY tipm.C_PAYMENT_CODE ORDER BY tipm.ID DESC) AS rn
-		        FROM T_INS_PERFORMA_MASTER tipm
-		    ) x
+		             SELECT tipm.*,
+		                    ROW_NUMBER() OVER (PARTITION BY tipm.C_PAYMENT_CODE ORDER BY tipm.ID DESC) AS rn
+		             FROM T_INS_PERFORMA_MASTER tipm
+		         ) x
 		    WHERE x.rn = 1
 		      AND (x.C_WORKFLOW_APPROVE_STATUS IS NULL OR x.C_WORKFLOW_APPROVE_STATUS NOT IN ('ACCEPTED'))
 		) tipm ON tit.PAYMENT_CODE = tipm.C_PAYMENT_CODE
 		         LEFT JOIN TBL_IME_PS_OFFERS tio ON tit.OFFER_CODE = tio.ID
-		WHERE tit.CONTRACT_DATE > '1405/01/01'
+		WHERE tit.CONTRACT_DATE > '1405/04/01'
 		  AND tit.CURRENCY_CODE = 1
-		  AND s.PAYMENT_CODE IS NULL
 		  AND tig.SYMBOL != 'SUACB'
 		  AND NOT EXISTS (
 		    SELECT 1
 		    FROM (
-		        SELECT tipm_check.*,
-		               ROW_NUMBER() OVER (PARTITION BY tipm_check.C_PAYMENT_CODE ORDER BY tipm_check.ID DESC) AS rn
-		        FROM T_INS_PERFORMA_MASTER tipm_check
-		    ) latest
+		             SELECT tipm_check.*,
+		                    ROW_NUMBER() OVER (PARTITION BY tipm_check.C_PAYMENT_CODE ORDER BY tipm_check.ID DESC) AS rn
+		             FROM T_INS_PERFORMA_MASTER tipm_check
+		         ) latest
 		    WHERE latest.C_PAYMENT_CODE = tit.PAYMENT_CODE  AND latest.rn = 1    AND latest.C_WORKFLOW_APPROVE_STATUS IN ('ACCEPTED')
-		  )
+		)
 		ORDER BY tit.CONTRACT_DATE DESC
 		""")
 public class TradeExtractStartProformaModel implements Serializable {

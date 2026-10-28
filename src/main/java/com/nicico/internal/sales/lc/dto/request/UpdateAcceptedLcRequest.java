@@ -40,8 +40,6 @@ public class UpdateAcceptedLcRequest implements Serializable {
 	@Schema(description = "شناسه سند ابلاغیه", name = "notificationDocumentId", example = "12345")
 	private String notificationDocumentId;
 
-	@Schema(description = "کد نوسا", name = "nosaCode", example = "NOSA123456")
-	private String nosaCode;
 
 	@EqualsAndHashCode(callSuper = true)
 	@AllArgsConstructor

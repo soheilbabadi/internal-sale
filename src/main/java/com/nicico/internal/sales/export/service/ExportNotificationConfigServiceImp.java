@@ -81,6 +81,4 @@ public class ExportNotificationConfigServiceImp implements ExportNotificationCon
 			log.error(exception.getMessage());
 		}
 	}
-
-
 }

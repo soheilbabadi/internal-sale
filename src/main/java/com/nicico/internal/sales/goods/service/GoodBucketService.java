@@ -13,8 +13,6 @@ public interface GoodBucketService {
 	SearchDTO.SearchRs<GoodBucketDto.Info> search(SearchDTO.SearchRq request);
 
 	GoodBucketDto createGoodBucket(GoodBucketRequest request);
-
-
 	GoodsBucketModel getGoodBucketActiveModel(Long goodId);
 
 	BigDecimal getGoodBucket(Long goodId);

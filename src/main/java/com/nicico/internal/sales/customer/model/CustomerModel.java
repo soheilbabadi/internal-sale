@@ -27,7 +27,7 @@ public class CustomerModel extends BaseClassModel {
 	@Column(name = "C_NAME_EN", length = 100)
 	private String nameEn;
 	@NotBlank
-	@Column(name = "C_NATIONAL_CODE", unique = true, nullable = false, length = 15)
+	@Column(name = "C_NATIONAL_CODE", unique = true, length = 15)
 	private String nationalCode;
 	@Column(name = "C_PMS_CUSTOMER_CODE")
 	private String pmsCustomerCode;
@@ -61,5 +61,8 @@ public class CustomerModel extends BaseClassModel {
 	@Schema(description = "کد نقش تاجر در سامانه جامع تجارت")
 	@Column(name = "C_TRADE_ROLE_CODE", length = 50)
 	private String tradeRoleCode;
+	@Schema(description = "کد تفصیلی")
+	@Column(name = "C_NOSA_CODE", length = 50)
+	private String nosaCode;
 
 }

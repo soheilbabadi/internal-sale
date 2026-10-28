@@ -1,6 +1,5 @@
 package com.nicico.internal.sales.pms.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.bank.model.IssuingBankModel;
@@ -30,7 +29,6 @@ import com.nicico.internal.sales.proforma.repository.ProformaGoodItemRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -83,7 +81,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 
 		List<LcModel> lcList = lcRepository.findByMasterId(proformaMasterId);
 		if (lcList.isEmpty()) {
-			throw new InternalSaleCustomException.ValidationException("LC of Master ID not found " + proformaMasterId);
+			return;
 		}
 
 		lcList.forEach(lc -> {
@@ -96,7 +94,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 				sendLcModelToPMS(lc, username);
 			} catch (Exception e) {
 				log.error(e.getMessage());
-				throw new InternalSaleCustomException.ApplicationServerException(e.getMessage());
+				return;
 			}
 		});
 	}
@@ -196,6 +194,32 @@ public class PMSLcServiceImpl implements PMSLcService {
 				model.getPmsLcId(),
 				model.getId()
 		);
+	}
+
+	@Override
+	public void savePmsId(Long lcId, String pmsLcId) {
+		Optional<LcModel> detail = lcRepository.findById(lcId);
+		if (detail.isPresent()) {
+			LcModel lc = detail.get();
+			lc.setPmsLcId(pmsLcId);
+			lcRepository.save(lc);
+			log.info("PMS LC id {} saved for LC id {}", pmsLcId, lcId);
+		} else {
+			log.error("Could not find LC detail for id {}", lcId);
+		}
+	}
+
+	@Override
+	public List<LcDto.Info> findRemittanceLcWithoutPmsId() {
+		List<LcModel> lcModels = lcRepository.findRemittanceLcWithoutPmsId();
+		String username = SecurityUtil.getUsername();
+		for (LcModel lc : lcModels) {
+			Long proformaMasterId = lc.getProformaMasterId();
+			createPMSLc(proformaMasterId, username, false);
+		}
+		return lcModels.stream()
+				.map(lcMapper::toDTO)
+				.toList();
 	}
 
 	private PMSLcDTO.Create buildPmsLcCreateDto(LcModel model, String username) {
@@ -299,74 +323,4 @@ public class PMSLcServiceImpl implements PMSLcService {
 
 		return extractIssuingPMSBankLcId(bank);
 	}
-
-	@RabbitListener(queues = "${rabbitmq.config.pms.queues.lc.response-queue}")
-	void savePmsLC(String message) throws JsonProcessingException {
-
-
-		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.LETTER_OF_CREDIT)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
-		log.info(exportConfig.toString());
-		if (exportConfig.getSendPms() == false) return;
-
-
-		log.info("Saving PMS LC ID: {}", message);
-		PMSLcDTO.RabbitListenerResponseDTO response = objectMapper.readValue(message,
-				PMSLcDTO.RabbitListenerResponseDTO.class);
-		Optional<LcModel> detail = lcRepository.findById(response.getRequest().getId());
-		if (detail.isPresent()) {
-			LcModel lc = detail.get();
-			lc.setPmsLcId(response.getResponse().getId());
-			lcRepository.save(lc);
-		} else {
-			log.error("Could not find detail for  PMS lc ID: {}", message);
-		}
-	}
-
-
-	@Override
-	public List<LcDto.Info> findRemittanceLcWithoutPmsId() {
-		List<LcModel> lcModels = lcRepository.findRemittanceLcWithoutPmsId();
-		String username = SecurityUtil.getUsername();
-		for (LcModel lc : lcModels) {
-			Long proformaMasterId = lc.getProformaMasterId();
-			createPMSLc(proformaMasterId, username, false);
-		}
-		return lcModels.stream()
-				.map(lcMapper::toDTO)
-				.toList();
-	}
-
-	@RabbitListener(queues = "${rabbitmq.config.pms.queues.lc.update-response-queue}")
-	void updatePmsLCFromPms(String message) throws JsonProcessingException {
-
-
-		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.LETTER_OF_CREDIT)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
-		log.info(exportConfig.toString());
-		if (exportConfig.getSendPms() == false) return;
-
-
-		log.info("Updating PMS LC from response queue: {}", message);
-		PMSLcDTO.RabbitListenerResponseDTO response = objectMapper.readValue(message,
-				PMSLcDTO.RabbitListenerResponseDTO.class);
-		if (response.getRequest() == null || response.getRequest().getId() == null) {
-			log.warn("Ignoring malformed PMS LC update response without request id: {}", message);
-			return;
-		}
-		Optional<LcModel> detail = lcRepository.findById(response.getRequest().getId());
-		if (detail.isPresent()) {
-			LcModel lc = detail.get();
-			if (response.getResponse() == null || response.getResponse().getId() == null) {
-				log.warn("PMS LC update response had empty PMS id for LC id {}", response.getRequest().getId());
-				return;
-			}
-			lc.setPmsLcId(response.getResponse().getId());
-			lcRepository.save(lc);
-			log.info("PMS LC id updated from response for LC id {}", lc.getId());
-		} else {
-			log.error("Could not find detail for update response PMS LC: {}", message);
-		}
-	}
-
 }

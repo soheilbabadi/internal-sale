@@ -39,8 +39,6 @@ public class BillingController {
 	public ResponseEntity<?> create() {
 		return ResponseEntity.ok(billingDataProviderService.searchBillingStartDataProvider(null));
 	}
-
-
 	@PreAuthorize("@secUtil.hasAuthority('D_INS_BILL')")
 	@PostMapping("/reversal")
 	public ResponseEntity<?> reversal() {

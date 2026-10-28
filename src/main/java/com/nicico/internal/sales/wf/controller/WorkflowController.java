@@ -45,8 +45,6 @@ public class WorkflowController {
 	public ResponseEntity<WorkflowDto.Info> get(@PathVariable String id) {
 		return ResponseEntity.ok(service.get(id));
 	}
-
-
 	@Operation(summary = "دریافت لیست تمام  فرایندها", description = "لیست خلاصه تمام  فرایندهای فروش داخلی ثبت شده در سیستم BPMS را بازمی گرداند")
 	@GetMapping()
 	public ResponseEntity<List<Map<String, String>>> getAll() {
@@ -62,7 +60,7 @@ public class WorkflowController {
 	}
 
 	@Operation(summary = "دریافت لیست کامل  فرایندها", description = "لیست کامل اطلاعات تمام  فرایندها ثبت شده در سیستم BPMS را شامل عنوان، توضیحات، مراحل، نقش های مجاز و وضعیت بازمی گرداند. این متد برای استفاده در بخش های مدیریتی و گزارش گیری پیشرفته طراحی شده است.")
-	@GetMapping("/get-dto-list")
+	@GetMapping("/get-process-list")
 	public ResponseEntity<List<WorkflowDto.Info>> getDtoList() {
 		return ResponseEntity.ok(service.getDtoList());
 	}

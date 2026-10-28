@@ -2,6 +2,7 @@ package com.nicico.internal.sales.proforma.model;
 
 import com.nicico.internal.sales.config.BaseClassModel;
 import com.nicico.internal.sales.lc.model.LcModel;
+import com.nicico.internal.sales.proforma.enums.DepositSlipType;
 import com.nicico.internal.sales.proforma.enums.ProformaIssueType;
 import com.nicico.internal.sales.proforma.enums.SettlementType;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
@@ -31,7 +32,7 @@ public class ProformaMasterModel extends BaseClassModel {
 	@SequenceGenerator(name = "SEQ_INS_PERFORMA_MASTER", sequenceName = "SEQ_INS_PERFORMA_MASTER", allocationSize = 1)
 	private Long id;
 	@Schema(description = "کد فرایند", name = "processId", example = "5e2b7f8c9d4a6b1e3f7c8d9a0b1e2c3d")
-	@Column(name = "C_PROCESS_ID", length = 50, nullable = false)
+	@Column(name = "C_PROCESS_ID", length = 50)
 	private String processId;
 	@Schema(description = "کد فرایندابطال", name = "reversalProcessId", example = "5e2b7f8c9d4a6b1e3f7c8d9a0b1e2c3d")
 	@Column(name = "C_REVERSAL_PROCESS_ID", length = 50)
@@ -77,7 +78,7 @@ public class ProformaMasterModel extends BaseClassModel {
 	@Column(name = "C_CUSTOMER_NAME")
 	private String customerName;
 	@Schema(description = "شماره ملی مشتری", name = "customerPhone", example = "02145678910")
-	@Column(name = "c_national_code", nullable = false, length = 50)
+	@Column(name = "c_national_code", length = 50)
 	private String nationalCode;
 	@Schema(description = "شماره تلفن مشتری", name = "customerPhone", example = "02145678910")
 	@Column(name = "c_phone")
@@ -131,8 +132,6 @@ public class ProformaMasterModel extends BaseClassModel {
 //	@OneToMany(mappedBy = "ProformaMasterModel", fetch = FetchType.LAZY)
 //	@EqualsAndHashCode.Exclude
 //	private List<ExtraBankBillModel> ExtraBankBillModels;
-
-
 //
 //	@OneToMany(mappedBy = "ProformaMasterModel", fetch = FetchType.LAZY)
 //	@EqualsAndHashCode.Exclude
@@ -142,7 +141,7 @@ public class ProformaMasterModel extends BaseClassModel {
 //	@EqualsAndHashCode.Exclude
 //	private List<ExtraBankBillModel> proformaBankBillModels;
 
-	@Column(name = "F_TRADE_ID", nullable = false)
+	@Column(name = "F_TRADE_ID")
 	private Long tradeId;
 
 	@Column(name = "N_BROKER_ID")
@@ -162,4 +161,19 @@ public class ProformaMasterModel extends BaseClassModel {
 	@Column(name = "C_SETTLEMENT_TYPE", length = 50)
 	private String settlementType = SettlementType.UNKNOWN.name();
 
+	@Column(name = "N_DEPOSIT_SLIP_WITH_TAX")
+	private BigDecimal depositSlipWithTax = BigDecimal.ZERO;
+
+	@Column(name = "N_DEPOSIT_SLIP_WITHOUT_TAX")
+	private BigDecimal depositSlipWithoutTax = BigDecimal.ZERO;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "C_DEPOSIT_SLIP_TYPE", length = 20)
+	private DepositSlipType depositSlipType;
+//
+//	@Column(name = "N_DEPOSIT_SLIP_WITH_TAX")
+//	private BigDecimal depositSlipWithTax = BigDecimal.ZERO;
+//
+//	@Column(name = "N_DEPOSIT_SLIP_WITHOUT_TAX")
+//	private BigDecimal depositSlipWithoutTax = BigDecimal.ZERO;
 }

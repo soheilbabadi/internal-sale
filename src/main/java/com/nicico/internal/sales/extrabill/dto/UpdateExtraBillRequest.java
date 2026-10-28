@@ -1,6 +1,4 @@
 package com.nicico.internal.sales.extrabill.dto;
-
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,10 +27,6 @@ public class UpdateExtraBillRequest implements Serializable {
 	private Long agentBankId;
 
 	// ==================== فیلدهای برات الکترونیک ====================
-
-	@Schema(description = "کد تفصیلی حسابداری", example = "123-456-789")
-	private String nosaCode;
-
 	@Schema(description = "کد سپام (شماره برات)", example = "1234-5678-9012-3456")
 	private String sepamCode;
 

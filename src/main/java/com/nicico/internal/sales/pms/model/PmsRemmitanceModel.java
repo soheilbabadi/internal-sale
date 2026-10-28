@@ -204,6 +204,4 @@ public class PmsRemmitanceModel {
 
 	@Column(name = "HAV_RESERVE")
 	private String havReserve;
-
-
 }

@@ -5,11 +5,12 @@ import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
+import com.nicico.internal.sales.accounting.dto.FinancialInstrumentType;
+import com.nicico.internal.sales.accounting.service.AccountingDetailService;
 import com.nicico.internal.sales.bank.model.IssuingBankModel;
 import com.nicico.internal.sales.bank.repository.BaseBankRepository;
 import com.nicico.internal.sales.bank.repository.IssuingBankRepository;
 import com.nicico.internal.sales.broker.model.BrokerModel;
-import com.nicico.internal.sales.broker.repository.BrokerRepository;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.extrabill.dto.*;
 import com.nicico.internal.sales.extrabill.model.ExtraBankBillModel;
@@ -17,10 +18,11 @@ import com.nicico.internal.sales.extrabill.repository.ExtraBillRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillAuditRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillReportRepository;
 import com.nicico.internal.sales.extrabill.repository.ProformaBankBillRevokingRepository;
-import com.nicico.internal.sales.ime.trade.IMETradeRepository;
 import com.nicico.internal.sales.lc.dto.request.BrokerEmailRequest;
 import com.nicico.internal.sales.lc.enums.Acknowledgment;
 import com.nicico.internal.sales.lc.enums.LcCancellationReason;
+import com.nicico.internal.sales.lc.service.CreditHelper;
+import com.nicico.internal.sales.nosa.NosaCodeService;
 import com.nicico.internal.sales.notification.service.NotificationService;
 import com.nicico.internal.sales.proforma.enums.ProformaReversalStatus;
 import com.nicico.internal.sales.proforma.enums.WorkflowApproveStatus;
@@ -29,9 +31,11 @@ import com.nicico.internal.sales.proforma.model.ProformaMasterModel;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
-import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
+import com.nicico.internal.sales.wf.detection.ExtraBillStepDetector;
+import com.nicico.internal.sales.wf.detection.ProcessHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,14 +61,14 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private static final String MSG_ISSUER_BANK_ID_REQUIRED = "شناسه بانک صادرکننده نمی تواند خالی باشد";
 	private static final String MSG_AGENT_BANK_ID_REQUIRED = "شناسه بانک عامل نمی تواند خالی باشد";
 	private static final String MSG_AGENT_BANK_NOT_FOUND = "بانک عامل یافت نشد";
-		private static final String MSG_SEPAM_CODE_REQUIRED = "کد سپام نمی تواند خالی باشد";
+	private static final String MSG_SEPAM_CODE_REQUIRED = "کد سپام نمی تواند خالی باشد";
 	private static final String MSG_TREASURY_ID_REQUIRED = "شناسه خزانه داری نمی تواند خالی باشد";
 	private static final String MSG_ISSUE_DATE_REQUIRED = "تاریخ صدور برات نمی تواند خالی باشد";
 	private static final String MSG_ISSUE_DATE_AFTER_DUE_DATE = "تاریخ صدور برات نمی تواند بعد از تاریخ سررسید باشد";
 	private static final String MSG_DUE_DATE_REQUIRED = "تاریخ سررسید نمی تواند خالی باشد";
 	private static final String MSG_PROFORMA_DETAIL_ID_REQUIRED = "شناسه جزئیات پیش فاکتور نمی تواند خالی باشد";
 	private static final String MSG_SALES_CONTRACT_NOT_FOUND = "قرارداد فروش وجود ندارد";
-		private static final String MSG_CONCURRENT_EXTRA_BILL_UPDATE = "اطلاعات برات همزمان توسط کاربر دیگری تغییر کرده است. لطفا مجدد تلاش کنید";
+	private static final String MSG_CONCURRENT_EXTRA_BILL_UPDATE = "اطلاعات برات همزمان توسط کاربر دیگری تغییر کرده است. لطفا مجدد تلاش کنید";
 	private static final String MSG_PROFORMA_DETAIL_CANCELED = " پیش فاکتور ابطال شده است";
 	private static final String MSG_PROFORMA_NOT_ACCEPTED = "پیش فاکتور در وضعیت تایید شده نیست";
 	private static final String MSG_ITEM_CANCELED_BEFORE = "این آیتم قبلا باطل شده است و امکان ابطال مجدد وجود ندارد";
@@ -77,15 +81,20 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	private final ProformaBankBillReportRepository proformaBankBillReportRepository;
 	private final ProformaBankBillReportMapper proformaBankBillReportMapper;
 	private final ProformaMasterRepository proformaMasterRepository;
-	private final BrokerRepository brokerRepository;
-	private final IMETradeRepository imeTradeRepository;
 	private final NotificationService notificationService;
 	private final ProformaBankBillAuditRepository auditRepository;
 	private final ProformaBankBillRevokingRepository proformaBankBillRevokingRepository;
-	private final ProformaBankBillRevokingMapper proformaBankBillRevokingMapper;
-//	private final AccountingDetailService accountingDetailService;
+	private final ProformaBankBillReadyReckoningMapper proformaBankBillReadyReckoningMapper;
+	private final CreditHelper creditHelper;
+	private final AccountingDetailService accountingDetailService;
+	private final NosaCodeService nosaCodeService;
+	private final ExtraBillStepDetector extraBillStepDetector;
+	private final ProcessHistoryService processHistoryService;
 
-	private final ProcessStatusDeterminerService processStatusDeterminerService;
+
+
+	@Value("${schedule.nosa.enabled}")
+	private boolean isSchedule;
 
 
 	// ==================== PROFORMA CREATION ====================
@@ -99,10 +108,9 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	@Override
 	public SearchDTO.SearchRs<ProformaBankBillReportDto.Info> searchIssueHistory(SearchDTO.SearchRq request) {
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+		extraBillStepDetector.updateAllAcknowledgments();
 		return SearchUtil.search(proformaBankBillReportRepository, request, proformaBankBillReportMapper::toDTO);
 	}
-
 
 	@Transactional
 	@Override
@@ -112,8 +120,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		log.debug("Saving {} extra bills", requests.size());
 
 		if (requests.isEmpty()) return Collections.emptyList();
-
-
 		List<ExtraBankBillModel> models = requests.stream().map(this::prepareExtraBankBill).toList();
 		List<ExtraBankBillModel> savedModels = extraBillRepository.saveAllAndFlush(models);
 		return savedModels.stream().map(mapper::toDTO).toList();
@@ -141,6 +147,9 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 			model.setPaymentCity(issuerBank.getCity());
 			model.setAcknowledgment(Acknowledgment.RECKONING);
 			model.setExtraBillFileId(request.getExtraBillFileId());
+
+			if (!isSchedule) model.setNosaCode(nosaCodeService.generateExtraBillNosaCode(issuerBank.getId()));
+
 			return model;
 
 		} catch (ObjectOptimisticLockingFailureException ex) {
@@ -158,70 +167,32 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		// Validate mandatory fields
 		validateProformaBankBillRequest(request);
 
-		// اعتبارسنجی و یافتن موجودیت ها
-		var issuerBank = issuingBankRepository.findById(request.getIssuerBankId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
-		var agentBank = baseBankRepository.findById(request.getAgentBankId())
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_AGENT_BANK_NOT_FOUND));
 
-		// ساخت و ذخیره مدل
+		var model = prepareExtraBankBill(request);
+		extraBillRepository.saveAndFlush(model);
+		log.info("Extra bill saved successfully with id: {}", model.getId());
+		return mapper.toDTO(model);
 
-		try {
-			ExtraBankBillModel model = extraBillRepository.findById(request.getId())
-					.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-
-			model.setIssueDate(request.getIssueDate());
-			model.setDueDate(request.getDueDate());
-			model.setSepamCode(request.getSepamCode());
-			model.setTreasuryId(request.getTreasuryId());
-			model.setAgentBankId(agentBank.getId());
-			model.setAgentBankName(agentBank.getBankTitle());
-			model.setIssuerBankId(request.getIssuerBankId());
-			model.setIssuerBankName(issuerBank.getBankName());
-			model.setBranchCode(issuerBank.getBranchCode());
-			model.setBranchName(issuerBank.getBranchName());
-			model.setPaymentCity(issuerBank.getCity());
-			model.setAcknowledgment(Acknowledgment.RECKONING);
-			model.setExtraBillFileId(request.getExtraBillFileId());
-
-			ExtraBankBillModel savedModel = extraBillRepository.saveAndFlush(model);
-
-			log.info("Extra bill saved successfully with id: {}", savedModel.getId());
-			return mapper.toDTO(savedModel);
-		} catch (ObjectOptimisticLockingFailureException ex) {
-			log.warn("Concurrent extra bill update detected for id={}", request.getId(), ex);
-			throw new InternalSaleCustomException.ValidationException(MSG_CONCURRENT_EXTRA_BILL_UPDATE);
-		}
 	}
 
 	@Override
 	public List<ProformaBankBillDto.Info> getByMasterId(Long proformaMasterId) {
 
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+		extraBillStepDetector.updateAllAcknowledgments();
 
 		return extraBillRepository.findAllByProformaMasterId(proformaMasterId).stream()
 				.map(mapper::toDTO)
 				.toList();
 	}
-
-
 	// ==================== PRIVATE HELPER METHODS ====================
 
-
-	/**
-	 * Validates the ProformaBankBillRequest for mandatory fields
-	 */
 	private void validateProformaBankBillRequest(ProformaBankBillRequest request) {
-		//processStatusDeterminerService.updateAllExtraBillAcknowledgments();
-
 		ProformaDetailModel detail = proformaDetailRepository.findById(request.getProformaDetailId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
 
 		if (detail.getProformaReversalStatus() == ProformaReversalStatus.CANCELED) {
 			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_CANCELED);
 		}
-
-
 		ProformaMasterModel master = proformaMasterRepository.findById(detail.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
 
@@ -229,17 +200,12 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 			throw new InternalSaleCustomException.ValidationException(MSG_PROFORMA_NOT_ACCEPTED);
 		}
 
-
-
 		if (request.getIssuerBankId() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_ISSUER_BANK_ID_REQUIRED);
 		}
 		if (request.getAgentBankId() == null) {
 			throw new InternalSaleCustomException.ValidationException(MSG_AGENT_BANK_ID_REQUIRED);
 		}
-//		if (!StringUtils.hasText(request.getNosaCode())) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_NOSA_CODE_REQUIRED);
-//		}
 		if (!StringUtils.hasText(request.getSepamCode())) {
 			throw new InternalSaleCustomException.ValidationException(MSG_SEPAM_CODE_REQUIRED);
 		}
@@ -268,20 +234,12 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	@Transactional
 	public ProformaBankBillDto.Info updateBillFiles(ProformaBankBillFileUpdateDto updateDto) {
-		// یافتن برات بر اساس شناسه
 		ExtraBankBillModel bill = extraBillRepository.findById(updateDto.getId())
 				.orElseThrow(() -> new RuntimeException("برات با شناسه " + updateDto.getId() + " یافت نشد"));
-
-		// بروزرسانی فیلدهای مورد نظر
-
 		if (updateDto.getDispatchAttachmentId() != null) {
 			bill.setDispatchAttachmentId(updateDto.getDispatchAttachmentId());
 			extraBillRepository.save(bill);
 		}
-
-		// ذخیره تغییرات
-
-		// تبدیل به DTO و بازگشت
 		return mapper.toDTO(bill);
 	}
 
@@ -296,7 +254,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_MASTER_NOT_FOUND));
 
 		markAllBillsAsReckoning(billModel.getProformaMasterId());
-		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		var broker = creditHelper.fetchBrokerForTrade(masterModel.getTradeId());
 		BrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(masterModel, broker);
 		String emailContent = generateExtraBillBrokerEmailContent(emailRequest);
 		sendExtraBillBrokerReckoningEmail(emailRequest, emailContent);
@@ -322,16 +280,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				extraBillRepository.save(billItem);
 			}
 		}
-	}
-
-	/**
-	 * دریافت کارگزار مربوط به معامله
-	 */
-	private BrokerModel fetchBrokerForTrade(Long tradeId) {
-		var sellerBrokerCode = imeTradeRepository.findSellerBrokerCodeById(tradeId)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_TRADE_NOT_FOUND));
-		return brokerRepository.findById(sellerBrokerCode)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BROKER_EMAIL_MISSING));
 	}
 
 	/**
@@ -372,7 +320,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 						MSG_SALES_CONTRACT_NOT_FOUND));
 
-		var broker = fetchBrokerForTrade(masterModel.getTradeId());
+		var broker = creditHelper.fetchBrokerForTrade(masterModel.getTradeId());
 		BrokerEmailRequest emailRequest = buildExtraBillBrokerEmailRequest(masterModel, broker);
 		return generateExtraBillBrokerEmailContent(emailRequest);
 	}
@@ -380,15 +328,15 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	public Map<String, List<UserTaskReportDTO>> getUserTasksReport(Long extraBillId) {
 
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
-		return processStatusDeterminerService.getProformaBankBillSummaryReport(extraBillId);
+		extraBillStepDetector.updateAllAcknowledgments();
+		return processHistoryService.getProformaBankBillSummaryReport(extraBillId);
 
 	}
 
 	@Override
 	public ProcessInstanceHistory getHistoryDetail(Long extraBillId) {
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
-		return processStatusDeterminerService.getProformaBankBillHistoryDetail(extraBillId);
+		extraBillStepDetector.updateAllAcknowledgments();
+		return processHistoryService.getProformaBankBillHistoryDetail(extraBillId);
 	}
 
 	/**
@@ -403,9 +351,34 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Override
 	@Transactional
 	public ProformaBankBillDto.Info updateExtraBill(UpdateExtraBillRequest updateExtraBillRequest) {
+
+		if (updateExtraBillRequest.getId() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_EXTRA_BILL_NOT_FOUND);
+		}
+		if (updateExtraBillRequest.getIssuerBankId() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUER_BANK_ID_REQUIRED);
+		}
+		if (updateExtraBillRequest.getAgentBankId() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_AGENT_BANK_ID_REQUIRED);
+		}
+		if (!StringUtils.hasText(updateExtraBillRequest.getSepamCode())) {
+			throw new InternalSaleCustomException.ValidationException(MSG_SEPAM_CODE_REQUIRED);
+		}
+		if (!StringUtils.hasText(updateExtraBillRequest.getTreasuryId())) {
+			throw new InternalSaleCustomException.ValidationException(MSG_TREASURY_ID_REQUIRED);
+		}
+		if (updateExtraBillRequest.getIssueDate() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUE_DATE_REQUIRED);
+		}
+		if (updateExtraBillRequest.getDueDate() == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_DUE_DATE_REQUIRED);
+		}
+		if (!updateExtraBillRequest.getIssueDate().before(updateExtraBillRequest.getDueDate())) {
+			throw new InternalSaleCustomException.ValidationException(MSG_ISSUE_DATE_AFTER_DUE_DATE);
+		}
+
 		ExtraBankBillModel bill = extraBillRepository.findById(updateExtraBillRequest.getId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_EXTRA_BILL_NOT_FOUND));
-
 
 		var agentBank = baseBankRepository.findById(updateExtraBillRequest.getAgentBankId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_AGENT_BANK_NOT_FOUND));
@@ -420,8 +393,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		bill.setPaymentCity(issuerBank.getCity());
 		bill.setAgentBankId(agentBank.getId());
 		bill.setAgentBankName(agentBank.getBankTitle());
-
-
 		bill.setSepamCode(updateExtraBillRequest.getSepamCode());
 		bill.setTreasuryId(updateExtraBillRequest.getTreasuryId());
 		bill.setIssueDate(updateExtraBillRequest.getIssueDate());
@@ -448,9 +419,7 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	public SearchDTO.SearchRs<ProformaBankBillReportDto.Info> findReadyReckoning(SearchDTO.SearchRq request) {
 		SearchDTO.SearchRq searchRq = request == null ? new SearchDTO.SearchRq() : request;
 		SearchDTO.CriteriaRq rootCriteria = searchRq.getCriteria();
-
-
-		return SearchUtil.search(proformaBankBillRevokingRepository, searchRq, proformaBankBillRevokingMapper::toDTO);
+		return SearchUtil.search(proformaBankBillRevokingRepository, searchRq, proformaBankBillReadyReckoningMapper::toDTO);
 	}
 
 	@Override
@@ -462,8 +431,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 			log.warn("No ExtraBill items found for proformaMasterId: {}", proformaMasterId);
 			return;
 		}
-
-
 		for (ExtraBankBillModel item : billModels) {
 			boolean oldReckoningSend = item.isReckoningSend();
 			if (!oldReckoningSend) {
@@ -479,14 +446,13 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 
 	}
 
-
 	@Override
 	public void cancel(ExtraBillCancelRequest request) {
 
 		ExtraBankBillModel bankBillModel = extraBillRepository.findById(request.getId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_EXTRA_BILL_NOT_FOUND));
 
-		if (bankBillModel.getWorkflowApproveStatus() ==WorkflowApproveStatus.REVERSAL){
+		if (bankBillModel.getWorkflowApproveStatus() == WorkflowApproveStatus.REVERSAL) {
 			throw new InternalSaleCustomException.ValidationException(MSG_ITEM_CANCELED_BEFORE);
 		}
 
@@ -501,9 +467,6 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 		});
 		extraBillRepository.saveAll(all);
 	}
-
-
-
 
 	private String buildCancellationRecord(ExtraBillCancelRequest request) {
 		String timestamp = DateUtility.getJalaliDate(new Date());
@@ -527,34 +490,36 @@ public class ExtraBillServiceImpl implements ExtraBillService {
 	@Transactional
 	@Override
 	public String createDetail(Long id) {
-//		ExtraBankBillModel extraBill = extraBillRepository.findById(id)
-//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
-//
-//		Long issuerBankId = extraBill.getIssuerBankId();
-//		if (issuerBankId == null) {
-//			throw new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND);
-//		}
-//
-//		var bank = issuingBankRepository.findById(issuerBankId)
-//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
-//
-//		String bankCode = bank.getBankCode();
-//		String yearSuffix = DateUtility.currentYearLast2();
-//		String detailName = buildExtraBillDetailName(extraBill, bank);
-//
-//		var response = accountingDetailService.generateAndCreateFinancialInstrumentDetail(
-//				FinancialInstrumentType.ELECTRONIC_PROMISSORY_NOTE,
-//				bankCode,
-//				yearSuffix,
-//				detailName,
-//				null
-//		);
-//
-//		if (response != null && response.getCode() != null) {
-//			extraBill.setNosaCode(response.getCode());
-//			extraBillRepository.save(extraBill);
-//			return response.getCode();
-//		}
+		ExtraBankBillModel extraBill = extraBillRepository.findById(id)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_PROFORMA_DETAIL_NOT_FOUND));
+
+		Long issuerBankId = extraBill.getIssuerBankId();
+		if (issuerBankId == null) {
+			throw new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND);
+		}
+
+		var bank = issuingBankRepository.findById(issuerBankId)
+				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_BANK_NOT_FOUND));
+
+		String bankCode = bank.getBankCode();
+		String yearSuffix = DateUtility.currentYearLast2();
+		String detailName = buildExtraBillDetailName(extraBill, bank);
+
+		if (!isSchedule) extraBill.setNosaCode(nosaCodeService.generateExtraBillNosaCode(issuerBankId));
+
+		var response = accountingDetailService.generateAndCreateFinancialInstrumentDetail(
+				FinancialInstrumentType.ELECTRONIC_PROMISSORY_NOTE,
+				bankCode,
+				yearSuffix,
+				detailName,
+				"EBS_" + id
+		);
+
+		if (response != null && response.getCode() != null) {
+			extraBill.setNosaCode(response.getCode());
+			extraBillRepository.save(extraBill);
+			return response.getCode();
+		}
 
 		return null;
 	}

@@ -24,8 +24,8 @@ public class LoadingGoodsModel extends BaseClassModel {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_INS_LOADING")
 	@SequenceGenerator(name = "SEQ_INS_LOADING", sequenceName = "SEQ_INS_LOADING", allocationSize = 1)
 	private Long id;
-	@Column(name = "N_LOADING_PLACE_ID", nullable = false)
+	@Column(name = "N_LOADING_PLACE_ID")
 	private Long loadingPlaceId;
-	@Column(name = "N_GOOD_ID", nullable = false)
+	@Column(name = "N_GOOD_ID")
 	private Long goodId;
 }

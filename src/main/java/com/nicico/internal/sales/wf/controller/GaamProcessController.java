@@ -2,7 +2,7 @@ package com.nicico.internal.sales.wf.controller;
 
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
 import com.nicico.internal.sales.wf.service.GaamProcessService;
-import com.nicico.internal.sales.wf.service.ProcessStatusDeterminerService;
+import com.nicico.internal.sales.wf.detection.GaamStepDetector;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,19 +22,20 @@ import javax.validation.Valid;
 public class GaamProcessController {
 
 	private final GaamProcessService gaamProcessService;
-	private final ProcessStatusDeterminerService processStatusDeterminerService;
-
-	@Operation(
-			summary = "شروع فرآیند برات الکترونیک",
-			description = "با دریافت شناسه پیش فاکتور اصلی (Master ID)،  فرایند ایجاد اعتبار اسنادی را آغاز می کند. این عملیات شامل ایجاد تسک های اولیه، تنظیم وضعیت اولیه برات الکترونیک و شروع جریان کاری مطابق با قوانین و ضوابط تعیین شده می باشد."
-	)
+	private final GaamStepDetector gaamStepDetector;
+	@Operation(summary = "شروع فرآیند برات الکترونیک", description = "با دریافت شناسه پیش فاکتور اصلی (Master ID)،  فرایند ایجاد اعتبار اسنادی را آغاز می کند. این عملیات شامل ایجاد تسک های اولیه، تنظیم وضعیت اولیه برات الکترونیک و شروع جریان کاری مطابق با قوانین و ضوابط تعیین شده می باشد.")
 	@PostMapping("/start-extra-bill/{masterId}")
 	public ResponseEntity<?> startExtraBillProcess(@PathVariable Long masterId) {
 		return ResponseEntity.ok(gaamProcessService.startProcess(masterId));
 	}
 
-	@Operation(summary = "تایید تسک", description = "این متد برای تایید یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت برات الکترونیک به روزرسانی می شود."
-	)
+	@Operation(summary = "شروع فرآیند برات الکترونیک", description = "با دریافت شناسه پیش فاکتور اصلی (Master ID)،  فرایند ایجاد اعتبار اسنادی را آغاز می کند. این عملیات شامل ایجاد تسک های اولیه، تنظیم وضعیت اولیه برات الکترونیک و شروع جریان کاری مطابق با قوانین و ضوابط تعیین شده می باشد.")
+	@PostMapping("/start-gaam/{masterId}")
+	public ResponseEntity<?> startGaamProcess(@PathVariable Long masterId) {
+		return ResponseEntity.ok(gaamProcessService.startProcess(masterId));
+	}
+
+	@Operation(summary = "تایید تسک", description = "این متد برای تایید یک تسک در  فرایند برات الکترونیک استفاده می شود. با دریافت اطلاعات تسک شامل شناسه تسک، توضیحات و اقدام انجام شده، عملیات تایید را انجام داده و جریان کاری را به مرحله بعد هدایت می کند. پس از تایید، وضعیت برات الکترونیک به روزرسانی می شود.")
 	@PutMapping("/approve-task")
 	public ResponseEntity<HttpStatus> approveTask(@RequestBody @Valid TaskActionDto taskActionDto) {
 		gaamProcessService.approveTask(taskActionDto);
@@ -48,13 +49,18 @@ public class GaamProcessController {
 		return ResponseEntity.ok().build();
 	}
 
-	@Operation(summary = "بروزرسانی وضعیت برات الکترونیک", description = "این متد به صورت دستی وضعیت تمام برات های الکترونیک در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت برات الکترونیک و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید."
-	)
+	@Operation(summary = "بروزرسانی وضعیت برات الکترونیک", description = "این متد به صورت دستی وضعیت تمام برات های الکترونیک در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت برات الکترونیک و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید.")
 	@GetMapping("/refresh-status")
-	public ResponseEntity<Void> refreshStatus() {
-		processStatusDeterminerService.updateAllExtraBillAcknowledgments();
+	public ResponseEntity<HttpStatus> refreshStatus() {
+		gaamProcessService.refreshStatus();
 		return ResponseEntity.ok().build();
 	}
 
+	@Operation(summary = "بروزرسانی وضعیت برات الکترونیک", description = "این متد به صورت دستی وضعیت تمام برات های الکترونیک در حال انجام را با وضعیت جاری  فرایند همگام سازی می کند. در صورت وجود مغایرت بین وضعیت برات الکترونیک و وضعیت تسک ها، این عملیات آن ها را اصلاح و به روزرسانی می نماید.")
+	@GetMapping("/update-acknowledgments")
+	public ResponseEntity<HttpStatus> updateAllAcknowledgments() {
+		gaamStepDetector.updateAllAcknowledgments();
+		return ResponseEntity.ok().build();
+	}
 
 }

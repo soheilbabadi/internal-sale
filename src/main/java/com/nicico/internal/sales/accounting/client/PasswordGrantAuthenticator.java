@@ -62,6 +62,18 @@ public class PasswordGrantAuthenticator implements Authenticator {
 		}
 	}
 
+	/**
+	 * Invalidates current cached token and acquires a new token.
+	 */
+	public synchronized String refreshToken() {
+		log.info("Invalidating cached system token and acquiring new token.");
+		if (oAuth2RestTemplate.getOAuth2ClientContext() != null) {
+			oAuth2RestTemplate.getOAuth2ClientContext().setAccessToken(null);
+		}
+		this.token = null;
+		return getValidToken();
+	}
+
 	@Nullable
 	@Override
 	public Request authenticate(Route route, Response response) throws IOException {

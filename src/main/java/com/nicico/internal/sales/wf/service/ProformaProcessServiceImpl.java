@@ -35,7 +35,6 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -75,8 +74,6 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 	private final ExportDocService exportDocService;
 	private final LcRepository lcRepository;
 	private final RemittanceMasterRepository remittanceMasterRepository;
-
-
 	@Value("${nicico.bcc-address}")
 	private String bccAddress;
 
@@ -111,8 +108,6 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 					new ArrayList<>(Collections.singletonList(ex.getMessage())));
 		}
 	}
-
-
 	@Override
 
 	public void reviewTask(ReviewTaskRequest reviewTaskRequest) {
@@ -160,15 +155,11 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 					new ArrayList<>(Collections.singletonList(ex.getMessage())));
 		}
 	}
-
-
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(true);
 		this.reviewTask(processVariableProvider.prepareReviewTaskRequest(taskActionDto));
 	}
-
-
 	@Override
 	public void rejectTask(TaskActionDto taskActionDto) {
 		taskActionDto.setApprove(false);
@@ -208,8 +199,6 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 				}
 
 				proformaMasterRepository.saveAndFlush(masterModel);
-
-
 			} catch (Exception ex) {
 				log.error("خطا در به روزرسانی وضعیت پیش فاکتور {}: {}", masterModel.getId(), ex.getMessage());
 			}
@@ -264,15 +253,11 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 			return false;
 		}
 	}
-
-
 	private void applyStatus(ProformaMasterModel model, WorkflowApproveStatus status, boolean isProcessFinal) {
 		model.setWorkflowApproveStatus(status);
 		model.setIsProcessFinal(isProcessFinal);
 		model.setIsReversalProcessFinal(false);
 	}
-
-
 	private StartProcessWithDataDTO buildStartProcessDTO(Map<String, Object> variables) {
 		var workflow = processVariableProvider.getProformaWorkflowByTitle();
 		StartProcessWithDataDTO dataDTO = new StartProcessWithDataDTO();
@@ -315,15 +300,12 @@ public class ProformaProcessServiceImpl implements ProformaProcessService {
 			Path filePath = createTempFile(String.valueOf(masterModel.getContractNo()), pdfContent);
 			EmailRequest emailRequest = prepareProformaEmailRequest(masterModel, customer);
 
-			HttpResponse<String> emailResponse = mailService.sendMail(emailRequest, filePath.toString());
-			log.info(formatMessage(MSG_LOG_EMAIL_PROFORMA_SUCCESS, proformaMasterId, emailResponse.body()));
+			 mailService.sendMail(emailRequest, filePath.toString());
+			log.info(formatMessage(MSG_LOG_EMAIL_PROFORMA_SUCCESS, proformaMasterId));
 
-		} catch (InternalSaleCustomException ex) {
-			log.error(formatMessage(MSG_LOG_ERROR_UNEXPECTED, proformaMasterId, ex.getMessage()), ex);
-			throw ex;
 		} catch (Exception ex) {
 			log.error(formatMessage(MSG_LOG_ERROR_UNEXPECTED, proformaMasterId, ex.getMessage()), ex);
-			throw new InternalSaleCustomException.FileContentException(MSG_EMAIL_PROFORMA_ERROR);
+			return;
 		}
 	}
 

@@ -11,8 +11,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
-
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

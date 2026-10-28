@@ -23,6 +23,4 @@ public interface PricingCurrencyRepository extends JpaRepository<PricingCurrency
 	List<PricingCurrencyModel> findByShortDateBetweenOrderByShortDateDesc(Date shortDateAfter, Date shortDateBefore);
 
 	Optional<PricingCurrencyModel> findTopByOrderByShortDateDesc();
-
-
 }
