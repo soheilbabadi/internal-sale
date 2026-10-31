@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- ======================================================== -->
+    <!-- 1. SEQUENCES                                             -->
+    <!-- ======================================================== -->
+
+    <changeSet id="20261020-01-create-seq-qc-analysis-master" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_QC_ANALYSIS_MASTER"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="SEQ_QC_ANALYSIS_MASTER" startValue="1" incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="20261020-02-create-seq-qc-analysis-item" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_QC_ANALYSIS_ITEM"/>
+            </not>
+        </preConditions>
+        <createSequence sequenceName="SEQ_QC_ANALYSIS_ITEM" startValue="1" incrementBy="1"/>
+    </changeSet>
+
+    <!-- ======================================================== -->
+    <!-- 2. TABLE: T_INS_QC_ANALYSIS_MASTER                       -->
+    <!-- ======================================================== -->
+
+    <changeSet id="20261020-03-create-table-qc-analysis-master" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_QC_ANALYSIS_MASTER"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_QC_ANALYSIS_MASTER">
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints primaryKey="true" primaryKeyName="PK_T_INS_QC_ANALYSIS_MASTER" nullable="false"/>
+            </column>
+            <column name="C_ANALYSIS_STAGE" type="VARCHAR2(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_COMMODITY_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_COMMODITY_CODE" type="VARCHAR2(50)"/>
+            <column name="C_COMMODITY_NAME" type="VARCHAR2(200)"/>
+            <column name="C_QC_INDICATOR_NO" type="VARCHAR2(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="F_PARENT_ANALYSIS_ID" type="NUMBER(38,0)"/>
+            <column name="C_REF_INDICATOR_NO" type="VARCHAR2(100)"/>
+            <column name="D_REGISTER_DATE" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_PERSIAN_REGISTER_DATE" type="VARCHAR2(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_OFFER_DATE" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_PERSIAN_OFFER_DATE" type="VARCHAR2(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="F_LOADING_PLACE_ID" type="NUMBER(38,0)"/>
+            <column name="C_LOADING_PLACE" type="VARCHAR2(200)"/>
+            <column name="C_STATUS" type="VARCHAR2(30)" defaultValue="CONFIRMED">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- BaseClassModel Fields -->
+            <column name="D_CREATED_DATE" type="DATETIME"/>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)"/>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="N_VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- ======================================================== -->
+    <!-- 3. TABLE: T_INS_QC_ANALYSIS_ITEM                         -->
+    <!-- ======================================================== -->
+
+    <changeSet id="20261020-04-create-table-qc-analysis-item" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_QC_ANALYSIS_ITEM"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_QC_ANALYSIS_ITEM">
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints primaryKey="true" primaryKeyName="PK_T_INS_QC_ANALYSIS_ITEM" nullable="false"/>
+            </column>
+            <column name="F_ANALYSIS_MASTER_ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_ROW_NO" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="N_FROM_BARREL_NO" type="NUMBER(38,0)"/>
+            <column name="N_TO_BARREL_NO" type="NUMBER(38,0)"/>
+            <column name="C_LOT_NO" type="VARCHAR2(100)"/>
+            <column name="N_TOTAL_BARRELS_COUNT" type="INT"/>
+            <column name="F_LOADING_PLACE_ID" type="NUMBER(38,0)"/>
+            <column name="C_LOADING_PLACE" type="VARCHAR2(200)"/>
+
+            <!-- Weight & Price -->
+            <column name="N_GROSS_WET_WEIGHT" type="NUMBER(19,3)"/>
+            <column name="N_NET_DRY_WEIGHT" type="NUMBER(19,3)"/>
+            <column name="N_OFFER_LOT_WEIGHT_MT" type="NUMBER(19,3)"/>
+            <column name="N_PRICE_PER_KG_BARREL" type="NUMBER(19,2)"/>
+
+            <!-- Current Stage Assays -->
+            <column name="N_MOISTURE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AG_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AG_KG" type="NUMBER(19,3)"/>
+            <column name="N_AG_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AU_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AU_KG" type="NUMBER(19,3)"/>
+            <column name="N_AU_PPM" type="NUMBER(10,4)"/>
+            <column name="N_SE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_SE_KG" type="NUMBER(19,3)"/>
+            <column name="N_CU_PCT" type="NUMBER(10,4)"/>
+            <column name="N_CU_KG" type="NUMBER(19,3)"/>
+            <column name="N_PT_PPM" type="NUMBER(10,4)"/>
+            <column name="N_PD_PPM" type="NUMBER(10,4)"/>
+            <column name="N_MO_PCT" type="NUMBER(10,4)"/>
+            <column name="N_FE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_S_PCT" type="NUMBER(10,4)"/>
+            <column name="N_PB_PCT" type="NUMBER(10,4)"/>
+            <column name="N_OIL_PCT" type="NUMBER(10,4)"/>
+
+            <!-- Calculated & Charges -->
+            <column name="N_CU_CALC_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AU_CALC_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AG_CALC_PPM" type="NUMBER(10,4)"/>
+            <column name="N_SMELTING_COST" type="NUMBER(19,2)"/>
+            <column name="N_REFINING_COST" type="NUMBER(19,2)"/>
+            <column name="N_CATHODE_PRICE" type="NUMBER(19,2)"/>
+            <column name="N_OXIDE_PRICE" type="NUMBER(19,2)"/>
+            <column name="N_FRACTION_DEDUCTION" type="NUMBER(10,4)"/>
+
+            <!-- Averaged Assays -->
+            <column name="N_AVG_MOISTURE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AG_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AG_KG" type="NUMBER(19,3)"/>
+            <column name="N_AVG_AG_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AU_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AU_KG" type="NUMBER(19,3)"/>
+            <column name="N_AVG_AU_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_SE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_SE_KG" type="NUMBER(19,3)"/>
+            <column name="N_AVG_CU_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_CU_KG" type="NUMBER(19,3)"/>
+            <column name="N_AVG_PT_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_PD_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_MO_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_FE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_S_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_PB_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_OIL_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_CU_CALC_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AU_CALC_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AG_CALC_PPM" type="NUMBER(10,4)"/>
+            <column name="C_REMARKS" type="VARCHAR2(1000)"/>
+
+            <!-- BaseClassModel Fields -->
+            <column name="D_CREATED_DATE" type="DATETIME"/>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)"/>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+            <column name="N_VERSION" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- ======================================================== -->
+    <!-- 4. CONSTRAINTS & INDEXES                                 -->
+    <!-- ======================================================== -->
+
+    <changeSet id="20261020-05-fk-qc-analysis-item-master" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_INS_QC_ITEM_TO_MASTER"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="T_INS_QC_ANALYSIS_ITEM"
+                                 baseColumnNames="F_ANALYSIS_MASTER_ID"
+                                 constraintName="FK_INS_QC_ITEM_TO_MASTER"
+                                 referencedTableName="T_INS_QC_ANALYSIS_MASTER"
+                                 referencedColumnNames="ID"/>
+    </changeSet>
+
+    <changeSet id="20261020-06-fk-qc-analysis-master-parent" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_INS_QC_MASTER_TO_PARENT"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="T_INS_QC_ANALYSIS_MASTER"
+                                 baseColumnNames="F_PARENT_ANALYSIS_ID"
+                                 constraintName="FK_INS_QC_MASTER_TO_PARENT"
+                                 referencedTableName="T_INS_QC_ANALYSIS_MASTER"
+                                 referencedColumnNames="ID"/>
+    </changeSet>
+
+    <changeSet id="20261020-07-idx-qc-analysis-master-indicator" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_INS_QC_MASTER_INDICATOR"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="IDX_INS_QC_MASTER_INDICATOR" tableName="T_INS_QC_ANALYSIS_MASTER">
+            <column name="C_QC_INDICATOR_NO"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20261020-08-idx-qc-analysis-master-commodity-stage" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_INS_QC_MASTER_COMM_STAGE"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="IDX_INS_QC_MASTER_COMM_STAGE" tableName="T_INS_QC_ANALYSIS_MASTER">
+            <column name="N_COMMODITY_ID"/>
+            <column name="C_ANALYSIS_STAGE"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20261020-09-idx-qc-analysis-item-master-id" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IDX_INS_QC_ITEM_MASTER_ID"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="IDX_INS_QC_ITEM_MASTER_ID" tableName="T_INS_QC_ANALYSIS_ITEM">
+            <column name="F_ANALYSIS_MASTER_ID"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ======================================================== -->
+    <!-- 5. AUDIT TABLES (HIBERNATE ENVERS)                       -->
+    <!-- ======================================================== -->
+
+    <changeSet id="20261020-10-create-table-qc-analysis-master-aud" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_QC_ANALYSIS_MASTER_AUD"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_QC_ANALYSIS_MASTER_AUD">
+            <column name="REV" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="REVTYPE" type="SMALLINT"/>
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_ANALYSIS_STAGE" type="VARCHAR2(30)"/>
+            <column name="N_COMMODITY_ID" type="NUMBER(38,0)"/>
+            <column name="C_COMMODITY_CODE" type="VARCHAR2(50)"/>
+            <column name="C_COMMODITY_NAME" type="VARCHAR2(200)"/>
+            <column name="C_QC_INDICATOR_NO" type="VARCHAR2(100)"/>
+            <column name="F_PARENT_ANALYSIS_ID" type="NUMBER(38,0)"/>
+            <column name="C_REF_INDICATOR_NO" type="VARCHAR2(100)"/>
+            <column name="D_REGISTER_DATE" type="DATE"/>
+            <column name="C_PERSIAN_REGISTER_DATE" type="VARCHAR2(20)"/>
+            <column name="D_OFFER_DATE" type="DATE"/>
+            <column name="C_PERSIAN_OFFER_DATE" type="VARCHAR2(20)"/>
+            <column name="F_LOADING_PLACE_ID" type="NUMBER(38,0)"/>
+            <column name="C_LOADING_PLACE" type="VARCHAR2(200)"/>
+            <column name="C_STATUS" type="VARCHAR2(30)"/>
+
+            <!-- BaseClassModel Audited Fields (بدون n_version چون @NotAudited است) -->
+            <column name="D_CREATED_DATE" type="DATETIME"/>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)"/>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+        </createTable>
+        <addPrimaryKey tableName="T_INS_QC_ANALYSIS_MASTER_AUD"
+                       columnNames="ID,REV"
+                       constraintName="PK_T_INS_QC_ANALYSIS_MASTER_AUD"/>
+    </changeSet>
+
+    <changeSet id="20261020-11-create-table-qc-analysis-item-aud" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_QC_ANALYSIS_ITEM_AUD"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_QC_ANALYSIS_ITEM_AUD">
+            <column name="REV" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="REVTYPE" type="SMALLINT"/>
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="F_ANALYSIS_MASTER_ID" type="NUMBER(38,0)"/>
+            <column name="N_ROW_NO" type="INT"/>
+            <column name="N_FROM_BARREL_NO" type="NUMBER(38,0)"/>
+            <column name="N_TO_BARREL_NO" type="NUMBER(38,0)"/>
+            <column name="C_LOT_NO" type="VARCHAR2(100)"/>
+            <column name="N_TOTAL_BARRELS_COUNT" type="INT"/>
+            <column name="F_LOADING_PLACE_ID" type="NUMBER(38,0)"/>
+            <column name="C_LOADING_PLACE" type="VARCHAR2(200)"/>
+
+            <!-- Weight & Price -->
+            <column name="N_GROSS_WET_WEIGHT" type="NUMBER(19,3)"/>
+            <column name="N_NET_DRY_WEIGHT" type="NUMBER(19,3)"/>
+            <column name="N_OFFER_LOT_WEIGHT_MT" type="NUMBER(19,3)"/>
+            <column name="N_PRICE_PER_KG_BARREL" type="NUMBER(19,2)"/>
+
+            <!-- Current Stage Assays -->
+            <column name="N_MOISTURE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AG_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AG_KG" type="NUMBER(19,3)"/>
+            <column name="N_AG_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AU_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AU_KG" type="NUMBER(19,3)"/>
+            <column name="N_AU_PPM" type="NUMBER(10,4)"/>
+            <column name="N_SE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_SE_KG" type="NUMBER(19,3)"/>
+            <column name="N_CU_PCT" type="NUMBER(10,4)"/>
+            <column name="N_CU_KG" type="NUMBER(19,3)"/>
+            <column name="N_PT_PPM" type="NUMBER(10,4)"/>
+            <column name="N_PD_PPM" type="NUMBER(10,4)"/>
+            <column name="N_MO_PCT" type="NUMBER(10,4)"/>
+            <column name="N_FE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_S_PCT" type="NUMBER(10,4)"/>
+            <column name="N_PB_PCT" type="NUMBER(10,4)"/>
+            <column name="N_OIL_PCT" type="NUMBER(10,4)"/>
+
+            <!-- Calculated & Charges -->
+            <column name="N_CU_CALC_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AU_CALC_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AG_CALC_PPM" type="NUMBER(10,4)"/>
+            <column name="N_SMELTING_COST" type="NUMBER(19,2)"/>
+            <column name="N_REFINING_COST" type="NUMBER(19,2)"/>
+            <column name="N_CATHODE_PRICE" type="NUMBER(19,2)"/>
+            <column name="N_OXIDE_PRICE" type="NUMBER(19,2)"/>
+            <column name="N_FRACTION_DEDUCTION" type="NUMBER(10,4)"/>
+
+            <!-- Averaged Assays -->
+            <column name="N_AVG_MOISTURE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AG_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AG_KG" type="NUMBER(19,3)"/>
+            <column name="N_AVG_AG_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AU_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AU_KG" type="NUMBER(19,3)"/>
+            <column name="N_AVG_AU_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_SE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_SE_KG" type="NUMBER(19,3)"/>
+            <column name="N_AVG_CU_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_CU_KG" type="NUMBER(19,3)"/>
+            <column name="N_AVG_PT_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_PD_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_MO_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_FE_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_S_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_PB_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_OIL_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_CU_CALC_PCT" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AU_CALC_PPM" type="NUMBER(10,4)"/>
+            <column name="N_AVG_AG_CALC_PPM" type="NUMBER(10,4)"/>
+            <column name="C_REMARKS" type="VARCHAR2(1000)"/>
+
+            <!-- BaseClassModel Audited Fields -->
+            <column name="D_CREATED_DATE" type="DATETIME"/>
+            <column name="D_LAST_MODIFIED_DATE" type="DATETIME"/>
+            <column name="C_CREATED_BY" type="VARCHAR2(250)"/>
+            <column name="C_LAST_MODIFIED_BY" type="VARCHAR2(250)"/>
+            <column name="C_COMMENT" type="VARCHAR2(4000)"/>
+            <column name="C_DESCRIPTION" type="VARCHAR2(4000)"/>
+        </createTable>
+        <addPrimaryKey tableName="T_INS_QC_ANALYSIS_ITEM_AUD"
+                       columnNames="ID,REV"
+                       constraintName="PK_T_INS_QC_ANALYSIS_ITEM_AUD"/>
+    </changeSet>
+
+    <changeSet id="20261020-12-fk-qc-analysis-master-aud-rev" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_QC_MASTER_AUD_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="T_INS_QC_ANALYSIS_MASTER_AUD"
+                                 baseColumnNames="REV"
+                                 constraintName="FK_T_INS_QC_MASTER_AUD_REV"
+                                 referencedTableName="revinfo"
+                                 referencedColumnNames="rev"/>
+    </changeSet>
+
+    <changeSet id="20261020-13-fk-qc-analysis-item-aud-rev" author="developer">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_QC_ITEM_AUD_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseTableName="T_INS_QC_ANALYSIS_ITEM_AUD"
+                                 baseColumnNames="REV"
+                                 constraintName="FK_T_INS_QC_ITEM_AUD_REV"
+                                 referencedTableName="revinfo"
+                                 referencedColumnNames="rev"/>
+    </changeSet>
+
+</databaseChangeLog>

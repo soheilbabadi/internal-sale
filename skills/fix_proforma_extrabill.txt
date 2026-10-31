@@ -1,0 +1,37 @@
+Context:
+In our Spring Boot project (internal-sales-backend), creating a proforma with
+proformaIssueType = EXTRA_BILL_OF_EXCHANGE goes through
+ProformaServiceImpl.create() -> ExtraBillProformaIssueServiceImpl.create().
+The sale condition defines extraBillOfExchangePercent (sale condition column
+N_EXTRA_BILL_OF_EXCHANGE_PERCENT). Below is the actual JSON response returned
+by the create flow.
+
+Task 1 — Code analysis:
+1. Read ExtraBillProformaIssueServiceImpl, ProformaModelHelper,
+   ProformaDetailModel and ProformaGoodItemModel (all under
+   src/main/java/com/nicico/internal/sales/proforma/).
+2. Explain what changes in the JSON response if extraBillOfPercent changes
+   from 0 to 5. State explicitly which fields of proformaGoodItemDtos are
+   affected and which are not, and why (show the exact code path).
+3. Note any inconsistencies the change creates (e.g. detail.finalPrice vs
+   totalAmount + vatAmount, master.totalFinalAmount roll-up).
+
+Task 2 — SQL fix script:
+4. Create a SQL script in src/main/resources/db/migration/ (follow the
+   existing style of fix_extra_bill_percent.sql).
+5. Use ONLY hardcoded literal values taken from the JSON below — no bind
+   variables, no parameters.
+6. Derive table/column names from the @Table/@Column annotations of the
+   entities (do not guess).
+7. Rules for the script:
+   - Update the good item's final amount: totalAmount + ROUND(totalAmount * percent / 100, 0)
+   - Do NOT touch VAT columns or cash/credit split columns.
+   - Update the related detail row (percent, extra amount, finalPrice).
+   - Update master.totalFinalAmount as the sum of finalPrice of the active
+     (non-CANCELED) details only.
+   - Do not touch details whose proformaReversalStatus is CANCELED.
+   - End with COMMIT, and add comments showing the source JSON values and
+     the arithmetic.
+
+JSON response:
+<paste the full JSON here>

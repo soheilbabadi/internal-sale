@@ -1,0 +1,220 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<databaseChangeLog-->
+<!--        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+<!--        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"-->
+<!--        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-->
+<!--        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">-->
+
+<!--    <changeSet id="1756101926463-79" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_CUSTOMER_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_customer_aud"-->
+<!--                                 constraintName="FK_T_INS_CUSTOMER_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-80" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_CUSTOMER_CONTACT_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_customer_contact_aud"-->
+<!--                                 constraintName="FK_T_INS_CUSTOMER_CONTACT_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-81" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_GOODS_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_goods_aud"-->
+<!--                                 constraintName="FK_T_INS_GOODS_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-82" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_GOODS_BUCKET_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_goods_bucket_aud"-->
+<!--                                 constraintName="FK_T_INS_GOODS_BUCKET_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-83" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_ISSUE_PLACE_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_issue_place_aud"-->
+<!--                                 constraintName="FK_T_INS_ISSUE_PLACE_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-84" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_ISSUING_BANKS_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_issuing_banks_aud"-->
+<!--                                 constraintName="FK_T_INS_ISSUING_BANKS_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-85" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_LC_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_lc_aud"-->
+<!--                                 constraintName="FK_T_INS_LC_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-86" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_LOADING_GOODS_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_loading_goods_aud"-->
+<!--                                 constraintName="FK_T_INS_LOADING_GOODS_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-87" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_LOADING_PLACE_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_loading_place_aud"-->
+<!--                                 constraintName="FK_T_INS_LOADING_PLACE_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-88" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_PERFORMA_DETAIL_ON_F_PERFORMA_MASTER"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="f_performa_master_id" baseTableName="t_ins_performa_detail"-->
+<!--                                 constraintName="FK_T_INS_PERFORMA_DETAIL_ON_F_PERFORMA_MASTER"-->
+<!--                                 referencedColumnNames="id" referencedTableName="t_ins_performa_master"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-89" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_PERFORMA_GOOD_ITEM_ON_F_PERFORMA_DETAIL"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="f_performa_detail_id" baseTableName="t_ins_performa_good_item"-->
+<!--                                 constraintName="FK_T_INS_PERFORMA_GOOD_ITEM_ON_F_PERFORMA_DETAIL"-->
+<!--                                 referencedColumnNames="id" referencedTableName="t_ins_performa_detail"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-90" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_PRECIOUS_METAL_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_precious_metal_aud"-->
+<!--                                 constraintName="FK_T_INS_PRECIOUS_METAL_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-91" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_PROCESS_USER_ACCESS_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_process_user_access_aud"-->
+<!--                                 constraintName="FK_T_INS_PROCESS_USER_ACCESS_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+
+<!--    <changeSet id="1756101926463-93" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_SALE_CONDITION_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_sale_condition_aud"-->
+<!--                                 constraintName="FK_T_INS_SALE_CONDITION_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-94" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_TAX_VAT_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_tax_vat_aud"-->
+<!--                                 constraintName="FK_T_INS_TAX_VAT_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="1756101926463-95" author="soheil">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_TRADING_BANK_AUD_ON_REV"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_trading_bank_aud"-->
+<!--                                 constraintName="FK_T_INS_TRADING_BANK_AUD_ON_REV" referencedColumnNames="rev"-->
+<!--                                 referencedTableName="revinfo"/>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="create-index-idx-branch-code" author="soheil babadi">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <indexExists indexName="idx_branch_code"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <createIndex indexName="idx_branch_code"-->
+<!--                     tableName="t_ins_issuing_banks">-->
+<!--            <column name="c_branch_code"/>-->
+<!--        </createIndex>-->
+<!--    </changeSet>-->
+
+<!--    <changeSet id="create_FK_T_INS_REMITTANCE_GOOD_ITEM_ON_F_REMIITANCE" author="soheil babadi">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_REMITTANCE_GOOD_ITEM_ON_F_REMIITANCE"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <addForeignKeyConstraint-->
+<!--                baseTableName="T_INS_REMITTANCE_GOOD_ITEM"-->
+<!--                baseColumnNames="F_REMITTANCE_ID"-->
+<!--                constraintName="FK_T_INS_REMITTANCE_GOOD_ITEM_ON_F_REMIITANCE"-->
+<!--                referencedTableName="T_INS_PERFORMA_DETAIL"-->
+<!--                referencedColumnNames="ID"/>-->
+<!--    </changeSet>-->
+
+<!--    <changeSet id="create_idx_performa_master_comp" author="soheil babadi">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <indexExists indexName="idx_performa_master_comp" tableName="T_INS_PERFORMA_MASTER"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <createIndex indexName="idx_performa_master_comp" tableName="T_INS_PERFORMA_MASTER">-->
+<!--            <column name="C_PROFORMA_ISSUE_TYPE"/>-->
+<!--            <column name="C_WORKFLOW_APPROVE_STATUS"/>-->
+<!--            <column name="C_PAYMENT_CODE"/>-->
+<!--            <column name="ID"/>-->
+<!--        </createIndex>-->
+<!--    </changeSet>-->
+<!--    <changeSet id="create_idx_performa_detail_fk" author="soheil babadi">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <not>-->
+<!--                <indexExists indexName="idx_performa_detail_fk" tableName="T_INS_PERFORMA_DETAIL"/>-->
+<!--            </not>-->
+<!--        </preConditions>-->
+<!--        <createIndex indexName="idx_performa_detail_fk" tableName="T_INS_PERFORMA_DETAIL">-->
+<!--            <column name="F_PERFORMA_MASTER_ID"/>-->
+<!--            <column name="ID"/>-->
+<!--        </createIndex>-->
+<!--    </changeSet>-->
+
+<!--</databaseChangeLog>-->

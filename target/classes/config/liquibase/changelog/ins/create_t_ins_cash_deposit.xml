@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="create-seq-ins-cashdeposit" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="SEQ_INS_CASHDEPOSIT"/>
+            </not>
+        </preConditions>
+        <createSequence
+                sequenceName="SEQ_INS_CASHDEPOSIT"
+                startValue="1"
+                incrementBy="1"/>
+    </changeSet>
+
+    <changeSet id="create-t-ins-cash-deposit" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_CASH_DEPOSIT"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_CASH_DEPOSIT">
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="C_NOSA_CODE" type="VARCHAR2(50)"/>
+            <column name="D_ISSUE_DATE" type="DATETIME"/>
+            <column name="F_PROFORMA_DETAIL_ID" type="NUMBER(38,0)"/>
+            <column name="F_PERFORMA_MASTER_ID" type="NUMBER(38,0)"/>
+            <column name="N_CONTRACT_NO" type="NUMBER(38,0)"/>
+            <column name="F_TRADE_ID" type="NUMBER(38,0)"/>
+            <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)"/>
+            <column name="IS_RECKONING_SEND" type="NUMBER(1)" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="D_RECKONING_SEND_DATE" type="DATETIME"/>
+            <column name="N_DEPOSIT_SLIP_WITH_TAX" type="DECIMAL" defaultValue="0"/>
+            <column name="N_DEPOSIT_SLIP_WITHOUT_TAX" type="DECIMAL" defaultValue="0"/>
+            <column name="C_DEPOSIT_SLIP_TYPE" type="VARCHAR2(20)"/>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-t-ins-cash-deposit-aud" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="T_INS_CASH_DEPOSIT_AUD"/>
+            </not>
+        </preConditions>
+        <createTable tableName="T_INS_CASH_DEPOSIT_AUD">
+            <column name="REV" type="NUMBER(38,0)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="REVTYPE" type="SMALLINT"/>
+            <column name="ID" type="NUMBER(38,0)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="C_NOSA_CODE" type="VARCHAR2(50)"/>
+            <column name="D_ISSUE_DATE" type="DATETIME"/>
+            <column name="F_PROFORMA_DETAIL_ID" type="NUMBER(38,0)"/>
+            <column name="F_PERFORMA_MASTER_ID" type="NUMBER(38,0)"/>
+            <column name="N_CONTRACT_NO" type="NUMBER(38,0)"/>
+            <column name="F_TRADE_ID" type="NUMBER(38,0)"/>
+            <column name="C_ACKNOWLEDGMENT" type="VARCHAR2(50)"/>
+            <column name="IS_RECKONING_SEND" type="NUMBER(1)"/>
+            <column name="D_RECKONING_SEND_DATE" type="DATETIME"/>
+            <column name="N_DEPOSIT_SLIP_WITH_TAX" type="DECIMAL"/>
+            <column name="N_DEPOSIT_SLIP_WITHOUT_TAX" type="DECIMAL"/>
+            <column name="C_DEPOSIT_SLIP_TYPE" type="VARCHAR2(20)"/>
+            <column name="d_created_date" type="DATETIME"/>
+            <column name="d_last_modified_date" type="DATETIME"/>
+            <column name="c_created_by" type="VARCHAR2(250)"/>
+            <column name="c_last_modified_by" type="VARCHAR2(250)"/>
+            <column name="c_comment" type="VARCHAR2(4000)"/>
+            <column name="c_description" type="VARCHAR2(4000)"/>
+            <column name="n_version" type="INT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20261018-04-t-ins-cash-deposit-aud-fk" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_T_INS_CASH_DEPOSIT_AUD_ON_REV"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint baseColumnNames="rev" baseTableName="t_ins_cash_deposit_aud"
+                                 constraintName="FK_T_INS_CASH_DEPOSIT_AUD_ON_REV" referencedColumnNames="rev"
+                                 referencedTableName="revinfo"/>
+    </changeSet>
+
+</databaseChangeLog>

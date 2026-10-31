@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20261028-01-add-deposit-slip-with-tax-to-performa-master" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="T_INS_PERFORMA_MASTER" columnName="N_DEPOSIT_SLIP_WITH_TAX"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="T_INS_PERFORMA_MASTER">
+            <column name="N_DEPOSIT_SLIP_WITH_TAX" type="DECIMAL" defaultValue="0"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20261028-02-add-deposit-slip-without-tax-to-performa-master" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="T_INS_PERFORMA_MASTER" columnName="N_DEPOSIT_SLIP_WITHOUT_TAX"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="T_INS_PERFORMA_MASTER">
+            <column name="N_DEPOSIT_SLIP_WITHOUT_TAX" type="DECIMAL" defaultValue="0"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20261028-03-add-deposit-slip-type-to-performa-master" author="soheil babadi">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="T_INS_PERFORMA_MASTER" columnName="C_DEPOSIT_SLIP_TYPE"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="T_INS_PERFORMA_MASTER">
+            <column name="C_DEPOSIT_SLIP_TYPE" type="VARCHAR2(20)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
