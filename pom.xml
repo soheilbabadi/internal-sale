@@ -5,12 +5,13 @@
     <parent>
         <groupId>com.nicico.copper</groupId>
         <artifactId>copper-starter-parent</artifactId>
-        <version>5.0.6</version>
+<!--        <version>5.0.6</version>-->
+    <version>5.1.1</version>
         <relativePath/>
     </parent>
     <groupId>com.nicico.internal</groupId>
     <artifactId>sales</artifactId>
-    <version>2.6</version>
+    <version>5.0.5</version>
     <name>sales</name>
     <description>NICICO Internal sales</description>
     <developers>
@@ -102,6 +103,11 @@
             <version>3.6.9</version>
         </dependency>
         <dependency>
+            <groupId>com.fgostar.fms</groupId>
+            <artifactId>fms-sdk</artifactId>
+            <version>dev</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -178,8 +184,6 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
-
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
