@@ -17,9 +17,11 @@ Root: `com.nicico.internal.sales`. Feature-first modules (~32: proforma, wf, lc,
 - `skills/generate-dto/SKILL.md` — triggers: "generate DTO", "create dto", "dto and mapper for". Produces `<module>.dto.XyzDto` (+ nested Create/Info) and a MapStruct `XyzMapper`.
 - `skills/generate-service/SKILL.md` — triggers: "generate service", "service for entity", "repository and service". Produces repository (if missing) + service interface + impl. No controller.
 - `skills/generate-liquibase/SKILL.md` — triggers: "generate liquibase", "create changeset", "schema change". Writes a changeset under `config/liquibase/changelog/ins/` and appends its include to `master.xml`. Never runs Liquibase.
+- `.claude/skills/generate-endpoint/SKILL.md` — triggers: "add an endpoint for X", "expose X via API", "write a controller for X", "create a REST API for X". Produces controller methods/classes only (`/api/v1/ins/...`, `ResponseEntity`, per-method `@PreAuthorize`, Swagger v3 `@Operation`). Stops if service/DTOs are missing.
 
 ## Recommended workflow for a new feature
 1. generate-dto (entity → DTOs + mapper)
 2. generate-service (repository if missing + service interface + impl)
-3. generate-liquibase (only if schema changes; include `_AUD` table for @Audited entities)
-4. Controller wiring done manually (out of skill scope), then build — Sonar quality gate is enforced and will fail the build on violations.
+3. generate-endpoint (controller methods on top of the existing service)
+4. generate-liquibase (only if schema changes; include `_AUD` table for @Audited entities)
+Then build — Sonar quality gate is enforced (`sonar.qualitygate.wait=true`) and will fail the build on violations.
