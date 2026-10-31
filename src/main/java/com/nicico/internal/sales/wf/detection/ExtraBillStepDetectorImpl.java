@@ -23,13 +23,17 @@ public class ExtraBillStepDetectorImpl implements ExtraBillStepDetector {
 	private static final String APPROVED_KEY = "approved";
 	private final ProcessHistoryService processHistoryService;
 	private final ExtraBillRepository extraBillRepository;
+
 	@Override
 	public void updateAllAcknowledgments() {
-		List<ExtraBankBillModel> all = extraBillRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+		List<ExtraBankBillModel> all = extraBillRepository.findAll();
 		for (ExtraBankBillModel item : all) {
+			if (item.getAcknowledgment() == Acknowledgment.CANCELED || item.getAcknowledgment() == Acknowledgment.FINISHED)
+				return;
 			updateStep(item);
 		}
 	}
+
 	@Override
 	public Acknowledgment detectStep(ExtraBankBillModel extraBankBillModel) {
 		if (extraBankBillModel == null) {
@@ -86,10 +90,11 @@ public class ExtraBillStepDetectorImpl implements ExtraBillStepDetector {
 
 	@Override
 	public Acknowledgment updateStep(ExtraBankBillModel extraBankBillModel) {
-		Acknowledgment acknowledgment=  detectStep(extraBankBillModel);
+		Acknowledgment acknowledgment = detectStep(extraBankBillModel);
+		if (extraBankBillModel.getAcknowledgment() == acknowledgment) return acknowledgment;
 		extraBankBillModel.setAcknowledgment(acknowledgment);
 		extraBillRepository.saveAndFlush(extraBankBillModel);
-		return  acknowledgment;
+		return acknowledgment;
 	}
 
 	private Acknowledgment resolveCurrentAcknowledgment(ExtraBillProcessVariable step) {

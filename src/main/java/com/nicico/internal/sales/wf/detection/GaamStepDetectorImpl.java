@@ -27,6 +27,7 @@ public class GaamStepDetectorImpl implements GaamStepDetector {
 	@Override
 	public Acknowledgment updateStep(GaamModel gaamModel) {
 		Acknowledgment acknowledgment = detectStep(gaamModel);
+		if (gaamModel.getAcknowledgment() == acknowledgment) return acknowledgment;
 		gaamModel.setAcknowledgment(acknowledgment);
 		gaamRepository.saveAndFlush(gaamModel);
 		return acknowledgment;
@@ -34,10 +35,12 @@ public class GaamStepDetectorImpl implements GaamStepDetector {
 
 	@Override
 	public void updateAllAcknowledgments() {
-		List<GaamModel> gaamModels = gaamRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+		List<GaamModel> gaamModels = gaamRepository.findAll();
 
-		for (GaamModel gaamModel : gaamModels) {
-			updateStep(gaamModel);
+		for (GaamModel item : gaamModels) {
+			if (item.getAcknowledgment() == Acknowledgment.CANCELED || item.getAcknowledgment() == Acknowledgment.FINISHED)
+				return;
+			updateStep(item);
 		}
 	}
 

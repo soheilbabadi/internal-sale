@@ -74,7 +74,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		    AND tigb.rn = 1
 		    AND TRUNC(tigb.D_START_DATE) <= TRUNC(TO_DATE(tit.CONTRACT_DATE, 'YYYY/MM/DD', 'NLS_CALENDAR=PERSIAN'))
 		         LEFT JOIN T_INS_TAX_VAT titv ON SUBSTR(tit.CONTRACT_DATE, 1, 4) = titv.JALALI_YEAR
-		         LEFT JOIN TBL_IME_SETTLEMENT s ON s.PAYMENT_CODE = tit.PAYMENT_CODE
+		         LEFT JOIN TBL_IME_SETTLEMENT s ON s.PAYMENT_CODE = tit.PAYMENT_CODE AND s.SETTLEMENT_TYPE NOT IN ('نقدی', 'انفساخ')
 		         LEFT JOIN (
 		    SELECT x.*
 		    FROM (
@@ -88,6 +88,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		         LEFT JOIN TBL_IME_PS_OFFERS tio ON tit.OFFER_CODE = tio.ID
 		WHERE tit.CONTRACT_DATE > '1405/04/01'
 		  AND tit.CURRENCY_CODE = 1
+		  
 		  AND tig.SYMBOL != 'SUACB'
 		  AND NOT EXISTS (
 		    SELECT 1

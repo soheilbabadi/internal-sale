@@ -257,7 +257,7 @@ public class NosaCodeScheduler {
 			int successCount = 0;
 			int failCount = 0;
 
-			for (int page = 0; page < 2; page++) {
+			for (int page = 0; page < totalPages; page++) {
 				Pageable pageable = PageRequest.of(page, effectiveBatchSize);
 				List<CustomerModel> customers = customerRepository.findCustomersReadyForNosaAssignment(pageable);
 				if (customers == null || customers.isEmpty()) {

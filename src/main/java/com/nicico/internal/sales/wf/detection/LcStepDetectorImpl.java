@@ -23,8 +23,10 @@ public class LcStepDetectorImpl implements LcStepDetector {
 
 	@Override
 	public void updateAllAcknowledgments() {
-		List<LcModel> all = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+		List<LcModel> all = lcRepository.findAll();
 		for (LcModel item : all) {
+			if (item.getAcknowledgment() == Acknowledgment.CANCELED || item.getAcknowledgment() == Acknowledgment.FINISHED)
+				return;
 			updateStep(item);
 		}
 	}
@@ -32,6 +34,7 @@ public class LcStepDetectorImpl implements LcStepDetector {
 	@Override
 	public Acknowledgment updateStep(LcModel lcModel) {
 		Acknowledgment acknowledgment = detectStep(lcModel);
+		if (lcModel.getAcknowledgment() == acknowledgment) return acknowledgment;
 		lcModel.setAcknowledgment(acknowledgment);
 		lcRepository.saveAndFlush(lcModel);
 		return acknowledgment;

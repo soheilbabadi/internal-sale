@@ -1,5 +1,6 @@
 package com.nicico.internal.sales.proforma.service;
 
+import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.goods.model.GoodsBucketModel;
 import com.nicico.internal.sales.goods.model.GoodsModel;
@@ -7,7 +8,6 @@ import com.nicico.internal.sales.goods.repository.GoodsRepository;
 import com.nicico.internal.sales.goods.special.repository.PreciousMetalRepository;
 import com.nicico.internal.sales.goods.special.service.OfferTextProcess;
 import com.nicico.internal.sales.ime.trade.IMETradeModel;
-import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.proforma.dto.PreciousMetalDetailGenerator;
 import com.nicico.internal.sales.proforma.dto.PreciousMetalProfomaCreateRequest;
 import com.nicico.internal.sales.proforma.dto.ProformaModelResponse;
@@ -174,6 +174,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 			return false;
 		}
 	}
+
 	/**
 	 * شروع فرآیند برای پیش فاکتور
 	 */
@@ -289,7 +290,9 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		List<String> serial = proformaSerialService.getProformaSerial(1);
 
 		// 1. تولید آیتم های کالا
-		List<ProformaGoodItemModel> goodItems = generateProformaGoodItemList(params);
+
+
+		List<ProformaGoodItemModel> goodItems = List.of(generateProformaGoodItem(params));
 
 		// 2. محاسبه مجموع های Detail
 		DetailTotals detailTotals = calculateDetailTotals(goodItems);
@@ -329,10 +332,6 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 	/**
 	 * تولید GoodItem
 	 */
-	private List<ProformaGoodItemModel> generateProformaGoodItemList(PreciousMetalDetailGenerator params) {
-		ProformaGoodItemModel goodItem = generateProformaGoodItem(params);
-		return List.of(goodItem);
-	}
 
 	/**
 	 * تولید GoodItem تکی
@@ -399,6 +398,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 		return tradeExtractRepository.findById(tradeId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_TRADE_NOT_FOUND_DETAIL));
 	}
+
 	/**
 	 * محاسبه و تنظیم مبلغ اضافی بر اساس نوع پیش فاکتور
 	 */
@@ -435,7 +435,7 @@ public class PreciousMetalServiceImp implements PreciousMetalService {
 
 		// محاسبه تعداد اوراق گام (فقط برای نوع GAM_BONDS)
 		if (issueType == ProformaIssueType.GAM_BONDS) {
-			Long gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000),0, RoundingMode.UP).longValue();
+			Long gamCount = finalPrice.divide(BigDecimal.valueOf(1_000_000), 0, RoundingMode.UP).longValue();
 			detailModel.setGamCertificateCount(gamCount);
 		}
 	}
