@@ -71,26 +71,26 @@ public class RemittanceTaxServiceImpl implements RemittanceTaxService {
 		var goods = goodsRepository.findById(proformaData.getGoodId())
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException("کالا پیدا نشد"));
 		boolean isPreciousMetal = preciousMetalRepository.existsById(goods.getId());
-		int totalQuantity = proformaData.getUnitCount();
+		int unitCount = proformaData.getUnitCount();
 		long cashUnitPrice = proformaData.getUnitPrice().longValue();
 		double cashPercentage = PERCENT_100 - proformaData.getCreditPercentage().doubleValue();
 		var proformaType = proformaData.getProformaIssueType();
 		boolean isCash = isCashSettlement(proformaData);
 		boolean isCashCredit = isCashCreditSettlement(proformaData);
 		if (proformaType == ProformaIssueType.FROM_CREDIT_FACILITIES) {
-			return calculateCreditFacilitiesCashProforma(cashUnitPrice, totalQuantity, cashPercentage, isPreciousMetal, dto);
+			return calculateCreditFacilitiesCashProforma(cashUnitPrice, unitCount, cashPercentage, isPreciousMetal, dto);
 		}
 		if (proformaType == ProformaIssueType.LETTER_OF_CREDIT_OPENING) {
-			return calculateCreditOpeningCashProforma(cashUnitPrice, totalQuantity, cashPercentage, vatPercent);
+			return calculateCreditOpeningCashProforma(cashUnitPrice, unitCount, cashPercentage, vatPercent);
 		}
 		if (proformaType == ProformaIssueType.GAM_BONDS) {
-			return calculateGAAMCashProforma(cashUnitPrice, totalQuantity, cashPercentage, vatPercent);
+			return calculateGAAMCashProforma(cashUnitPrice, unitCount, cashPercentage, vatPercent);
 		}
 		if (proformaType == ProformaIssueType.CASH_DEPOSIT_RECEIPT) {
 			return calculateCashDeposit(proformaData.getProformaDetailId());
 		}
 		if (proformaType == ProformaIssueType.EXTRA_BILL_OF_EXCHANGE) {
-			return calculateExtraBillOfExchange(cashUnitPrice, totalQuantity, cashPercentage, vatPercent);
+			return calculateExtraBillOfExchange(cashUnitPrice, unitCount, cashPercentage, vatPercent);
 		}
 		return 0.0;
 	}

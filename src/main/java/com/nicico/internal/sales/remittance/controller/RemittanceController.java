@@ -1,6 +1,5 @@
 package com.nicico.internal.sales.remittance.controller;
 
-import com.fgostar.fms.sdk.model.FmsFile;
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
@@ -73,12 +72,6 @@ public class RemittanceController {
 		return ResponseEntity.ok(remittanceService.searchFromTrade(searchRq));
 	}
 
-	@PostMapping("/search-sulfuric-acid")
-	public ResponseEntity<?> searchFromSulfuricAcid(@RequestBody(required = false) SearchDTO.SearchRq searchRq, @RequestParam(required = false) MultiValueMap<String, String> criteria) {
-		if (!Arrays.isNullOrEmpty(criteria.keySet().toArray()))
-			searchRq = SearchUtil.createSearchRq(NICICOCriteria.of(criteria));
-		return ResponseEntity.ok(remittanceService.searchFromSulfuricAcid(searchRq));
-	}
 
 
 	@PostMapping("/search-proforma")
@@ -100,7 +93,7 @@ public class RemittanceController {
 
 	@PostMapping("/delivery-deadline")
 	public ResponseEntity<Date> calculateDeliveryDeadlineProforma(@RequestBody RemittanceCreateDto createDto) {
-		if (createDto.getSourceType() == RemittanceSourceType.TRADE || createDto.getSourceType() == RemittanceSourceType.SULFURIC_ACID) {
+		if (createDto.getSourceType() == RemittanceSourceType.TRADE ) {
 			return ResponseEntity.ok(remittanceDataProvider.lastDeliveryDeadlineTrade(createDto));
 		} else {
 			return ResponseEntity.ok(remittanceDataProvider.lastDeliveryDeadlineProforma(createDto));
@@ -113,11 +106,7 @@ public class RemittanceController {
 		return ResponseEntity.ok(fmsDocumentService.getOrCreateRemittancePdf(remittanceId).getContent());
 	}
 
-	@Operation(summary = "خروجی FMS حواله", description = "فایل FMS حواله را پس از تبدیل فایل Word مربوطه برمی گرداند.")
-	@GetMapping("/export-fms/{remittanceId}")
-	public ResponseEntity<FmsFile> exportProformaFms(@PathVariable long remittanceId) {
-		return ResponseEntity.ok(fmsDocumentService.getOrCreateRemittancePdf(remittanceId));
-	}
+
 
 	@GetMapping("/get-by-contract-number/{contractNo}")
 	public ResponseEntity<List<RemittanceMasterDto.Info>> getByContractNo(@PathVariable Long contractNo) {

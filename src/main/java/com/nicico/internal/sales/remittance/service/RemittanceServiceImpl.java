@@ -3,6 +3,7 @@ package com.nicico.internal.sales.remittance.service;
 import com.nicico.bpmsclient.model.flowable.process.ProcessInstanceHistory;
 import com.nicico.bpmsclient.model.flowable.task.UserTaskReportDTO;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
+import com.nicico.copper.common.dto.search.EOperator;
 import com.nicico.copper.common.dto.search.SearchDTO;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.deposit.model.CashDepositModel;
@@ -51,6 +52,7 @@ public class RemittanceServiceImpl implements RemittanceService {
 	private static final String MSG_GAAM_NOT_FOUND = "اوراق گام وجود ندارد";
 	private static final String MSG_EXTRA_BILL_NOT_FOUND = "برات الکترونیک وجود ندارد";
 	private static final Date DEFAULT_DATE = new Date(0);
+	private static final String SULFURIC_ACID_IME_COMMODITY_SYMBOL = "SUACB";
 	private final RemittanceMasterMapper mapper;
 	private final RemittanceSulfuricAcidDataProviderMapper sulfuricAcidMapper;
 	private final RemittanceMasterRepository remittanceMasterRepository;
@@ -73,6 +75,12 @@ public class RemittanceServiceImpl implements RemittanceService {
 	@Override
 	public SearchDTO.SearchRs<RemittanceMasterDto.Info> search(SearchDTO.SearchRq request) {
 		return SearchUtil.search(remittanceMasterRepository, request, mapper::toDTO);
+	}
+
+	@Override
+	public SearchDTO.SearchRs<RemittanceMasterDto.Info> searchSulfuricAcid(SearchDTO.SearchRq request) {
+		return SearchUtil.search(remittanceMasterRepository,
+				withImeCommoditySymbol(request, SULFURIC_ACID_IME_COMMODITY_SYMBOL), mapper::toDTO);
 	}
 
 	@Override
@@ -289,6 +297,23 @@ public class RemittanceServiceImpl implements RemittanceService {
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_EXTRA_BILL_NOT_FOUND));
 
 	}
+	private SearchDTO.SearchRq withImeCommoditySymbol(SearchDTO.SearchRq request, String imeCommoditySymbol) {
+		SearchDTO.SearchRq filteredRequest = request != null ? request : new SearchDTO.SearchRq();
+		SearchDTO.CriteriaRq symbolCriteria = new SearchDTO.CriteriaRq()
+				.setFieldName("imeCommoditySymbol")
+				.setOperator(EOperator.equals)
+				.setValue(imeCommoditySymbol);
+		SearchDTO.CriteriaRq requestCriteria = filteredRequest.getCriteria();
+		if (requestCriteria == null) {
+			filteredRequest.setCriteria(symbolCriteria);
+		} else {
+			filteredRequest.setCriteria(new SearchDTO.CriteriaRq()
+					.setOperator(EOperator.and)
+					.setCriteria(List.of(requestCriteria, symbolCriteria)));
+		}
+		return filteredRequest;
+	}
+
 	private RemittanceMasterModel findRemittanceById(Long remittanceId) {
 		return remittanceMasterRepository.findById(remittanceId)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(MSG_REMITTANCE_NOT_FOUND));

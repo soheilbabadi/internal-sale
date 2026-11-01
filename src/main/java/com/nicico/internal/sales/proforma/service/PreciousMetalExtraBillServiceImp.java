@@ -59,7 +59,6 @@ public class PreciousMetalExtraBillServiceImp implements PreciousMetalExtraBillS
 	private final ProformaValidationService proformaValidationService;
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final ProformaGoodItemRepository proformaGoodItemRepository;
-	private final GoodsRepository goodsRepository;
 	private final TradeExtractRepository tradeExtractRepository;
 	private final PreciousMetalRepository preciousMetalRepository;
 	private final ProcessVariableProvider processVariableProvider;

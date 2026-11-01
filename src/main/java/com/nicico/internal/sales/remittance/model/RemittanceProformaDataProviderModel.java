@@ -47,7 +47,7 @@ SELECT DISTINCT
     buyerBroker.PERSIAN_NAME                                    AS C_BUYER_BROKER_NAME,
     tit.SELLER_BROKER_CODE                                      AS N_SELLER_BROKER_ID,
     sellerBroker.PERSIAN_NAME                                   AS C_SELLER_BROKER_NAME,
-    CASE WHEN tipgi.N_NET_QUANTITY > 0 THEN tipgi.N_NET_QUANTITY ELSE tipm.N_TOTAL_QUANTITY END                                            AS N_UNIT_COUNT,
+    tit.UNIT_COUNT AS N_UNIT_COUNT,
     tipgi.N_UNIT_PRICE_CASH                                     AS N_UNIT_PRICE,
     tipm.N_CASH_PERCENTAGE,
     100 - tipm.N_CASH_PERCENTAGE                                AS N_CREDIT_PERCENTAGE,
@@ -123,7 +123,7 @@ SELECT DISTINCT
     buyerBroker.PERSIAN_NAME                                    AS C_BUYER_BROKER_NAME,
     tit.SELLER_BROKER_CODE                                      AS N_SELLER_BROKER_ID,
     sellerBroker.PERSIAN_NAME                                   AS C_SELLER_BROKER_NAME,
-    CASE WHEN tipgi.N_NET_QUANTITY > 0 THEN tipgi.N_NET_QUANTITY ELSE tipm.N_TOTAL_QUANTITY END                                            AS N_UNIT_COUNT,
+    tit.UNIT_COUNT AS N_UNIT_COUNT,
     tipgi.N_UNIT_PRICE_CASH                                     AS N_UNIT_PRICE,
     tipm.N_CASH_PERCENTAGE,
     100 - tipm.N_CASH_PERCENTAGE                                AS N_CREDIT_PERCENTAGE,
@@ -200,7 +200,7 @@ SELECT DISTINCT
     buyerBroker.PERSIAN_NAME                                    AS C_BUYER_BROKER_NAME,
     tit.SELLER_BROKER_CODE                                      AS N_SELLER_BROKER_ID,
     sellerBroker.PERSIAN_NAME                                   AS C_SELLER_BROKER_NAME,
-    CASE WHEN tipgi.N_NET_QUANTITY > 0 THEN tipgi.N_NET_QUANTITY ELSE tipm.N_TOTAL_QUANTITY END                                            AS N_UNIT_COUNT,
+    tit.UNIT_COUNT AS N_UNIT_COUNT,
     tipgi.N_UNIT_PRICE_CASH                                     AS N_UNIT_PRICE,
     tipm.N_CASH_PERCENTAGE,
     100 - tipm.N_CASH_PERCENTAGE                                AS N_CREDIT_PERCENTAGE,
@@ -277,7 +277,8 @@ SELECT DISTINCT
     buyerBroker.PERSIAN_NAME                                    AS C_BUYER_BROKER_NAME,
     tit.SELLER_BROKER_CODE                                      AS N_SELLER_BROKER_ID,
     sellerBroker.PERSIAN_NAME                                   AS C_SELLER_BROKER_NAME,
-    CASE WHEN tipgi.N_NET_QUANTITY > 0 THEN tipgi.N_NET_QUANTITY ELSE tipm.N_TOTAL_QUANTITY END AS N_UNIT_COUNT,
+    
+    tit.UNIT_COUNT AS N_UNIT_COUNT,
     tipgi.N_UNIT_PRICE_CASH                                     AS N_UNIT_PRICE,
     tipm.N_CASH_PERCENTAGE,
     100 - tipm.N_CASH_PERCENTAGE                                AS N_CREDIT_PERCENTAGE,
@@ -382,8 +383,12 @@ public class RemittanceProformaDataProviderModel implements Serializable {
 	@Column(name = "C_SELLER_BROKER_NAME", length = 200)
 	private String sellerBrokerName;
 
+
+	@Schema(name = "unitCount", description = "مقدار قرارداد", example = "100")
 	@Column(name = "N_UNIT_COUNT")
 	private Integer unitCount;
+
+
 
 	@Column(name = "N_UNIT_PRICE")
 	private Double unitPrice;

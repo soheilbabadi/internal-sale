@@ -1,6 +1,5 @@
 package com.nicico.internal.sales.pms.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nicico.copper.core.SecurityUtil;
 import com.nicico.internal.sales.bank.model.IssuingBankModel;
 import com.nicico.internal.sales.bank.model.TradingBankModel;
@@ -30,6 +29,7 @@ import com.nicico.internal.sales.util.date.DateUtility;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -43,6 +43,7 @@ import java.util.Optional;
 @Slf4j
 public class PMSLcServiceImpl implements PMSLcService {
 	private static final String CONFIG_NOT_FOUND_MESSAGE = "تنظیمات پیکربندی وجود ندارد";
+	private static final int OPTIMISTIC_LOCK_RETRY_COUNT = 3;
 	private final LcRepository lcRepository;
 	private final LcMapper lcMapper;
 	private final GoodsService goodsService;
@@ -53,7 +54,6 @@ public class PMSLcServiceImpl implements PMSLcService {
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final PMSProperties pmsProperties;
 	private final RabbitTemplate rabbitTemplate;
-	private final ObjectMapper objectMapper;
 	private final RabbitConfigPMSProperties rabbitConfigPMSProperties;
 	private final ExportNotificationConfigRepository exportNotificationConfigRepository;
 	private final ProformaGoodItemRepository proformaGoodItemRepository;
@@ -63,7 +63,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 		if (Objects.nonNull(goodItem.getNetQuantity()) && goodItem.getNetQuantity().longValue() > 0) {
 			return goodItem.getNetQuantity();
 		}
-		if (goodItem.getProformaDetailModel().getSettlementType() != null && !goodItem.getProformaDetailModel().getSettlementType().equals(SettlementType.CASH) &&
+		if (goodItem.getProformaDetailModel().getSettlementType() != null && !goodItem.getProformaDetailModel().getSettlementType().equals(SettlementType.CASH.getValue()) &&
 				Objects.nonNull(goodItem.getCreditQuantity()) && goodItem.getCreditQuantity().longValue() > 0) {
 			return goodItem.getCreditQuantity();
 		}
@@ -73,30 +73,25 @@ public class PMSLcServiceImpl implements PMSLcService {
 	@Override
 	public void createPMSLc(Long proformaMasterId, String username, boolean resend) {
 
-//		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.LETTER_OF_CREDIT)
-//				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
-//		log.info(exportConfig.toString());
-//		if (exportConfig.getSendPms() == false) return;
-
 
 		List<LcModel> lcList = lcRepository.findByMasterId(proformaMasterId);
 		if (lcList.isEmpty()) {
 			return;
 		}
 
-		lcList.forEach(lc -> {
+		for (LcModel lc : lcList) {
 			if (!resend && Objects.nonNull(lc.getPmsLcId())) {
-				log.info("LC id {} already sent to PMS with pms lc id {}, skipping resend",
-						lc.getId(), lc.getPmsLcId());
-				return;
+				log.info("LC id {} already sent to PMS with pms lc id {}, skipping resend during bulk create for proforma master id {}",
+						lc.getId(), lc.getPmsLcId(), proformaMasterId);
+				continue;
 			}
 			try {
 				sendLcModelToPMS(lc, username);
 			} catch (Exception e) {
-				log.error(e.getMessage());
-				return;
+				log.error("Error sending LC id {} to PMS: {}", lc.getId(), e.getMessage());
+
 			}
-		});
+		}
 	}
 
 	@Override
@@ -104,8 +99,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 		var lcModel = lcRepository.findById(lcID)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		if (!resend && Objects.nonNull(lcModel.getPmsLcId())) {
-			log.info("LC id {} already sent to PMS with pms lc id {}, skipping resend",
-					lcModel.getId(), lcModel.getPmsLcId());
+			log.info("LC id {} already sent to PMS with pms lc id {}, skipping resend during single LC send for lc id {}", lcModel.getId(), lcModel.getPmsLcId(), lcID);
 			return;
 		}
 		sendLcModelToPMS(lcModel, SecurityUtil.getUsername());
@@ -122,9 +116,8 @@ public class PMSLcServiceImpl implements PMSLcService {
 
 		PMSLcDTO.Create o = buildPmsLcCreateDto(model, username);
 		ProformaGoodItemModel proformaGoodItemModel = getPerformaGoodItemModel(model);
-		log.info("User {} -  {} - {} asked for send lc to pms for lc id  : {}  ind proforma good item id: {}",
+		log.info("User {} - {} asked for send lc to pms for lc id : {} and proforma good item id: {}",
 				SecurityUtil.getUsername(),
-				SecurityUtil.getNationalCode(),
 				SecurityUtil.getFullName(),
 				model.getId(),
 				proformaGoodItemModel.getId()
@@ -138,13 +131,11 @@ public class PMSLcServiceImpl implements PMSLcService {
 //        PMSLcDTO.Info info = httpClient.post(pmsProperties.getLc().getUrl(), o, PMSLcDTO.Info.class);
 //        model.setPmsLcId(info.getId());
 //        repository.save(model);
-		log.info("User {} -  {} - {} asked for send lc to pms for lc id  : {}  ind proforma good item id: {} ",
+		log.info("User {} - {} sent lc to pms for lc id : {} and proforma good item id: {}",
 				SecurityUtil.getUsername(),
-				SecurityUtil.getNationalCode(),
 				SecurityUtil.getFullName(),
 				model.getId(),
 				proformaGoodItemModel.getId()
-
 		);
 
 
@@ -187,9 +178,8 @@ public class PMSLcServiceImpl implements PMSLcService {
 						model.getId(), o, rabbitConfigPMSProperties.getQueues().getLc().getUpdateResponseRoutingKey()
 				)
 		);
-		log.info("User {} -  {} - {} asked for update lc in pms for pms lc id: {} lc id: {}",
+		log.info("User {} - {} asked for update lc in pms for pms lc id: {} lc id: {}",
 				SecurityUtil.getUsername(),
-				SecurityUtil.getNationalCode(),
 				SecurityUtil.getFullName(),
 				model.getPmsLcId(),
 				model.getId()
@@ -198,14 +188,29 @@ public class PMSLcServiceImpl implements PMSLcService {
 
 	@Override
 	public void savePmsId(Long lcId, String pmsLcId) {
-		Optional<LcModel> detail = lcRepository.findById(lcId);
-		if (detail.isPresent()) {
-			LcModel lc = detail.get();
-			lc.setPmsLcId(pmsLcId);
-			lcRepository.save(lc);
-			log.info("PMS LC id {} saved for LC id {}", pmsLcId, lcId);
-		} else {
-			log.error("Could not find LC detail for id {}", lcId);
+		for (int attempt = 1; ; attempt++) {
+			try {
+				Optional<LcModel> detail = lcRepository.findById(lcId);
+				if (detail.isEmpty()) {
+					log.error("Could not find LC detail for id {}", lcId);
+					return;
+				}
+				LcModel lc = detail.get();
+				if (Objects.equals(lc.getPmsLcId(), pmsLcId)) {
+					log.info("PMS LC id {} already saved for LC id {}, skipping", pmsLcId, lcId);
+					return;
+				}
+				lc.setPmsLcId(pmsLcId);
+				lcRepository.saveAndFlush(lc);
+				log.info("PMS LC id {} saved for LC id {}", pmsLcId, lcId);
+				return;
+			} catch (ObjectOptimisticLockingFailureException e) {
+				if (attempt >= OPTIMISTIC_LOCK_RETRY_COUNT) {
+					log.error("Failed to save PMS LC id {} for LC id {} after {} attempts due to concurrent modification", pmsLcId, lcId, attempt, e);
+					throw e;
+				}
+				log.warn("Optimistic lock conflict while saving PMS LC id {} for LC id {}, retrying (attempt {}/{})", pmsLcId, lcId, attempt, OPTIMISTIC_LOCK_RETRY_COUNT, e);
+			}
 		}
 	}
 

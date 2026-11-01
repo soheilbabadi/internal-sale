@@ -132,7 +132,9 @@
         "R_INS_VAT",
         "R_INS_LOADING_PLACE",
         "C_INS_SEND_NOTIFICATION",
-        "R_INS_NOTIFICATION"
+        "R_INS_NOTIFICATION",
+        "C_INS_REMITTANCE_SULFURIC_ACID",
+        "R_INS_REMITTANCE_SULFURIC_ACID"
       ]
     },
     {
@@ -208,7 +210,9 @@
         "C_INS_GAAM",
         "D_INS_GAAM",
         "R_INS_NOTIFICATION",
-        "C_INS_NOTIFICATION"
+        "C_INS_NOTIFICATION",
+        "C_INS_REMITTANCE_SULFURIC_ACID",
+        "R_INS_REMITTANCE_SULFURIC_ACID"
       ]
     },
     {
@@ -238,7 +242,8 @@
         "R_INS_BILL",
         "R_INS_LOADING_PLACE",
         "D_INS_EXTRA_BILL",
-        "R_INS_NOTIFICATION"
+        "R_INS_NOTIFICATION",
+        "R_INS_REMITTANCE_SULFURIC_ACID"
       ]
     },
     {

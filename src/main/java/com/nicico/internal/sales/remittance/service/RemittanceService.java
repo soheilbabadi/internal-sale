@@ -10,6 +10,7 @@ import java.util.Map;
 
 public interface RemittanceService {
 	SearchDTO.SearchRs<RemittanceMasterDto.Info> search(SearchDTO.SearchRq request);
+	SearchDTO.SearchRs<RemittanceMasterDto.Info> searchSulfuricAcid(SearchDTO.SearchRq request);
 
 	RemittanceMasterDto.Info createFromTrade(RemittanceCreateDto request);
 

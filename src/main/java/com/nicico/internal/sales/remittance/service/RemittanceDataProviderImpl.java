@@ -86,6 +86,7 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 	private final IMETradeRepository imeTradeRepository;
 	private final OfferTextRepository offerTextRepository;
 
+
 	@Override
 	public RemittanceMasterModel getRemittanceFromProforma(RemittanceCreateDto request) {
 		RemittanceProformaDataProviderModel proformaData = remittanceProformaDataProviderRepository.findFirstByIdOrderByIdDesc(request.getTradeId())
@@ -96,6 +97,10 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		ProformaMasterModel proformaMaster = proformaMasterRepository.findById(proformaData.getProformaMasterId())
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(ERROR_PROFORMA_NOT_FOUND));
 		Long tradeId = request.getTradeId();
+
+
+		RemittanceTradeDataProviderModel trade=getTradeById(request);
+
 		ProformaDetailModel proformaDetail = proformaMaster.getProformaDetailModelLists().stream()
 				.filter(detail -> detail.getId() == tradeId)
 				.findFirst()
@@ -105,7 +110,7 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		masterModel.setValidityDate(calculateValidityDate(request, true));
 		BeanUtils.copyProperties(proformaData, masterModel);
 
-		BigDecimal quantity = goodItem.getQuantity();
+		BigDecimal quantity = masterModel.getTotalQuantity();
 		BigDecimal creditQuantity = goodItem.getCreditQuantity() != null ? goodItem.getCreditQuantity() : ZERO;
 		GoodsBucketModel goodBucket = goodBucketService.findByPaymentCodeModel(proformaData.getPaymentCode());
 
@@ -142,7 +147,7 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		masterModel.setCustomerName(proformaMaster.getCustomerName());
 		masterModel.setEconomicCode(proformaMaster.getEconomicCode());
 		masterModel.setNationalCode(proformaMaster.getNationalCode());
-		masterModel.setPaymentCode(proformaMaster.getPaymentCode());
+		masterModel.setPaymentCode(trade.getPaymentCode());
 		masterModel.setPackingId(goodBucket.getPackingId());
 		masterModel.setPackingName(goodBucket.getPackingName());
 		masterModel.setGoodId(goodBucket.getGoodId());
@@ -174,7 +179,7 @@ public class RemittanceDataProviderImpl implements RemittanceDataProvider {
 		masterModel.setTotalQuantity(proformaMaster.getTotalQuantity());
 		masterModel.setTotalFinalAmount(proformaMaster.getTotalFinalAmount());
 		masterModel.setOfferDescription(proformaMaster.getOfferDescription());
-		masterModel.setImeCommoditySymbol(proformaMaster.getImeCommoditySymbol());
+		masterModel.setImeCommoditySymbol(trade.getImeCommoditySymbol());
 		masterModel.setLotNumber(proformaData.getLotNumber());
 		GoodItemInput goodItemInput = new GoodItemInput(
 				proformaData.getGoodId(),

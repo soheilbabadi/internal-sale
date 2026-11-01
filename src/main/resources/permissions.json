@@ -203,6 +203,14 @@
     {
       "code": "D_INS_GAAM",
       "title": "حذف آیتم اوراق گام"
+    },
+    {
+      "code": "R_INS_REMITTANCE_SULFURIC_ACID",
+      "title": "خواندن اطلاعات حواله اسید سولفوریک"
+    },
+    {
+      "code": "C_INS_REMITTANCE_SULFURIC_ACID",
+      "title": "ایجاد حواله اسید سولفوریک"
     }
   ]
 }

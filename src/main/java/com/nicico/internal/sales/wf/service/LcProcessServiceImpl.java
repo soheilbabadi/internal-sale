@@ -25,6 +25,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -36,6 +37,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 	private static final String REVERSAL_PROCESS_ID_DEFAULT = "-";
 	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور پیدا نشد";
 	private static final String MSG_ACCESS_DENIED_START_LC = "شما اجازه شروع فرایند اعتبار اسنادی را ندارید";
+	private static final int OPTIMISTIC_LOCK_RETRY_COUNT = 3;
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
@@ -48,17 +50,15 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 	@Override
 	public ProcessInstance startLcProcess(Long masterId) {
+		refreshStatus();
 		if (!canStartProcess()) {
 			throw new InternalSaleCustomException.AccessDeniedException(MSG_ACCESS_DENIED_START_LC);
 		}
 
-		refreshStatus();
 		lcValidationService.validateStart(masterId);
 		ProformaMasterModel masterModel = proformaMasterRepository.findById(masterId)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(MSG_PROFORMA_NOT_FOUND));
-
 		List<ProformaDetailModel> details = proformaDetailRepository.findAllByProformaMasterId(masterId);
-
 		StartProcessWithDataDTO startProcessDto = new StartProcessWithDataDTO();
 		startProcessDto.setProcessDefinitionKey(processVariableProvider.getLcWorkflowByTitle().getDefinitionKey());
 		startProcessDto.setVariables(processVariableProvider.createLCRequestVariables(processVariableProvider.buildProformaVariablesInput(masterModel)));
@@ -86,6 +86,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 			throw bpmsException(ex);
 		}
 	}
+
 	@Override
 	public void approveTask(TaskActionDto taskActionDto) {
 		reviewTask(taskActionDto, true);
@@ -96,15 +97,6 @@ public class LcProcessServiceImpl implements LcProcessService {
 		reviewTask(taskActionDto, false);
 	}
 
-	/**
-	 * NOTE ON BEHAVIOR CHANGE vs. the original:
-	 * `lcList` used to be loaded BEFORE the BPMS call and reused for the save afterwards.
-	 * If the BPMS call causes those same rows to be updated in another transaction
-	 * (e.g. a synchronous listener), the entities we hold go stale and
-	 * saveAllAndFlush() throws StaleObjectStateException/ObjectOptimisticLockingFailureException.
-	 * Fix: re-fetch lcList AFTER the BPMS call, immediately before mutating/saving it,
-	 * so we always work off the latest committed version.
-	 */
 	private void reviewTask(TaskActionDto dto, boolean approve) {
 
 		dto.setApprove(approve);
@@ -113,150 +105,115 @@ public class LcProcessServiceImpl implements LcProcessService {
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
 		} catch (Exception ex) {
-			// Only a genuine BPMS call failure gets reported as a BPMS connection error.
 			throw bpmsException(ex);
 		}
-
-		// Fetch fresh, post-callback state - avoids acting on a stale version.
 		List<LcModel> lcList = lcRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
-
 		try {
 			if (!approve) {
 				for (LcModel lc : lcList) {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-					lc.setAcknowledgment(Acknowledgment.CANCELED);
+					saveLcRetryOnOptimisticLock(lc.getId(), model -> {
+						model.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+						model.setAcknowledgment(Acknowledgment.CANCELED);
+					});
 				}
-				lcRepository.saveAllAndFlush(lcList);
 				return;
 			}
 
 			if (processVariableProvider.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId())) {
 				for (LcModel lc : lcList) {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					lc.setAcknowledgment(Acknowledgment.FINISHED);
+					saveLcRetryOnOptimisticLock(lc.getId(), model -> {
+						model.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+						model.setAcknowledgment(Acknowledgment.FINISHED);
+					});
 				}
-				lcRepository.saveAllAndFlush(lcList);
-				return;
 			}
 
-			for (LcModel lc : lcList) {
-				if (lc.getPmsLcId() != null) {
-					// Fixed: this branch was previously always overwritten by the
-					// unconditional IN_PROGRESS/determine(...) calls below it and could
-					// never take effect. Now it's a proper else-branch.
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					lc.setAcknowledgment(Acknowledgment.FINISHED);
-				} else {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-					lc.setAcknowledgment(lcStepDetector.detectStep(lc));
-				}
-			}
-			lcRepository.saveAllAndFlush(lcList);
-		} catch (ObjectOptimisticLockingFailureException ex) {
-			// BPMS review already succeeded at this point - don't mask it as a BPMS error.
-			log.error("Optimistic lock conflict while persisting LC status for process {}: {}",
-					reviewTaskRequest.getProcessInstanceId(), ex.getMessage(), ex);
-			throw new InternalSaleCustomException.BpmsClientException(LC_SAVE_ERROR, List.of(ex.getMessage()));
 		} catch (Exception ex) {
-			if (!approve) {
-				// Preserve prior behavior for the reject path: BPMS reject succeeded,
-				// so we log a local persistence failure rather than failing the request.
-				log.error("Error while rejecting LC for process {}: {}", reviewTaskRequest.getProcessInstanceId(), ex.getMessage(), ex);
-				return;
-			}
-			throw bpmsException(ex);
+			log.error("Error while updating LC status for process {}: {}", reviewTaskRequest.getProcessInstanceId(), ex.getMessage(), ex);
 		}
 	}
-	// -------------------------------------------------------------------------
-	// Status refresh
-	// -------------------------------------------------------------------------
 
 	@Override
 	public void refreshStatus() {
 		try {
 			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
 			for (LcModel lc : lcList) {
-				lc.setAcknowledgment(lcStepDetector.detectStep(lc));
+
 				if (lc.getPmsLcId() != null) {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					lc.setAcknowledgment(Acknowledgment.FINISHED);
+					saveLcRetryOnOptimisticLock(lc.getId(), model -> {
+						model.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+						model.setAcknowledgment(Acknowledgment.FINISHED);
+					});
+					continue;
 				}
 				ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(lc.getProcessId());
 				if (status == null) continue;
-
+				Acknowledgment defaultAcknowledgment = lcStepDetector.detectStep(lc);
+				WorkflowApproveStatus targetStatus;
+				Acknowledgment targetAcknowledgment;
 				switch (status.getStatus()) {
 					case ACTIVE:
-						lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-
+						targetStatus = WorkflowApproveStatus.IN_PROGRESS;
+						targetAcknowledgment = defaultAcknowledgment;
 						break;
 
 					case CANCELED:
-						lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+						targetStatus = WorkflowApproveStatus.CANCELED;
+						targetAcknowledgment = Acknowledgment.CANCELED;
 						break;
 
 					case FINISHED:
 						boolean accepted = processVariableProvider.isProcessAcceptedFinally(lc.getProcessId());
 						if (accepted) {
-							lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+							targetStatus = WorkflowApproveStatus.ACCEPTED;
+							targetAcknowledgment = Acknowledgment.FINISHED;
 						} else {
-							lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+							targetStatus = WorkflowApproveStatus.CANCELED;
+							targetAcknowledgment = Acknowledgment.CANCELED;
 						}
 						break;
+
+					default:
+						continue;
 				}
+				final WorkflowApproveStatus finalTargetStatus = targetStatus;
+				final Acknowledgment finalTargetAcknowledgment = targetAcknowledgment;
+				saveLcRetryOnOptimisticLock(lc.getId(), model -> {
+					model.setWorkflowApproveStatus(finalTargetStatus);
+					model.setAcknowledgment(finalTargetAcknowledgment);
+				});
 			}
-			lcRepository.saveAll(lcList);
+
 
 		} catch (Exception ex) {
 			log.error("Error refreshing LC status", ex);
 		}
 	}
 
-//	private Acknowledgment applyCurrentStatus(LcModel lc) {
-//		String processId = lc.getProcessId();
-//		lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-//		return resolveAcknowledgmentFromStep(detectLcStep(processId));
-//	}
 	@Override
 	public boolean canStartProcess() {
 		//return hasAccessForVariable(LcProcessVariable.CreditBridge);
 		return true;
 	}
-//
-//	@Override
-//	public LcProcessVariable detectLcStep(String processInstanceId) {
-//		if (!TextUtility.isValidUUID(processInstanceId)) {
-//			return null;
-//		}
-//		try {
-//			List<TaskInfo> tasks = bpmsClientService.getProcessInstanceTasks(processInstanceId);
-//			if (tasks == null || tasks.isEmpty()) {
-//				return null;
-//			}
-//			String taskName = tasks.get(0).getName();
-//			return Arrays.stream(LcProcessVariable.values())
-//					.filter(v -> v.getValue().equals(taskName) || v.name().equalsIgnoreCase(taskName))
-//					.findFirst()
-//					.orElse(null);
-//		} catch (Exception ex) {
-//			log.debug("Failed to detect LC step for process {}", processInstanceId, ex);
-//			return null;
-//		}
-//	}
 
-//	@Override
-//	public LcProcessVariable detectLcStep(long lcId) {
-//		return lcRepository.findById(lcId)
-//				.map(lc -> detectLcStep(lc.getProcessId()))
-//				.orElse(null);
-//	}
-//
-//	private Acknowledgment resolveAcknowledgmentFromStep(LcProcessVariable step) {
-//		return switch (step) {
-//			case RemitSure -> Acknowledgment.REMITTANCE;
-//			case FinalCheck -> Acknowledgment.FINISHED;
-//			case CreditBridge, SettleSure -> Acknowledgment.RECKONING;
-//		};
-//	}
+	private void saveLcRetryOnOptimisticLock(Long lcId, Consumer<LcModel> stateMutator) {
+		for (int attempt = 1; ; attempt++) {
+			try {
+				LcModel lc = lcRepository.findById(lcId)
+						.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException("LC پیدا نشد: " + lcId));
+				stateMutator.accept(lc);
+				lcRepository.save(lc);
+				return;
+			} catch (ObjectOptimisticLockingFailureException e) {
+				if (attempt >= OPTIMISTIC_LOCK_RETRY_COUNT) {
+					log.error("Failed to save LC {} after {} attempts due to concurrent modification", lcId, attempt, e);
+					throw e;
+				}
+				log.warn("Optimistic lock conflict while saving LC {}, retrying (attempt {}/{})", lcId, attempt, OPTIMISTIC_LOCK_RETRY_COUNT, e);
+			}
+		}
+	}
+
 	private LcModel buildLcModel(ProcessInstance instance, ProformaMasterModel masterModel, ProformaDetailModel detail) {
 		var goodItem = proformaGoodItemRepository.findAllByProformaDetailModel(detail).get(0);
 		var totalFinalAmount = goodItem.getCreditAmount().add(goodItem.getVatCreditAmount());

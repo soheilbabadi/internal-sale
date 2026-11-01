@@ -126,14 +126,10 @@ public class RemittanceMasterModel extends BaseClassModel {
 	@Column(name = "N_PROFORMA_DETAIL_ID")
 	private Long proformaDetailId;
 
-
-
 	@Column(name = "N_ISSUE_PLACE_ID", length = 50)
 	private Long issuePlaceId;
 	@Column(name = "C_ISSUE_PLACE", length = 50)
 	private String issuePlace;
-
-
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "C_ISSUE_SOURCE_TYPE", length = 50)
