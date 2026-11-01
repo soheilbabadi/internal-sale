@@ -211,15 +211,10 @@ public class LcProcessServiceImpl implements LcProcessService {
 		ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(lc.getProcessId());
 		if (status == null || status.getStatus() == null) return;
 
-		// detectStep() is evaluated BEFORE the terminal status is written: LcStepDetectorImpl
-		// short-circuits on ACCEPTED/CANCELED rows and would otherwise always answer
-		// FINISHED/CANCELED instead of the real workflow step.
-		Acknowledgment detected = lcStepDetector.detectStep(lc);
-
 		switch (status.getStatus()) {
 			case ACTIVE:
 				lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-				lc.setAcknowledgment(detected);
+				lc.setAcknowledgment(lcStepDetector.detectStep(lc));
 				break;
 
 			case CANCELED:
@@ -229,15 +224,19 @@ public class LcProcessServiceImpl implements LcProcessService {
 
 			case FINISHED:
 				boolean accepted = processVariableProvider.isProcessAcceptedFinally(lc.getProcessId());
-				lc.setWorkflowApproveStatus(accepted ? WorkflowApproveStatus.ACCEPTED : WorkflowApproveStatus.CANCELED);
-				lc.setAcknowledgment(accepted ? Acknowledgment.FINISHED : Acknowledgment.CANCELED);
+				if (accepted) {
+					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+					lc.setAcknowledgment(Acknowledgment.FINISHED);
+				} else {
+					lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+					lc.setAcknowledgment(Acknowledgment.CANCELED);
+				}
 				break;
 
 			default:
-				// Unhandled/unknown BPMS state (e.g. SUSPENDED): keep the LC IN_PROGRESS so it
-				// gets retried on the next refresh instead of being wrongly closed out.
-				lc.setAcknowledgment(detected);
-				break;
+				// Unhandled/unknown BPMS state (e.g. SUSPENDED): change nothing so the row
+				// stays IN_PROGRESS and gets retried on the next refresh.
+				return;
 		}
 		lcRepository.save(lc);
 	}
