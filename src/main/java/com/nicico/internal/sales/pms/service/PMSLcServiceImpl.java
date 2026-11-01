@@ -34,7 +34,6 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -47,8 +46,6 @@ import java.util.Optional;
 @Slf4j
 public class PMSLcServiceImpl implements PMSLcService {
 	private static final String CONFIG_NOT_FOUND_MESSAGE = "تنظیمات پیکربندی وجود ندارد";
-	// Max attempts for savePmsId's optimistic-lock retry loop (see savePmsId javadoc).
-	private static final int OPTIMISTIC_LOCK_RETRY_COUNT = 3;
 	private final LcRepository lcRepository;
 	private final LcMapper lcMapper;
 	private final GoodsService goodsService;
@@ -203,63 +200,63 @@ public class PMSLcServiceImpl implements PMSLcService {
 	}
 
 	/**
-	 * Retry IS required here. LcModel extends BaseClassModel which carries @Version, and this method
-	 * runs on the Rabbit response thread while the workflow writers in LcProcessServiceImpl
-	 * (reviewTask / refreshStatus) mutate workflowApproveStatus + acknowledgment on the very same row.
-	 * Whoever commits second sees a stale version and Hibernate throws
-	 * ObjectOptimisticLockingFailureException; without a retry that exception escapes into the
-	 * listener container, the message is requeued/redelivered - one of the recurring production errors.
+	 * Simple single-shot write - NO retry loop (per review decision).
 	 * <p>
-	 * Design notes:
-	 *  - The entire method is ONE short REQUIRES_NEW transaction (findById -> mutate -> commit).
-	 *    No remote call sits between load and flush, so the conflict window is microseconds and a
-	 *    retry normally succeeds immediately.
-	 *  - On conflict we mark the current transaction rollback-only (drops the stale managed entity
-	 *    from the persistence context) and loop: the next findById re-reads the fresh row within the
-	 *    still-open transaction. This keeps the write invisible to any outer transaction until it
-	 *    actually succeeds, so no other code can observe or overwrite pmsLcId prematurely.
+	 * Why this is safe against the recurring ObjectOptimisticLockingFailureExceptions:
+	 *  - Every workflow writer on the SAME row (LcProcessServiceImpl.reviewTask / refreshStatus) now
+	 *    goes through saveLcRetryOnOptimisticLock -> persistLc, i.e. it re-reads the row inside its own
+	 *    short REQUIRES_NEW transaction right before committing, and retries up to
+	 *    LcProcessServiceImpl.LC_SAVE_MAX_ATTEMPTS times. So when this listener writes, the counterpart
+	 *    side absorbs any conflict instead of failing.
+	 *  - The window between our findById and the commit-time UPDATE contains no remote call, so it is
+	 *    microseconds wide.
+	 *  - If a conflict does slip through anyway, we log it and return WITHOUT rethrowing: rethrowing
+	 *    would make the Rabbit listener container requeue and redeliver the message endlessly
+	 *    (poison-message behavior seen previously). Instead the scheduler's sendToPms job re-detects
+	 *    LCs that never received their pmsLcId (findRemittanceLcWithoutPmsId) and resends them, so a
+	 *    lost write converges on the next run.
+	 * <p>
+	 * Kept guards:
+	 *  - REQUIRES_NEW: the write commits independently and becomes visible immediately.
+	 *  - Idempotency: a duplicate delivery carrying the exact same pmsLcId skips the write instead of
+	 *    bumping the version pointlessly.
 	 *  - save() only (no explicit flush): the versioned UPDATE runs exactly once at commit - same rule
 	 *    as LcProcessServiceImpl.persistLc.
-	 *  - Idempotency guard: if the row already carries this exact pmsLcId (duplicate delivery), skip
-	 *    the write instead of bumping the version pointlessly.
 	 */
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void savePmsId(Long lcId, String pmsLcId) {
-		for (int attempt = 1; ; attempt++) {
-			try {
-				Optional<LcModel> detail = lcRepository.findById(lcId);
-				if (detail.isEmpty()) {
-					log.error("Could not find LC detail for id {}", lcId);
-					return;
-				}
-				LcModel lc = detail.get();
-				if (Objects.equals(lc.getPmsLcId(), pmsLcId)) {
-					log.info("PMS LC id {} already saved for LC id {}, skipping", pmsLcId, lcId);
-					return;
-				}
-				lc.setPmsLcId(pmsLcId);
-				lcRepository.save(lc);
-				log.info("PMS LC id {} saved for LC id {}", pmsLcId, lcId);
-				return;
-			} catch (ObjectOptimisticLockingFailureException e) {
-				if (attempt >= OPTIMISTIC_LOCK_RETRY_COUNT) {
-					log.error("Failed to save PMS LC id {} for LC id {} after {} attempts due to concurrent modification",
-							pmsLcId, lcId, attempt, e);
-					throw e;
-				}
-				log.warn("Optimistic lock conflict while saving PMS LC id {} for LC id {}, retrying (attempt {}/{})",
-						pmsLcId, lcId, attempt, OPTIMISTIC_LOCK_RETRY_COUNT, e);
-				// Drop the stale managed entity before re-reading the fresh row.
-				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-			}
+		Optional<LcModel> detail = lcRepository.findById(lcId);
+		if (detail.isEmpty()) {
+			log.error("Could not find LC detail for id {}", lcId);
+			return;
+		}
+		LcModel lc = detail.get();
+		if (Objects.equals(lc.getPmsLcId(), pmsLcId)) {
+			log.info("PMS LC id {} already saved for LC id {}, skipping", pmsLcId, lcId);
+			return;
+		}
+		lc.setPmsLcId(pmsLcId);
+		try {
+			lcRepository.save(lc);
+			log.info("PMS LC id {} saved for LC id {}", pmsLcId, lcId);
+		} catch (ObjectOptimisticLockingFailureException e) {
+			// Do NOT rethrow: the message must not be redelivered forever. The scheduled
+			// sendToPms job will resend this LC because its pmsLcId is still null.
+			log.error("تعارض قفل خوش‌بینانه در ذخیره PMS LC id {} برای LC {}؛ پیام دوباره ارسال نخواهد شد "
+					+ "و اسکجول sendToPms این LC را مجدداً به PMS می‌فرستد", pmsLcId, lcId, e);
 		}
 	}
 
 	@Override
 	public List<LcDto.Info> findRemittanceLcWithoutPmsId() {
 		List<LcModel> lcModels = lcRepository.findRemittanceLcWithoutPmsId();
+		// Scheduler/system context has no authenticated user; SecurityUtil getters return null there,
+		// so resolve the username ourselves (same fallback as resolveUsername in buildPmsLcCreateDto).
 		String username = SecurityUtil.getUsername();
+		if (username == null) {
+			username = pmsProperties.getLc().getDefaultPmsUser();
+		}
 		for (LcModel lc : lcModels) {
 			Long proformaMasterId = lc.getProformaMasterId();
 			createPMSLc(proformaMasterId, username, false);
