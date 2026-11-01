@@ -111,7 +111,7 @@ public class PMSRemittanceServiceImpl implements PMSRemittanceService {
 
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.SALES_SLIP)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
-		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
+		if (exportConfig.getSendPms() == false) return;
 
 		if (Objects.isNull(username)) {
 			username = pmsProperties.getPreFactor().getDefaultPmsUser();
@@ -372,7 +372,7 @@ public class PMSRemittanceServiceImpl implements PMSRemittanceService {
 	void savePmsRemittanceRabbitListener(String message) throws IOException {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.SALES_SLIP)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
-		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
+		if (exportConfig.getSendPms() == false) return;
 
 		log.info("Received PMS remittance create response from queue: {}", message);
 		PMSRemittanceDTO.RabbitListenerResponseDTO req = objectMapper.readValue(message,
@@ -403,7 +403,7 @@ public class PMSRemittanceServiceImpl implements PMSRemittanceService {
 	void updatePmsRemittanceRabbitListener(String message) throws IOException {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.SALES_SLIP)
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
-		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
+		if (exportConfig.getSendPms() == false) return;
 
 		log.info("Received PMS remittance update response from queue: {}", message);
 		PMSRemittanceDTO.RabbitListenerResponseDTO req = objectMapper.readValue(message,

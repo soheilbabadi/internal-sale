@@ -3,7 +3,6 @@ package com.nicico.internal.sales.pms.controller;
 import com.nicico.copper.common.domain.criteria.NICICOCriteria;
 import com.nicico.copper.common.domain.criteria.SearchUtil;
 import com.nicico.copper.common.dto.search.SearchDTO;
-import com.nicico.internal.sales.customer.dto.CustomerDTO;
 import com.nicico.internal.sales.pms.dto.PMSCustomerDTO;
 import com.nicico.internal.sales.pms.service.PMSCustomerService;
 import com.nicico.internal.sales.pms.service.PmsCustomerCreateRabbitService;
@@ -14,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -37,16 +34,5 @@ public class PMSCustomerController {
 	public ResponseEntity<HttpStatus> create(@PathVariable Long insCustomerId) {
 		rabbitService.createCustomer(insCustomerId);
 		return ResponseEntity.ok().build();
-	}
-
-	/**
-	 * Manual compensation trigger: re-sends every customer that never received a PMS code.
-	 * Same operation the scheduler runs; exposed so an operator can recover immediately after a
-	 * RabbitMQ/PMS outage instead of waiting for the next cron tick.
-	 */
-	@PreAuthorize("@secUtil.hasAuthority('C_INS_CUSTOMER')")
-	@GetMapping("/fix-null-pms")
-	public ResponseEntity<List<CustomerDTO.Info>> fixNullPms() {
-		return ResponseEntity.ok(rabbitService.sendCustomersWithoutPmsCode());
 	}
 }

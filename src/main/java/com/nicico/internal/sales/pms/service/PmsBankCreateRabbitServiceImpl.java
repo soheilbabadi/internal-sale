@@ -30,7 +30,7 @@ public class PmsBankCreateRabbitServiceImpl implements PmsBankCreateRabbitServic
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.BANK)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
+		if (exportConfig.getSendPms() == false) return;
 		if (bank.getBaseBankId() != null && issuingBankWithPmsIdRepository
 				.findFirstByPmsBaseBankIdAndBranchCodeAndPmsLcBankIdNotNull(bank.getBaseBankId(), bank.getBranchCode())
 				.isPresent())
@@ -51,7 +51,7 @@ public class PmsBankCreateRabbitServiceImpl implements PmsBankCreateRabbitServic
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.BANK)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
+		if (exportConfig.getSendPms() == false) return;
 
 		if (bank.getPmsLcBankId() != null) {
 			log.warn("issuing bank {} ({} {}) already exists in PMS: pmsBaseBankId={}, pmsLcBankId={}",
@@ -76,7 +76,7 @@ public class PmsBankCreateRabbitServiceImpl implements PmsBankCreateRabbitServic
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.BANK)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
+		if (exportConfig.getSendPms() == false) return;
 
 		createBank(issuingBankWithPmsIdRepository
 				.findById(issueBankId)

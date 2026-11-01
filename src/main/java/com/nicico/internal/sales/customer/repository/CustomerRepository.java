@@ -47,13 +47,4 @@ public interface CustomerRepository extends JpaRepository<CustomerModel, Long>, 
 			SELECT count(c) FROM CustomerModel c WHERE c.nosaCode IS NULL
 			""")
 	long countCustomersReadyForNosaAssignment();
-
-	/**
-	 * Customers that were exported to PMS but never received their PMS code back (lost/dropped
-	 * response message or a write failure in the response listener). Used by the compensation
-	 * job {@code PmsCustomerCreateRabbitServiceImpl#sendCustomersWithoutPmsCode}.
-	 * National code is required because it is the key PMS uses to match the customer.
-	 */
-	@Query(value = "SELECT * FROM T_INS_CUSTOMER WHERE C_PMS_CUSTOMER_CODE IS NULL AND C_NATIONAL_CODE IS NOT NULL", nativeQuery = true)
-	List<CustomerModel> findCustomersWithoutPmsCode();
 }

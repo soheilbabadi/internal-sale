@@ -39,7 +39,7 @@ class SmsNotificationServiceImpl implements SmsNotificationService {
 
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.PROFORMA)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
-		if (!Boolean.TRUE.equals(exportConfig.getSendSms())) return null;
+		if (exportConfig.getSendSms() == false) return null;
 		ProformaMasterModel ProformaMasterModel = proformaMasterRepository.findById(proformaMasterId).orElseThrow(() -> new InternalSaleCustomException.ValidationException(
 				String.format(PROFORMA_NOT_FOUND_MESSAGE, proformaMasterId)));
 
