@@ -86,24 +86,53 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 	}
 
 	private void sendToPms(PMSCreateCustomerDto.RabbitListenerRequestDTO request) {
-		CustomerModel customerModel = customerRepository.findByNationalCode(request.getRequest().getNationalCode())
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						"Customer not found for national code " + request.getRequest().getNationalCode()));
+		// The payload itself carries the internal id that was sent to PMS; use it directly instead of
+		// looking the row up again by nationalCode. That lookup could return a different customer than
+		// the one being provisioned (or throw) and made the guard depend on the wrong record.
+		Long customerId = request.getId();
+		if (customerId == null) {
+			log.error("Cannot verify PMS existence for a customer request without internal id");
+			return;
+		}
+		Optional<CustomerModel> customerOpt = customerRepository.findById(customerId);
+		if (customerOpt.isEmpty()) {
+			log.error("Could not find customer for id {} while checking PMS existence", customerId);
+			return;
+		}
+		CustomerModel customerModel = customerOpt.get();
 
-		// Only economicCode is used as the identity key here. registerNumber is not a reliable
-		// identifier: CustomerServiceImpl fills it with RandomUtils.nextInt(...) when absent,
-		// TradeExtractServiceImpl overloads it with the buyer national code, and
-		// ProformaValidationServiceImpl requires it to equal economicCode. Matching on it can
-		// therefore produce a false positive - and a false positive silently drops the send.
-		Optional<PMSCustomerModel> exists = pmsCustomerRepository.findFirstByEconomicCodeContainingOrderByIdDesc(
-				customerModel.getEconomicCode()
-		);
+		// Duplicate-provisioning guard, keyed on economicCode with EXACT equality.
+		//
+		// registerNumber is deliberately NOT part of this key, even though
+		// PMSCustomerServiceImpl.findByEconomicCodeOrRegisterNumber (used by Proforma/Gaam/Lc/ExtraBill)
+		// resolves customers through an economicCode OR registerNumber clause. Two reasons:
+		//  - CustomerServiceImpl fills registerNumber with RandomUtils.nextInt(...) when the caller
+		//    leaves it blank, and TradeExtractServiceImpl overloads it with the buyer national code, so
+		//    it is not a stable identity attribute;
+		//  - PMS stores our national code in CUST_SABTNUMBER for those rows, so matching it against our
+		//    registerNumber produces false positives that silently drop the send.
+		// This is safe for the normal flow because CustomerValidationServiceImpl requires
+		// registerNumber == economicCode, so the economic-code match covers the intended case.
+		// RESIDUAL RISK: rows created via TradeExtractServiceImpl (which sets registerNumber to the
+		// buyer national code and never fills economicCode) can no longer be detected here and may be
+		// provisioned twice in PMS. That population needs a data check before deciding whether to add
+		// an exact nationalCode fallback here.
+		//
+		// The only change from the previous behaviour is the operator: Containing (LIKE '%x%') becomes
+		// '=' , because LIKE can match a *different* customer whose code merely contains ours as a
+		// substring. OrderByIdDesc is dropped too - codes are not numerically ordered as strings, so
+		// "latest wins" was never guaranteed; with exact matching at most one row is expected.
+		// Null/blank keys are handled in Java rather than relying on SQL null semantics.
+		String economicCode = customerModel.getEconomicCode();
+		Optional<PMSCustomerModel> exists = (economicCode == null || economicCode.isBlank())
+				? Optional.empty()
+				: pmsCustomerRepository.findFirstByEconomicCodeEquals(economicCode);
 		if (exists.isPresent()) {
 			// Idempotent skip, not an error: this customer is already provisioned in PMS.
 			// Throwing here would requeue the message forever and would also make the
 			// scheduled re-send job fail on every run for the same row.
 			log.info("Customer {} already exists in PMS (pms code {}); skipping send",
-					customerModel.getId(), exists.get().getId());
+					customerId, exists.get().getId());
 			return;
 		}
 
