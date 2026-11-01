@@ -37,7 +37,6 @@ import java.util.function.Consumer;
 public class LcProcessServiceImpl implements LcProcessService {
 
 	private static final String BPMS_ERROR = "خطا در اتصال به کارتابل";
-	private static final String LC_SAVE_ERROR = "خطا در ذخیره وضعیت اعتبار اسنادی پس از تایید در کارتابل";
 	private static final String REVERSAL_PROCESS_ID_DEFAULT = "-";
 	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور پیدا نشد";
 	private static final String MSG_ACCESS_DENIED_START_LC = "شما اجازه شروع فرایند اعتبار اسنادی را ندارید";
@@ -114,15 +113,17 @@ public class LcProcessServiceImpl implements LcProcessService {
 	 * NOTE ON BEHAVIOR CHANGE vs. the original:
 	 * `lcList` used to be loaded BEFORE the BPMS call and reused for the save afterwards.
 	 * If the BPMS call causes those same rows to be updated in another transaction
-	 * (e.g. a synchronous listener), the entities we hold go stale and
+	 * (e.g. the async PMS response listener calling savePmsId()), the entities we hold go stale and
 	 * saveAllAndFlush() throws StaleObjectStateException/ObjectOptimisticLockingFailureException.
-	 * Fix: re-fetch lcList AFTER the BPMS call, immediately before mutating/saving it,
-	 * so we always work off the latest committed version.
+	 * Fix: re-fetch each row INSIDE its own REQUIRES_NEW transaction right before writing it
+	 * (saveLcRetryOnOptimisticLock), so concurrent writers only cost a cheap retry instead of
+	 * failing the whole request after BPMS already succeeded.
 	 */
 	private void reviewTask(TaskActionDto dto, boolean approve) {
 
 		dto.setApprove(approve);
 		var reviewTaskRequest = processVariableProvider.prepareReviewTaskRequest(dto);
+		String processInstanceId = reviewTaskRequest.getProcessInstanceId();
 
 		try {
 			bpmsClientService.reviewTask(reviewTaskRequest);
@@ -131,54 +132,95 @@ public class LcProcessServiceImpl implements LcProcessService {
 			throw bpmsException(ex);
 		}
 
-		// Fetch fresh, post-callback state - avoids acting on a stale version.
-		List<LcModel> lcList = lcRepository.findByProcessId(reviewTaskRequest.getProcessInstanceId());
+		// Fetch ids only; every row is re-read fresh inside its own save transaction below.
+		List<Long> lcIds = lcRepository.findByProcessId(processInstanceId).stream()
+				.map(LcModel::getId)
+				.toList();
 
+		if (!approve) {
+			for (Long lcId : lcIds) {
+				try {
+					saveLcRetryOnOptimisticLock(lcId, model -> {
+						model.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+						model.setAcknowledgment(Acknowledgment.CANCELED);
+					});
+				} catch (Exception ex) {
+					// Preserve prior behavior for the reject path: BPMS reject succeeded,
+					// so we log a local persistence failure rather than failing the request.
+					// refreshStatus() will converge the row on its next run.
+					log.error("خطا در ذخیره وضعیت رد LC {} برای پروسه {}: {}",
+							lcId, processInstanceId, ex.getMessage(), ex);
+				}
+			}
+			return;
+		}
+
+		// One BPMS decision per process, not per row: FINISHED+accepted / CANCELED are terminal
+		// and must not be overwritten back to IN_PROGRESS by the active-step logic below.
+		boolean finalApproved = false;
+		boolean finalRejected = false;
 		try {
-			if (!approve) {
-				for (LcModel lc : lcList) {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-					lc.setAcknowledgment(Acknowledgment.CANCELED);
-				}
-				lcRepository.saveAllAndFlush(lcList);
-				return;
-			}
-
-			if (processVariableProvider.isProcessAcceptedFinally(reviewTaskRequest.getProcessInstanceId())) {
-				for (LcModel lc : lcList) {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					lc.setAcknowledgment(Acknowledgment.FINISHED);
-				}
-				lcRepository.saveAllAndFlush(lcList);
-				return;
-			}
-
-			for (LcModel lc : lcList) {
-				if (lc.getPmsLcId() != null) {
-					// Fixed: this branch was previously always overwritten by the
-					// unconditional IN_PROGRESS/determine(...) calls below it and could
-					// never take effect. Now it's a proper else-branch.
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					lc.setAcknowledgment(Acknowledgment.FINISHED);
-				} else {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-					lc.setAcknowledgment(lcStepDetector.detectStep(lc));
+			ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(processInstanceId);
+			if (status != null && status.getStatus() != null) {
+				switch (status.getStatus()) {
+					case CANCELED:
+						finalRejected = true;
+						break;
+					case FINISHED:
+						if (processVariableProvider.isProcessAcceptedFinally(processInstanceId)) {
+							finalApproved = true;
+						} else {
+							finalRejected = true;
+						}
+						break;
+					default:
+						// ACTIVE or unknown state: keep the per-row active logic below.
+						break;
 				}
 			}
-			lcRepository.saveAllAndFlush(lcList);
-		} catch (ObjectOptimisticLockingFailureException ex) {
-			// BPMS review already succeeded at this point - don't mask it as a BPMS error.
-			log.error("Optimistic lock conflict while persisting LC status for process {}: {}",
-					reviewTaskRequest.getProcessInstanceId(), ex.getMessage(), ex);
-			throw new InternalSaleCustomException.BpmsClientException(LC_SAVE_ERROR, List.of(ex.getMessage()));
 		} catch (Exception ex) {
-			if (!approve) {
-				// Preserve prior behavior for the reject path: BPMS reject succeeded,
-				// so we log a local persistence failure rather than failing the request.
-				log.error("Error while rejecting LC for process {}: {}", reviewTaskRequest.getProcessInstanceId(), ex.getMessage(), ex);
-				return;
+			// The BPMS review itself already succeeded; if the follow-up state lookup fails we
+			// fall back to the previous per-row logic and let refreshStatus() converge later.
+			log.warn("خطا در خواندن وضعیت نهایی پروسه {}: {}", processInstanceId, ex.getMessage(), ex);
+		}
+
+		if (finalRejected || finalApproved) {
+			WorkflowApproveStatus approveStatus =
+					finalApproved ? WorkflowApproveStatus.ACCEPTED : WorkflowApproveStatus.CANCELED;
+			Acknowledgment acknowledgment =
+					finalApproved ? Acknowledgment.FINISHED : Acknowledgment.CANCELED;
+			for (Long lcId : lcIds) {
+				// Idempotent write: rows already in the target state are left untouched (no version bump).
+				saveLcRetryOnOptimisticLock(lcId, model -> {
+					if (model.getWorkflowApproveStatus() != approveStatus
+							|| model.getAcknowledgment() != acknowledgment) {
+						model.setWorkflowApproveStatus(approveStatus);
+						model.setAcknowledgment(acknowledgment);
+					}
+				});
 			}
-			throw bpmsException(ex);
+			return;
+		}
+
+		for (Long lcId : lcIds) {
+			try {
+				// detectStep() runs BEFORE any mutation, against the freshly loaded row.
+				self.persistLc(lcId, model -> {
+					if (model.getPmsLcId() != null) {
+						// PMS id means the LC is provisioned downstream: final state, no step detection.
+						model.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+						model.setAcknowledgment(Acknowledgment.FINISHED);
+					} else {
+						Acknowledgment acknowledgment = lcStepDetector.detectStep(model);
+						model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+						model.setAcknowledgment(acknowledgment);
+					}
+				});
+			} catch (Exception ex) {
+				// BPMS review already succeeded; a failed local write here is converged by
+				// refreshStatus() on its next run - do not fail the whole approve request per-row.
+				log.error("خطا در ذخیره وضعیت LC {} پس از تایید در کارتابل: {}", lcId, ex.getMessage(), ex);
+			}
 		}
 	}
 	// -------------------------------------------------------------------------
@@ -295,7 +337,20 @@ public class LcProcessServiceImpl implements LcProcessService {
 	 * {@link #persistLc}. On an optimistic-lock conflict the whole operation is retried in a fresh
 	 * transaction, up to {@link #LC_SAVE_MAX_ATTEMPTS} attempts. If every attempt fails, the stale
 	 * instance is detached from the surrounding persistence context (so it can never be written by
-	 * a later flush) before the exception is rethrown to the per-row handler in refreshStatus().
+	 * a later flush) before the exception is rethrown to the per-row handler.
+	 *
+	 * NOTE ON THE REPEATED PRODUCTION ERRORS:
+	 * LcModel extends BaseClassModel which carries @Version (n_version). Every writer that loads a
+	 * row and later saves it with a version bumped meanwhile - the PMS response listener
+	 * (savePmsId -> pmsLcId), reviewTask's saveAllAndFlush over entities loaded before the BPMS
+	 * round-trip, and refreshStatus's trailing saveAll - used to fail the WHOLE batch with
+	 * ObjectOptimisticLockingFailureException. Two structural rules now prevent that:
+	 *  1. No remote (BPMS/Rabbit) side effect may sit between "load entity" and "flush entity":
+	 *     each write re-reads the row inside persistLc()'s own short transaction, so conflicts are
+	 *     limited to the microseconds around the UPDATE and are absorbed by the retry below.
+	 *  2. persistLc uses save() without an explicit flush; committing REQUIRES_NEW performs the
+	 *     versioned UPDATE exactly once, and a failure there rolls back only this transaction -
+	 *     never an outer one that could still hold a stale managed copy of the same row.
 	 */
 	private void saveLcRetryOnOptimisticLock(Long lcId, Consumer<LcModel> mutation) {
 		// The loop lives inside one try so that a conflict surviving all retries still triggers
@@ -325,7 +380,12 @@ public class LcProcessServiceImpl implements LcProcessService {
 					.orElseThrow(() -> new InternalSaleCustomException
 					.ResourceNotFoundException(MSG_LC_NOT_FOUND));
 		mutation.accept(fresh);
-		lcRepository.saveAndFlush(fresh);
+		// save() only (no flush): Hibernate checks the row count of its own UPDATE at commit time and
+		// throws StaleObjectStateException there. A flush here would instead execute a premature UPDATE
+		// while an outer transaction may still hold a stale managed copy of the same entity - that early
+		// conflict is unrecoverable by the retry loop below and was a main source of recurring
+		// ObjectOptimisticLockingFailureExceptions in production.
+		lcRepository.save(fresh);
 	}
 
 	/**
@@ -335,7 +395,7 @@ public class LcProcessServiceImpl implements LcProcessService {
 	private void evictStaleLc(Long lcId) {
 		try {
 			if (entityManager.contains(entityManager.getReference(LcModel.class, lcId))) {
-				lcRepository.findById(lcId).ifPresent(entityManager::detach);
+				entityManager.detach(entityManager.getReference(LcModel.class, lcId));
 			}
 		} catch (Exception ex) {
 			log.debug("Unable to detach stale LC {}", lcId, ex);
