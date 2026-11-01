@@ -13,6 +13,7 @@ import com.nicico.internal.sales.pms.dto.PMSCreateCustomerDto;
 import com.nicico.internal.sales.pms.model.PMSCustomerModel;
 import com.nicico.internal.sales.pms.repository.PMSCustomerRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabbitService {
 	private final RabbitTemplate rabbitTemplate;
@@ -94,12 +96,43 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 	}
 
 	@RabbitListener(queues = "${rabbitmq.config.pms.queues.customer.response-queue}")
-	private void pmsCreated(String message) throws JsonProcessingException {
-		PMSCreateCustomerDto.RabbitListenerResponseDTO responseDTO = objectMapper.readValue(message, PMSCreateCustomerDto.RabbitListenerResponseDTO.class);
-		CustomerModel customerModel = customerRepository.findById(responseDTO.getRequest().getId())
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(""));
-		customerModel.setPmsCustomerCode(responseDTO.getResponse().getId());
-		customerRepository.save(customerModel);
-		pmsCustomerRepository.updatePmsCustomerMaterializedView();
+	public void handlePmsCustomerResponse(String message) {
+		log.info("Saving PMS customer code: {}", message);
+		try {
+			PMSCreateCustomerDto.RabbitListenerResponseDTO responseDTO =
+					objectMapper.readValue(message, PMSCreateCustomerDto.RabbitListenerResponseDTO.class);
+
+			if (responseDTO.getRequest() == null || responseDTO.getRequest().getId() == null) {
+				log.warn("Ignoring malformed PMS customer response without request id: {}", message);
+				return;
+			}
+
+			Long customerId = responseDTO.getRequest().getId();
+			String pmsCustomerCode = responseDTO.getResponse() != null ? responseDTO.getResponse().getId() : null;
+			if (pmsCustomerCode == null) {
+				log.warn("PMS customer response had empty PMS code for customer id {}", customerId);
+				return;
+			}
+
+			Optional<CustomerModel> customer = customerRepository.findById(customerId);
+			if (customer.isEmpty()) {
+				log.error("Could not find customer for id {} while saving PMS customer code {}", pmsCustomerCode, customerId);
+				return;
+			}
+
+			CustomerModel customerModel = customer.get();
+			if (pmsCustomerCode.equals(customerModel.getPmsCustomerCode())) {
+				log.info("PMS customer code {} already saved for customer id {}, skipping", pmsCustomerCode, customerId);
+				return;
+			}
+
+			customerModel.setPmsCustomerCode(pmsCustomerCode);
+			customerRepository.save(customerModel);
+			log.info("PMS customer code {} saved for customer id {}", pmsCustomerCode, customerId);
+
+			pmsCustomerRepository.updatePmsCustomerMaterializedView();
+		} catch (Exception ex) {
+			log.error("خطا در ذخیره کد PMS مشتری از پیام پاسخ", ex);
+		}
 	}
 }
