@@ -171,44 +171,75 @@ public class LcProcessServiceImpl implements LcProcessService {
 	// Status refresh
 	// -------------------------------------------------------------------------
 
+	/**
+	 * NOTE ON BEHAVIOR vs. the previous version:
+	 * The whole loop used to sit inside a single try/catch and all rows were saved in one
+	 * trailing saveAll(). Consequences of that shape:
+	 *  - One BPMS failure (or one bad row) aborted the loop, so every already-computed
+	 *    change was silently discarded - the endpoint always answered 200 OK having done nothing.
+	 *  - Rows whose workflow had ended kept a stale acknowledgment (the switch overwrote only
+	 *    workflowApproveStatus, never acknowledgment).
+	 *  - Placeholder/invalid process ids ("-") were sent to BPMS anyway.
+	 * Fix: per-row isolation + per-row save, mirroring Proforma/Gaam/ExtraBill refreshStatus().
+	 */
 	@Override
 	public void refreshStatus() {
-		try {
-			List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
-			for (LcModel lc : lcList) {
-				lc.setAcknowledgment(lcStepDetector.detectStep(lc));
-				if (lc.getPmsLcId() != null) {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					lc.setAcknowledgment(Acknowledgment.FINISHED);
-				}
-				ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(lc.getProcessId());
-				if (status == null) continue;
-
-				switch (status.getStatus()) {
-					case ACTIVE:
-						lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-
-						break;
-
-					case CANCELED:
-						lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-						break;
-
-					case FINISHED:
-						boolean accepted = processVariableProvider.isProcessAcceptedFinally(lc.getProcessId());
-						if (accepted) {
-							lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-						} else {
-							lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-						}
-						break;
-				}
+		List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+		for (LcModel lc : lcList) {
+			try {
+				refreshOne(lc);
+			} catch (Exception ex) {
+				log.error("خطا در به روزرسانی وضعیت اعتبار اسنادی {}: {}", lc.getId(), ex.getMessage(), ex);
 			}
-			lcRepository.saveAll(lcList);
-
-		} catch (Exception ex) {
-			log.error("Error refreshing LC status", ex);
 		}
+	}
+
+	private void refreshOne(LcModel lc) {
+		// PMS id means the LC is already provisioned downstream: it is final, no BPMS lookup needed.
+		if (lc.getPmsLcId() != null) {
+			lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
+			lc.setAcknowledgment(Acknowledgment.FINISHED);
+			lcRepository.save(lc);
+			return;
+		}
+
+		// "-" is the placeholder used for processes that were never started (see ReversalProformaProcessServiceImpl).
+		if (lc.getProcessId() == null || REVERSAL_PROCESS_ID_DEFAULT.equals(lc.getProcessId())) {
+			return;
+		}
+
+		ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(lc.getProcessId());
+		if (status == null || status.getStatus() == null) return;
+
+		// detectStep() is evaluated BEFORE the terminal status is written: LcStepDetectorImpl
+		// short-circuits on ACCEPTED/CANCELED rows and would otherwise always answer
+		// FINISHED/CANCELED instead of the real workflow step.
+		Acknowledgment detected = lcStepDetector.detectStep(lc);
+
+		switch (status.getStatus()) {
+			case ACTIVE:
+				lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+				lc.setAcknowledgment(detected);
+				break;
+
+			case CANCELED:
+				lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
+				lc.setAcknowledgment(Acknowledgment.CANCELED);
+				break;
+
+			case FINISHED:
+				boolean accepted = processVariableProvider.isProcessAcceptedFinally(lc.getProcessId());
+				lc.setWorkflowApproveStatus(accepted ? WorkflowApproveStatus.ACCEPTED : WorkflowApproveStatus.CANCELED);
+				lc.setAcknowledgment(accepted ? Acknowledgment.FINISHED : Acknowledgment.CANCELED);
+				break;
+
+			default:
+				// Unhandled/unknown BPMS state (e.g. SUSPENDED): keep the LC IN_PROGRESS so it
+				// gets retried on the next refresh instead of being wrongly closed out.
+				lc.setAcknowledgment(detected);
+				break;
+		}
+		lcRepository.save(lc);
 	}
 
 //	private Acknowledgment applyCurrentStatus(LcModel lc) {
