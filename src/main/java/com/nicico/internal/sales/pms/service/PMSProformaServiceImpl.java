@@ -53,7 +53,7 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.PROFORMA)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (exportConfig.getSendPms() == false) return;
+		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
 		log.info("Validating pre-factor creation for ProformaMasterId: {}", proformaMasterId);
 		// حالا از Service جداگانه استفاده می کنیم - Cache کار می کنه!
 		List<ProformaGoodItemModel> goodItems = cacheService.getPerformaGoodItems(proformaMasterId);
@@ -95,7 +95,7 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.PROFORMA)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (exportConfig.getSendPms() == false) return;
+		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
 		log.info("Creating pre-factor for ProformaGoodItem ID: {}", proformaMasterId);
 		List<ProformaGoodItemModel> goodItems = cacheService.getPerformaGoodItems(proformaMasterId);
 		if (goodItems.isEmpty()) {
@@ -140,7 +140,7 @@ public class PMSProformaServiceImpl implements PMSProformaService {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.PROFORMA)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (exportConfig.getSendPms() == false) return;
+		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
 		log.info("Saving PMS Prefactor ID: {}", message);
 		PMSPreFactorDto.RabbitListenerResponseDTO response = objectMapper.readValue(message,
 				PMSPreFactorDto.RabbitListenerResponseDTO.class);

@@ -30,7 +30,10 @@ import com.nicico.internal.sales.util.date.DateUtility;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -76,7 +79,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 //		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.LETTER_OF_CREDIT)
 //				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 //		log.info(exportConfig.toString());
-//		if (exportConfig.getSendPms() == false) return;
+//		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
 
 
 		List<LcModel> lcList = lcRepository.findByMasterId(proformaMasterId);
@@ -117,7 +120,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.LETTER_OF_CREDIT)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (exportConfig.getSendPms() == false) return;
+		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
 
 
 		PMSLcDTO.Create o = buildPmsLcCreateDto(model, username);
@@ -196,23 +199,64 @@ public class PMSLcServiceImpl implements PMSLcService {
 		);
 	}
 
+	/**
+	 * Simple single-shot write - NO retry loop (per review decision).
+	 * <p>
+	 * Why this is safe against the recurring ObjectOptimisticLockingFailureExceptions:
+	 *  - Every workflow writer on the SAME row (LcProcessServiceImpl.reviewTask / refreshStatus) now
+	 *    goes through saveLcRetryOnOptimisticLock -> persistLc, i.e. it re-reads the row inside its own
+	 *    short REQUIRES_NEW transaction right before committing, and retries up to
+	 *    LcProcessServiceImpl.LC_SAVE_MAX_ATTEMPTS times. So when this listener writes, the counterpart
+	 *    side absorbs any conflict instead of failing.
+	 *  - The window between our findById and the commit-time UPDATE contains no remote call, so it is
+	 *    microseconds wide.
+	 *  - If a conflict does slip through anyway, we log it and return WITHOUT rethrowing: rethrowing
+	 *    would make the Rabbit listener container requeue and redeliver the message endlessly
+	 *    (poison-message behavior seen previously). Instead the scheduler's sendToPms job re-detects
+	 *    LCs that never received their pmsLcId (findRemittanceLcWithoutPmsId: ACCEPTED rows with
+	 *    pmsLcId IS NULL) and resends them, so a lost write converges on the next run.
+	 * <p>
+	 * Kept guards:
+	 *  - REQUIRES_NEW: the write commits independently and becomes visible immediately.
+	 *  - Idempotency: a duplicate delivery carrying the exact same pmsLcId skips the write instead of
+	 *    bumping the version pointlessly.
+	 *  - save() only (no explicit flush): the versioned UPDATE runs exactly once at commit - same rule
+	 *    as LcProcessServiceImpl.persistLc.
+	 */
 	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void savePmsId(Long lcId, String pmsLcId) {
 		Optional<LcModel> detail = lcRepository.findById(lcId);
-		if (detail.isPresent()) {
-			LcModel lc = detail.get();
-			lc.setPmsLcId(pmsLcId);
+		if (detail.isEmpty()) {
+			log.error("Could not find LC detail for id {}", lcId);
+			return;
+		}
+		LcModel lc = detail.get();
+		if (Objects.equals(lc.getPmsLcId(), pmsLcId)) {
+			log.info("PMS LC id {} already saved for LC id {}, skipping", pmsLcId, lcId);
+			return;
+		}
+		lc.setPmsLcId(pmsLcId);
+		try {
 			lcRepository.save(lc);
 			log.info("PMS LC id {} saved for LC id {}", pmsLcId, lcId);
-		} else {
-			log.error("Could not find LC detail for id {}", lcId);
+		} catch (ObjectOptimisticLockingFailureException e) {
+			// Do NOT rethrow: the message must not be redelivered forever. The scheduled
+			// sendToPms job will resend this LC because its pmsLcId is still null.
+			log.error("تعارض قفل خوش‌بینانه در ذخیره PMS LC id {} برای LC {}؛ پیام دوباره ارسال نخواهد شد "
+					+ "و اسکجول sendToPms این LC را مجدداً به PMS می‌فرستد", pmsLcId, lcId, e);
 		}
 	}
 
 	@Override
 	public List<LcDto.Info> findRemittanceLcWithoutPmsId() {
 		List<LcModel> lcModels = lcRepository.findRemittanceLcWithoutPmsId();
+		// Scheduler/system context has no authenticated user; SecurityUtil getters return null there,
+		// so resolve the username ourselves (same fallback as resolveUsername in buildPmsLcCreateDto).
 		String username = SecurityUtil.getUsername();
+		if (username == null) {
+			username = pmsProperties.getLc().getDefaultPmsUser();
+		}
 		for (LcModel lc : lcModels) {
 			Long proformaMasterId = lc.getProformaMasterId();
 			createPMSLc(proformaMasterId, username, false);

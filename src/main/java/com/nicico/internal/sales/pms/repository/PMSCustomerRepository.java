@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface PMSCustomerRepository extends JpaRepository<PMSCustomerModel, Long>, JpaSpecificationExecutor<PMSCustomerModel> {
-//    Optional<PMSCustomerModel> findFirstByRegisterNumberContainingOrderByIdDesc(String registerNumber);
+
 
 	Optional<PMSCustomerModel> findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(String economicCode, String registerNumber);
 
