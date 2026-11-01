@@ -7,6 +7,8 @@ import com.nicico.internal.sales.common.properties.RabbitConfigPMSProperties;
 import com.nicico.internal.sales.exception.InternalSaleCustomException;
 import com.nicico.internal.sales.export.enums.EntityTypeEnum;
 import com.nicico.internal.sales.export.repository.ExportNotificationConfigRepository;
+import com.nicico.internal.sales.customer.dto.CustomerDTO;
+import com.nicico.internal.sales.customer.dto.CustomerMapper;
 import com.nicico.internal.sales.customer.model.CustomerModel;
 import com.nicico.internal.sales.customer.repository.CustomerRepository;
 import com.nicico.internal.sales.pms.dto.PMSCreateCustomerDto;
@@ -18,6 +20,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,6 +34,7 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 	private final PMSCustomerRepository pmsCustomerRepository;
 	private final ObjectMapper objectMapper;
 	private final ExportNotificationConfigRepository exportNotificationConfigRepository;
+	private final CustomerMapper customerMapper;
 
 	private boolean isPmsExportEnabled() {
 		return exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.CUSTOMER)
@@ -51,7 +55,12 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 				customerModel.getEconomicCode(), customerModel.getRegisterNumber()
 		);
 		if (exists.isPresent()) {
-			throw new InternalSaleCustomException.ValidationException("Customer already exists in pms");
+			// Idempotent skip, not an error: this customer is already provisioned in PMS.
+			// Throwing here would requeue the message forever and would also make the
+			// scheduled re-send job fail on every run for the same row.
+			log.info("Customer {} already exists in PMS (pms code {}); skipping send",
+					customerModel.getId(), exists.get().getId());
+			return;
 		}
 
 		rabbitTemplate.convertAndSend(rabbitConfigPMSProperties.getExchange(),
@@ -93,6 +102,36 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 		if (!isPmsExportEnabled()) return;
 		createCustomer(customerRepository.findById(customerId).orElseThrow(
 				() -> new InternalSaleCustomException.ResourceNotFoundException("customer not found")));
+	}
+
+	/**
+	 * Compensation path (mirrors PMSLcServiceImpl#findRemittanceLcWithoutPmsId).
+	 * <p>
+	 * The response listener swallows failures on purpose so a bad message cannot be requeued
+	 * forever; that means a lost PMS response used to leave the customer without a pmsCustomerCode
+	 * permanently. This job finds exactly those rows and re-publishes them.
+	 * <p>
+	 * Two guards keep it safe to run repeatedly:
+	 *  - the query only returns rows with C_PMS_CUSTOMER_CODE IS NULL, so already-linked customers
+	 *    are never touched;
+	 *  - createCustomer(CustomerModel) skips rows that already exist in PMS, so no duplicate is
+	 *    created on the PMS side.
+	 * Each row has its own try/catch: one failing customer cannot abort the whole batch.
+	 */
+	@Override
+	public List<CustomerDTO.Info> sendCustomersWithoutPmsCode() {
+		List<CustomerModel> customers = customerRepository.findCustomersWithoutPmsCode();
+		log.info("Found {} customers without PMS code for re-send", customers.size());
+		for (CustomerModel customer : customers) {
+			try {
+				createCustomer(customer);
+			} catch (Exception ex) {
+				log.error("خطا در ارسال مجدد مشتری {} به PMS", customer.getId(), ex);
+			}
+		}
+		return customers.stream()
+				.map(customerMapper::toDTO)
+				.toList();
 	}
 
 	@RabbitListener(queues = "${rabbitmq.config.pms.queues.customer.response-queue}")

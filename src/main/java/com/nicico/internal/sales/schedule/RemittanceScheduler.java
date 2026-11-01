@@ -3,6 +3,7 @@ package com.nicico.internal.sales.schedule;
 import com.nicico.internal.sales.customer.service.CustomerService;
 import com.nicico.internal.sales.lc.repository.LcRepository;
 import com.nicico.internal.sales.pms.service.PMSLcService;
+import com.nicico.internal.sales.pms.service.PmsCustomerCreateRabbitService;
 import com.nicico.internal.sales.proforma.repository.ProformaDetailRepository;
 import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.trade.repository.TradeExtractRepository;
@@ -23,6 +24,7 @@ public class RemittanceScheduler {
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final CustomerService customerService;
 	private final PMSLcService pmsLcService;
+	private final PmsCustomerCreateRabbitService pmsCustomerCreateRabbitService;
 	private final LcRepository lcRepository;
 	private final ProcessHistoryService processHistoryService;
 	private final LcProcessService lcProcessService;
@@ -67,6 +69,12 @@ public class RemittanceScheduler {
 			pmsLcService.findRemittanceLcWithoutPmsId();
 		} catch (Exception e) {
 			log.error("خطا در اجرای اسکجول ارسال LC به PMS", e);
+		}
+
+		try {
+			pmsCustomerCreateRabbitService.sendCustomersWithoutPmsCode();
+		} catch (Exception e) {
+			log.error("خطا در اجرای اسکجول ارسال مشتری به PMS", e);
 		}
 	}
 }
