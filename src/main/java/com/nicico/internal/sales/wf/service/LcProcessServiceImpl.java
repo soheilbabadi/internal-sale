@@ -19,12 +19,17 @@ import com.nicico.internal.sales.proforma.repository.ProformaMasterRepository;
 import com.nicico.internal.sales.util.date.DateUtility;
 import com.nicico.internal.sales.wf.detection.LcStepDetector;
 import com.nicico.internal.sales.wf.dto.TaskActionDto;
+import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
@@ -36,6 +41,8 @@ public class LcProcessServiceImpl implements LcProcessService {
 	private static final String REVERSAL_PROCESS_ID_DEFAULT = "-";
 	private static final String MSG_PROFORMA_NOT_FOUND = "پیش فاکتور پیدا نشد";
 	private static final String MSG_ACCESS_DENIED_START_LC = "شما اجازه شروع فرایند اعتبار اسنادی را ندارید";
+	private static final String MSG_LC_NOT_FOUND = "اعتبار اسنادی پیدا نشد";
+	private static final int LC_SAVE_MAX_ATTEMPTS = 3;
 
 	private final ProformaMasterRepository proformaMasterRepository;
 	private final BpmsClientService bpmsClientService;
@@ -45,6 +52,13 @@ public class LcProcessServiceImpl implements LcProcessService {
 	private final ProformaDetailRepository proformaDetailRepository;
 	private final ProformaGoodItemRepository proformaGoodItemRepository;
 	private final LcStepDetector lcStepDetector;
+	private final EntityManager entityManager;
+	/**
+	 * Self-reference through the proxy so that persistLc()'s REQUIRES_NEW transaction actually applies
+	 * (a plain internal call would bypass the Spring AOP proxy). @Lazy breaks the circular dependency.
+	 */
+	@Lazy
+	private final LcProcessServiceImpl self;
 
 	@Override
 	public ProcessInstance startLcProcess(Long masterId) {
@@ -201,51 +215,131 @@ public class LcProcessServiceImpl implements LcProcessService {
 		}
 	}
 
+	/**
+	 * Refreshes a single LC row. All BPMS calls happen BEFORE any persistence, so no remote call is
+	 * ever executed inside an open DB transaction. In CANCELED/FINISHED states detectStep() is NOT
+	 * called: BPMS has already decided the final state and the acknowledgment is fixed.
+	 */
 	private void refreshOne(LcModel lc) {
+
 		// PMS id means the LC is already provisioned downstream: it is final, no BPMS lookup needed.
 		if (lc.getPmsLcId() != null) {
-			lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-			lc.setAcknowledgment(Acknowledgment.FINISHED);
-			lcRepository.save(lc);
+			applyFinalState(lc.getId(), WorkflowApproveStatus.ACCEPTED, Acknowledgment.FINISHED);
 			return;
 		}
 
-		// "-" is the placeholder used for processes that were never started (see ReversalProformaProcessServiceImpl).
-		if (lc.getProcessId() == null || REVERSAL_PROCESS_ID_DEFAULT.equals(lc.getProcessId())) {
+		String processId = lc.getProcessId();
+
+		// "-" is the placeholder used for processes that were never started
+		// (see ReversalProformaProcessServiceImpl).
+		if (processId == null
+				|| processId.isBlank()
+				|| REVERSAL_PROCESS_ID_DEFAULT.equals(processId)) {
 			return;
 		}
 
-		ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(lc.getProcessId());
-		if (status == null || status.getStatus() == null) return;
+		ProcessInsHistoryDTO status = bpmsClientService.getProcessInstanceHistory(processId);
+
+		if (status == null || status.getStatus() == null) {
+			return;
+		}
 
 		switch (status.getStatus()) {
+
 			case ACTIVE:
-				lc.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
-				lc.setAcknowledgment(lcStepDetector.detectStep(lc));
+				Acknowledgment acknowledgment = lcStepDetector.detectStep(lc);
+
+				saveLcRetryOnOptimisticLock(lc.getId(), model -> {
+					model.setWorkflowApproveStatus(WorkflowApproveStatus.IN_PROGRESS);
+					model.setAcknowledgment(acknowledgment);
+				});
 				break;
 
 			case CANCELED:
-				lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-				lc.setAcknowledgment(Acknowledgment.CANCELED);
+				// Final state decided by BPMS - acknowledgment is fixed, no detectStep().
+				applyFinalState(lc.getId(), WorkflowApproveStatus.CANCELED, Acknowledgment.CANCELED);
 				break;
 
 			case FINISHED:
-				boolean accepted = processVariableProvider.isProcessAcceptedFinally(lc.getProcessId());
+				boolean accepted = processVariableProvider.isProcessAcceptedFinally(processId);
+
 				if (accepted) {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.ACCEPTED);
-					lc.setAcknowledgment(Acknowledgment.FINISHED);
+					applyFinalState(lc.getId(), WorkflowApproveStatus.ACCEPTED, Acknowledgment.FINISHED);
 				} else {
-					lc.setWorkflowApproveStatus(WorkflowApproveStatus.CANCELED);
-					lc.setAcknowledgment(Acknowledgment.CANCELED);
+					applyFinalState(lc.getId(), WorkflowApproveStatus.CANCELED, Acknowledgment.CANCELED);
 				}
 				break;
 
 			default:
 				// Unhandled/unknown BPMS state (e.g. SUSPENDED): change nothing so the row
 				// stays IN_PROGRESS and gets retried on the next refresh.
-				return;
+				log.warn(
+						"وضعیت ناشناخته BPMS برای LC {}: {}",
+						lc.getId(),
+						status.getStatus()
+				);
 		}
-		lcRepository.save(lc);
+	}
+
+	private void applyFinalState(Long lcId,
+							  WorkflowApproveStatus approveStatus,
+							  Acknowledgment acknowledgment) {
+		saveLcRetryOnOptimisticLock(lcId, model -> {
+			model.setWorkflowApproveStatus(approveStatus);
+			model.setAcknowledgment(acknowledgment);
+		});
+	}
+
+	/**
+	 * Persists the given mutation on the LC row inside its own (REQUIRES_NEW) transaction via
+	 * {@link #persistLc}. On an optimistic-lock conflict the whole operation is retried in a fresh
+	 * transaction, up to {@link #LC_SAVE_MAX_ATTEMPTS} attempts. If every attempt fails, the stale
+	 * instance is detached from the surrounding persistence context (so it can never be written by
+	 * a later flush) before the exception is rethrown to the per-row handler in refreshStatus().
+	 */
+	private void saveLcRetryOnOptimisticLock(Long lcId, Consumer<LcModel> mutation) {
+		// The loop lives inside one try so that a conflict surviving all retries still triggers
+		// cleanup: the stale instance must never be written by a later flush of the outer context.
+		try {
+			for (int attempt = 1; ; attempt++) {
+				try {
+					self.persistLc(lcId, mutation);
+					return;
+				} catch (ObjectOptimisticLockingFailureException ex) {
+					if (attempt >= LC_SAVE_MAX_ATTEMPTS) {
+						throw ex;
+					}
+					log.warn("تعارض قفل خوش‌بینانه در ذخیره وضعیت LC {} (تلاش {})؛ تلاش مجدد",
+								lcId, attempt, ex);
+				}
+			}
+		} catch (ObjectOptimisticLockingFailureException ex) {
+			evictStaleLc(lcId);
+			throw ex;
+		}
+	}
+
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void persistLc(Long lcId, Consumer<LcModel> mutation) {
+		LcModel fresh = lcRepository.findById(lcId)
+					.orElseThrow(() -> new InternalSaleCustomException
+					.ResourceNotFoundException(MSG_LC_NOT_FOUND));
+		mutation.accept(fresh);
+		lcRepository.saveAndFlush(fresh);
+	}
+
+	/**
+	 * Best-effort cleanup after an optimistic-lock conflict: if the surrounding persistence context
+	 * still holds a managed copy of this row, drop it so a later flush cannot write the stale state.
+	 */
+	private void evictStaleLc(Long lcId) {
+		try {
+			if (entityManager.contains(entityManager.getReference(LcModel.class, lcId))) {
+				lcRepository.findById(lcId).ifPresent(entityManager::detach);
+			}
+		} catch (Exception ex) {
+			log.debug("Unable to detach stale LC {}", lcId, ex);
+		}
 	}
 
 //	private Acknowledgment applyCurrentStatus(LcModel lc) {
