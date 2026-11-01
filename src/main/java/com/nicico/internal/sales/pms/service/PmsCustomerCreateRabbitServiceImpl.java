@@ -101,7 +101,7 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 	public void createCustomer(Long customerId) {
 		if (!isPmsExportEnabled()) return;
 		createCustomer(customerRepository.findById(customerId).orElseThrow(
-				() -> new InternalSaleCustomException.ResourceNotFoundException("customer not found")));
+				() -> new InternalSaleCustomException.ResourceNotFoundException("Customer not found for id " + customerId)));
 	}
 
 	/**
