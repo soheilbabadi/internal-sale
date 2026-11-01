@@ -41,13 +41,12 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 
 		if (!isPmsExportEnabled()) return;
 
-		var customerModel = customerRepository.findByNationalCode(customer.getRequest().getNationalCode());
-//
-//        return pmsCustomerRepository.findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(customer.getRequest().get,nationalCode)
-//                .orElseThrow(() -> new InternalSaleCustomException.ValidationException("مشتری با شناسه " + goodItem.getPerformaDetailModel()
-//                        .getProformaMasterModel().getNationalCode() + " وجود ندارد")).getId();
+		CustomerModel customerModel = customerRepository.findByNationalCode(customer.getRequest().getNationalCode())
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
+						"Customer not found for national code " + customer.getRequest().getNationalCode()));
+
 		Optional<PMSCustomerModel> exists = pmsCustomerRepository.findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(
-				customerModel.get().getEconomicCode(), customerModel.get().getRegisterNumber()
+				customerModel.getEconomicCode(), customerModel.getRegisterNumber()
 		);
 		if (exists.isPresent()) {
 			throw new InternalSaleCustomException.ValidationException("Customer already exists in pms");
