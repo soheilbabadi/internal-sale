@@ -118,15 +118,11 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 		// provisioned twice in PMS. That population needs a data check before deciding whether to add
 		// an exact nationalCode fallback here.
 		//
-		// The only change from the previous behaviour is the operator: Containing (LIKE '%x%') becomes
-		// '=' , because LIKE can match a *different* customer whose code merely contains ours as a
-		// substring. OrderByIdDesc is dropped too - codes are not numerically ordered as strings, so
-		// "latest wins" was never guaranteed; with exact matching at most one row is expected.
 		// Null/blank keys are handled in Java rather than relying on SQL null semantics.
 		String economicCode = customerModel.getEconomicCode();
 		Optional<PMSCustomerModel> exists = (economicCode == null || economicCode.isBlank())
 				? Optional.empty()
-				: pmsCustomerRepository.findFirstByEconomicCodeEquals(economicCode);
+				: pmsCustomerRepository.findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(economicCode, economicCode);
 		if (exists.isPresent()) {
 			// Idempotent skip, not an error: this customer is already provisioned in PMS.
 			// Throwing here would requeue the message forever and would also make the

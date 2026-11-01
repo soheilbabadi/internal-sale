@@ -12,17 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface PMSCustomerRepository extends JpaRepository<PMSCustomerModel, Long>, JpaSpecificationExecutor<PMSCustomerModel> {
-//    Optional<PMSCustomerModel> findFirstByRegisterNumberContainingOrderByIdDesc(String registerNumber);
+
 
 	Optional<PMSCustomerModel> findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(String economicCode, String registerNumber);
-
-	Optional<PMSCustomerModel> findFirstByEconomicCodeContainingOrderByIdDesc(String economicCode);
-
-	// Exact-match variant for the duplicate-provisioning guard in PmsCustomerCreateRabbitServiceImpl.
-	// The Containing variants above build LIKE '%value%', which can match a different customer whose
-	// code merely contains ours as a substring; this one uses '=' so an identity lookup cannot produce
-	// that false positive.
-	Optional<PMSCustomerModel> findFirstByEconomicCodeEquals(String economicCode);
 
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Transactional
