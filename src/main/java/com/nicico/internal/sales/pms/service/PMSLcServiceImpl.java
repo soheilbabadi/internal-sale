@@ -213,8 +213,8 @@ public class PMSLcServiceImpl implements PMSLcService {
 	 *  - If a conflict does slip through anyway, we log it and return WITHOUT rethrowing: rethrowing
 	 *    would make the Rabbit listener container requeue and redeliver the message endlessly
 	 *    (poison-message behavior seen previously). Instead the scheduler's sendToPms job re-detects
-	 *    LCs that never received their pmsLcId (findRemittanceLcWithoutPmsId) and resends them, so a
-	 *    lost write converges on the next run.
+	 *    LCs that never received their pmsLcId (findRemittanceLcWithoutPmsId: ACCEPTED rows with
+	 *    pmsLcId IS NULL) and resends them, so a lost write converges on the next run.
 	 * <p>
 	 * Kept guards:
 	 *  - REQUIRES_NEW: the write commits independently and becomes visible immediately.

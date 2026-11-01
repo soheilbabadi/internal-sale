@@ -47,7 +47,8 @@ public class RemittanceScheduler {
 	 *     workflow ended (ACCEPTED/CANCELED + final acknowledgment) or that already carry a pmsLcId
 	 *     are settled here first.
 	 *  2. sendToPms() then picks up ONLY the rows still waiting to be provisioned downstream
-	 *     (acknowledgment = REMITTANCE and pmsLcId IS NULL - see LcRepository.findRemittanceLcWithoutPmsId).
+	 *     (workflowApproveStatus = ACCEPTED and pmsLcId IS NULL - see
+	 *     LcRepository.findRemittanceLcWithoutPmsId).
 	 *     Because step 1 runs before this, an LC that just converged to its final state is never sent
 	 *     redundantly, and conversely an LC whose async PMS response was lost (e.g. savePmsId hit an
 	 *     optimistic-lock conflict and skipped the write) gets resent here instead of staying stuck.

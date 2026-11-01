@@ -31,7 +31,7 @@ public interface LcRepository extends JpaRepository<LcModel, Long>, JpaSpecifica
 
 	List<LcModel> findByProcessId(String processId);
 
-	@Query(value = "SELECT * FROM t_ins_lc WHERE C_ACKNOWLEDGMENT = 'REMITTANCE' AND C_PMS_LC_ID IS NULL", nativeQuery = true)
+	@Query(value = "SELECT * FROM t_ins_lc WHERE C_WORKFLOW_APPROVE_STATUS = 'ACCEPTED' AND C_PMS_LC_ID IS NULL", nativeQuery = true)
 	List<LcModel> findRemittanceLcWithoutPmsId();
 
 	List<LcModel> findAllByProformaMasterId(Long proformaMasterId);
