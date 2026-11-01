@@ -184,12 +184,19 @@ public class LcProcessServiceImpl implements LcProcessService {
 	 */
 	@Override
 	public void refreshStatus() {
-		List<LcModel> lcList = lcRepository.findAllByWorkflowApproveStatusIn(List.of(WorkflowApproveStatus.IN_PROGRESS));
+		List<LcModel> lcList =
+				lcRepository.findAllByWorkflowApproveStatusIn(
+						List.of(WorkflowApproveStatus.IN_PROGRESS));
+
 		for (LcModel lc : lcList) {
 			try {
 				refreshOne(lc);
 			} catch (Exception ex) {
-				log.error("خطا در به روزرسانی وضعیت اعتبار اسنادی {}: {}", lc.getId(), ex.getMessage(), ex);
+				log.error(
+						"خطا در بروزرسانی وضعیت LC {}",
+						lc.getId(),
+						ex
+				);
 			}
 		}
 	}
