@@ -22,7 +22,6 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabbitService {
-	private static final String CONFIG_NOT_FOUND_MESSAGE = "تنظیمات پیکربندی وجود ندارد";
 	private final RabbitTemplate rabbitTemplate;
 	private final RabbitConfigPMSProperties rabbitConfigPMSProperties;
 	private final PMSProperties pmsProperties;
@@ -31,12 +30,16 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 	private final ObjectMapper objectMapper;
 	private final ExportNotificationConfigRepository exportNotificationConfigRepository;
 
+	private boolean isPmsExportEnabled() {
+		return exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.CUSTOMER)
+				.map(config -> Boolean.TRUE.equals(config.getSendPms()))
+				.orElse(false);
+	}
+
 	@Override
 	public void createCustomer(PMSCreateCustomerDto.RabbitListenerRequestDTO customer) {
 
-		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.CUSTOMER)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
-		if (exportConfig.getSendPms() == false) return;
+		if (!isPmsExportEnabled()) return;
 
 		var customerModel = customerRepository.findByNationalCode(customer.getRequest().getNationalCode());
 //
@@ -58,9 +61,7 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 
 	@Override
 	public void createCustomer(CustomerModel customer) {
-		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.CUSTOMER)
-				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
-		if (exportConfig.getSendPms() == false) return;
+		if (!isPmsExportEnabled()) return;
 
 		PMSCreateCustomerDto.RabbitListenerRequestDTO requestDTO = PMSCreateCustomerDto.RabbitListenerRequestDTO.builderr().id(customer.getId())
 				.request(PMSCreateCustomerDto.Create.builderr()
@@ -88,9 +89,7 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 
 	@Override
 	public void createCustomer(Long customerId) {
-		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.CUSTOMER)
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(CONFIG_NOT_FOUND_MESSAGE));
-		if (exportConfig.getSendPms() == false) return;
+		if (!isPmsExportEnabled()) return;
 		createCustomer(customerRepository.findById(customerId).orElseThrow(
 				() -> new InternalSaleCustomException.ResourceNotFoundException("customer not found")));
 	}
