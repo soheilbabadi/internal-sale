@@ -79,7 +79,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 //		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.LETTER_OF_CREDIT)
 //				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 //		log.info(exportConfig.toString());
-//		if (exportConfig.getSendPms() == false) return;
+//		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
 
 
 		List<LcModel> lcList = lcRepository.findByMasterId(proformaMasterId);
@@ -120,7 +120,7 @@ public class PMSLcServiceImpl implements PMSLcService {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.LETTER_OF_CREDIT)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (exportConfig.getSendPms() == false) return;
+		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
 
 
 		PMSLcDTO.Create o = buildPmsLcCreateDto(model, username);

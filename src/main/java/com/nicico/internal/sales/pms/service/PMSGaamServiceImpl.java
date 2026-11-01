@@ -104,7 +104,7 @@ public class PMSGaamServiceImpl implements PMSGaamService {
 		var exportConfig = exportNotificationConfigRepository.findByEntityType(EntityTypeEnum.LETTER_OF_CREDIT)
 				.orElseThrow(() -> new InternalSaleCustomException.ValidationException(CONFIG_NOT_FOUND_MESSAGE));
 		log.info(exportConfig.toString());
-		if (exportConfig.getSendPms() == false) return;
+		if (!Boolean.TRUE.equals(exportConfig.getSendPms())) return;
 
 		PMSLcDTO.Create o = buildPmsGaamCreateDto(model, username);
 		ProformaGoodItemModel proformaGoodItemModel = proformaGoodItemRepository.findLatestActiveItemWithProformaMasterId(model.getProformaMasterId());
