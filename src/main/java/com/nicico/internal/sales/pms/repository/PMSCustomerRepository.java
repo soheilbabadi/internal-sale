@@ -16,6 +16,8 @@ public interface PMSCustomerRepository extends JpaRepository<PMSCustomerModel, L
 
 	Optional<PMSCustomerModel> findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(String economicCode, String registerNumber);
 
+	Optional<PMSCustomerModel> findFirstByEconomicCodeContainingOrderByIdDesc(String economicCode);
+
 	@Modifying(clearAutomatically = true, flushAutomatically = true)
 	@Transactional
 	@Query(value = "BEGIN dbms_mview.refresh('MVW_DBLINK_CUSTOMER1TBL','C'); END;", nativeQuery = true)

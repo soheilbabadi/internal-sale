@@ -90,8 +90,13 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
 						"Customer not found for national code " + request.getRequest().getNationalCode()));
 
-		Optional<PMSCustomerModel> exists = pmsCustomerRepository.findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(
-				customerModel.getEconomicCode(), customerModel.getRegisterNumber()
+		// Only economicCode is used as the identity key here. registerNumber is not a reliable
+		// identifier: CustomerServiceImpl fills it with RandomUtils.nextInt(...) when absent,
+		// TradeExtractServiceImpl overloads it with the buyer national code, and
+		// ProformaValidationServiceImpl requires it to equal economicCode. Matching on it can
+		// therefore produce a false positive - and a false positive silently drops the send.
+		Optional<PMSCustomerModel> exists = pmsCustomerRepository.findFirstByEconomicCodeContainingOrderByIdDesc(
+				customerModel.getEconomicCode()
 		);
 		if (exists.isPresent()) {
 			// Idempotent skip, not an error: this customer is already provisioned in PMS.
