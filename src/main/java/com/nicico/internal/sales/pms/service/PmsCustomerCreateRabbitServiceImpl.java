@@ -42,37 +42,25 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 				.orElse(false);
 	}
 
+	/**
+	 * Single entry point for provisioning a customer in PMS.
+	 * <p>
+	 * Loads the row by internal id, builds the Rabbit payload and publishes it. The two former
+	 * overloads (one taking the Rabbit payload, one taking {@code CustomerModel}) were a
+	 * pass-through and a pure builder that shared this name; they are now private methods whose
+	 * names state what they actually do.
+	 */
 	@Override
-	public void createCustomer(PMSCreateCustomerDto.RabbitListenerRequestDTO customer) {
-
+	public void createCustomer(Long customerId) {
 		if (!isPmsExportEnabled()) return;
 
-		CustomerModel customerModel = customerRepository.findByNationalCode(customer.getRequest().getNationalCode())
-				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
-						"Customer not found for national code " + customer.getRequest().getNationalCode()));
+		CustomerModel customer = customerRepository.findById(customerId).orElseThrow(
+				() -> new InternalSaleCustomException.ResourceNotFoundException("Customer not found for id " + customerId));
 
-		Optional<PMSCustomerModel> exists = pmsCustomerRepository.findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(
-				customerModel.getEconomicCode(), customerModel.getRegisterNumber()
-		);
-		if (exists.isPresent()) {
-			// Idempotent skip, not an error: this customer is already provisioned in PMS.
-			// Throwing here would requeue the message forever and would also make the
-			// scheduled re-send job fail on every run for the same row.
-			log.info("Customer {} already exists in PMS (pms code {}); skipping send",
-					customerModel.getId(), exists.get().getId());
-			return;
-		}
-
-		rabbitTemplate.convertAndSend(rabbitConfigPMSProperties.getExchange(),
-				rabbitConfigPMSProperties.getQueues().getCustomer().getRoutingKey(),
-				customer
-		);
+		sendToPms(buildRequestDTO(customer));
 	}
 
-	@Override
-	public void createCustomer(CustomerModel customer) {
-		if (!isPmsExportEnabled()) return;
-
+	private PMSCreateCustomerDto.RabbitListenerRequestDTO buildRequestDTO(CustomerModel customer) {
 		PMSCreateCustomerDto.RabbitListenerRequestDTO requestDTO = PMSCreateCustomerDto.RabbitListenerRequestDTO.builderr().id(customer.getId())
 				.request(PMSCreateCustomerDto.Create.builderr()
 						.name(customer.getName())
@@ -94,14 +82,30 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 		if (customer.getDescription() != null && !customer.getDescription().isBlank())
 			requestDTO.getRequest().setDescription(String.format("%s ------ %s", requestDTO.getRequest().getDescription(),
 					customer.getDescription()));
-		createCustomer(requestDTO);
+		return requestDTO;
 	}
 
-	@Override
-	public void createCustomer(Long customerId) {
-		if (!isPmsExportEnabled()) return;
-		createCustomer(customerRepository.findById(customerId).orElseThrow(
-				() -> new InternalSaleCustomException.ResourceNotFoundException("Customer not found for id " + customerId)));
+	private void sendToPms(PMSCreateCustomerDto.RabbitListenerRequestDTO request) {
+		CustomerModel customerModel = customerRepository.findByNationalCode(request.getRequest().getNationalCode())
+				.orElseThrow(() -> new InternalSaleCustomException.ResourceNotFoundException(
+						"Customer not found for national code " + request.getRequest().getNationalCode()));
+
+		Optional<PMSCustomerModel> exists = pmsCustomerRepository.findFirstByEconomicCodeContainingOrRegisterNumberContainingOrderByIdDesc(
+				customerModel.getEconomicCode(), customerModel.getRegisterNumber()
+		);
+		if (exists.isPresent()) {
+			// Idempotent skip, not an error: this customer is already provisioned in PMS.
+			// Throwing here would requeue the message forever and would also make the
+			// scheduled re-send job fail on every run for the same row.
+			log.info("Customer {} already exists in PMS (pms code {}); skipping send",
+					customerModel.getId(), exists.get().getId());
+			return;
+		}
+
+		rabbitTemplate.convertAndSend(rabbitConfigPMSProperties.getExchange(),
+				rabbitConfigPMSProperties.getQueues().getCustomer().getRoutingKey(),
+				request
+		);
 	}
 
 	/**
@@ -114,7 +118,7 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 	 * Two guards keep it safe to run repeatedly:
 	 *  - the query only returns rows with C_PMS_CUSTOMER_CODE IS NULL, so already-linked customers
 	 *    are never touched;
-	 *  - createCustomer(CustomerModel) skips rows that already exist in PMS, so no duplicate is
+	 *  - sendToPms skips rows that already exist in PMS, so no duplicate is
 	 *    created on the PMS side.
 	 * Each row has its own try/catch: one failing customer cannot abort the whole batch.
 	 */
@@ -124,7 +128,7 @@ public class PmsCustomerCreateRabbitServiceImpl implements PmsCustomerCreateRabb
 		log.info("Found {} customers without PMS code for re-send", customers.size());
 		for (CustomerModel customer : customers) {
 			try {
-				createCustomer(customer);
+				createCustomer(customer.getId());
 			} catch (Exception ex) {
 				log.error("خطا در ارسال مجدد مشتری {} به PMS", customer.getId(), ex);
 			}

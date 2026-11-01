@@ -1,16 +1,14 @@
 package com.nicico.internal.sales.pms.service;
 
 import com.nicico.internal.sales.customer.dto.CustomerDTO;
-import com.nicico.internal.sales.customer.model.CustomerModel;
-import com.nicico.internal.sales.pms.dto.PMSCreateCustomerDto;
 
 import java.util.List;
 
 public interface PmsCustomerCreateRabbitService {
-	void createCustomer(PMSCreateCustomerDto.RabbitListenerRequestDTO customer);
-
-	void createCustomer(CustomerModel customer);
-
+	/**
+	 * Single entry point for provisioning a customer in PMS: loads the row by internal id,
+	 * builds the Rabbit payload and publishes it.
+	 */
 	void createCustomer(Long customerId);
 
 	/**
